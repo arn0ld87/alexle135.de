@@ -22,7 +22,7 @@ jobs:
 
       - name: Setup pnpm
         # Version stammt aus "packageManager" in package.json (Single Source of Truth).
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Setup Node
         uses: actions/setup-node@v4
