@@ -1,0 +1,151 @@
+---
+import V2Layout from '../../layouts/V2Layout.astro';
+
+const lastUpdated = '30. April 2026';
+---
+
+<V2Layout
+  title="Datenschutzerklärung – Alexander Schneider"
+  description="Datenschutzerklärung von Alexander Schneider (alexle135.de) gemäß DSGVO und BDSG: verantwortliche Stelle, verarbeitete Daten, Auftragsverarbeiter, Cookies und Betroffenenrechte."
+>
+  <main class="v2-shell py-20 md:py-28 lg:py-36">
+    <header class="mb-16 border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pb-12">
+      <p class="font-mono text-[0.7rem] uppercase tracking-[0.3em] text-[color:var(--color-neon-orange)] mb-4">Rechtliches</p>
+      <h1 class="font-editorial text-[clamp(3.5rem,8vw,6.5rem)] leading-[0.9] tracking-[-0.06em] text-[color:var(--color-mono-50)]">
+        Datenschutz&shy;erklärung
+      </h1>
+      <p class="mt-6 font-mono text-xs uppercase tracking-widest text-[color:var(--color-mono-400)]">Stand: {lastUpdated}</p>
+    </header>
+
+    <article class="v2-prose max-w-4xl">
+
+      <h2 id="1-verantwortlicher">1. Verantwortlicher</h2>
+      <p>Verantwortlicher im Sinne der Datenschutz-Grundverordnung (DSGVO) und sonstiger nationaler Datenschutzgesetze ist:</p>
+      <p>
+        Alexander Schneider<br />
+        Georg-Schumann-Straße 148<br />
+        04159 Leipzig<br />
+        Deutschland
+      </p>
+      <p>E-Mail: <a href="mailto:schneider@alexle135.de">schneider@alexle135.de</a></p>
+
+      <h2 id="2-allgemeines-zur-datenverarbeitung">2. Allgemeines zur Datenverarbeitung</h2>
+      <p>Personenbezogene Daten verarbeite ich nur, soweit dies zur Bereitstellung einer funktionsfähigen Website sowie meiner Inhalte und Leistungen erforderlich ist oder Sie eingewilligt haben. Rechtsgrundlagen sind insbesondere:</p>
+      <ul>
+        <li>Art. 6 Abs. 1 lit. a DSGVO – Einwilligung (z.&nbsp;B. Cookie-Banner, Tracking)</li>
+        <li>Art. 6 Abs. 1 lit. b DSGVO – Vertragserfüllung und vorvertragliche Maßnahmen</li>
+        <li>Art. 6 Abs. 1 lit. c DSGVO – rechtliche Verpflichtung</li>
+        <li>Art. 6 Abs. 1 lit. f DSGVO – berechtigtes Interesse (z.&nbsp;B. Server-Logs zur IT-Sicherheit)</li>
+        <li>§ 25 Abs. 1 TDDDG für das Speichern von und Zugreifen auf Informationen in Endgeräten</li>
+      </ul>
+      <p>Personenbezogene Daten werden gelöscht, sobald der Zweck der Verarbeitung entfällt und keine gesetzlichen Aufbewahrungsfristen entgegenstehen.</p>
+
+      <h2 id="3-hosting-und-bereitstellung">3. Hosting und Bereitstellung der Website</h2>
+      <h3 id="3-1-server-hosting">3.1 Server-Hosting</h3>
+      <p>Die Website wird auf einem dedizierten Server in einem Rechenzentrum in Deutschland betrieben. Mit dem Hoster besteht ein Vertrag zur Auftragsverarbeitung gemäß Art. 28 DSGVO. Beim Aufruf der Website werden technische Verbindungsdaten (Server-Logs) verarbeitet (siehe Abschnitt 4.1).</p>
+
+      <h3 id="3-2-cloudflare-cdn">3.2 Content Delivery Network (Cloudflare)</h3>
+      <p>Zur Auslieferung, zur Beschleunigung sowie zum Schutz vor Angriffen (DDoS, Bot-Traffic) ist der Website ein Content Delivery Network von <strong>Cloudflare, Inc.</strong>, 101 Townsend St, San Francisco, CA 94107, USA, vorgeschaltet. Beim Seitenaufruf werden Verbindungsdaten – insbesondere IP-Adresse, Datum/Uhrzeit, Browser-Identifikation und aufgerufene URL – über Server von Cloudflare geleitet und kurzzeitig zu Sicherheits- und Performance-Zwecken verarbeitet.</p>
+      <p>Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an einer sicheren und performanten Bereitstellung der Website). Mit Cloudflare besteht ein Auftragsverarbeitungsvertrag, der die EU-Standardvertragsklauseln (Art. 46 Abs. 2 lit. c DSGVO) sowie zusätzliche technische und organisatorische Maßnahmen (u.&nbsp;a. Verschlüsselung) umfasst, um Datenübermittlungen in die USA abzusichern.</p>
+      <p>Weitere Informationen: <a href="https://www.cloudflare.com/de-de/privacypolicy/" target="_blank" rel="noopener noreferrer">cloudflare.com/de-de/privacypolicy/</a></p>
+
+      <h3 id="3-3-tls">3.3 SSL-/TLS-Verschlüsselung</h3>
+      <p>Aus Sicherheitsgründen und zum Schutz der Übertragung vertraulicher Inhalte nutze ich eine TLS-Verschlüsselung. Eine verschlüsselte Verbindung erkennen Sie am „https://" in der Adresszeile Ihres Browsers sowie am Schloss-Symbol.</p>
+
+      <h2 id="4-datenerfassung-auf-dieser-website">4. Datenerfassung auf dieser Website</h2>
+
+      <h3 id="4-1-server-logs">4.1 Server-Log-Dateien</h3>
+      <p>Beim Aufruf der Website erhebt das System automatisch technische Daten und speichert sie in sogenannten Server-Log-Dateien. Erfasst werden:</p>
+      <ul>
+        <li>IP-Adresse des anfragenden Rechners</li>
+        <li>Datum und Uhrzeit des Zugriffs</li>
+        <li>Name und URL der abgerufenen Datei</li>
+        <li>Übertragene Datenmenge und HTTP-Statuscode</li>
+        <li>Referrer-URL</li>
+        <li>Browsertyp, Browserversion und verwendetes Betriebssystem</li>
+      </ul>
+      <p>Die Verarbeitung erfolgt zur Sicherstellung des Betriebs, zur IT-Sicherheit (Erkennung und Abwehr von Angriffen) sowie zur Fehleranalyse. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO. Die Logs werden spätestens nach 14 Tagen gelöscht oder anonymisiert. Eine Zusammenführung mit anderen Datenquellen erfolgt nicht.</p>
+
+      <h3 id="4-2-cookies-localstorage">4.2 Cookies und Local Storage</h3>
+      <p>Diese Website verwendet Cookies und vergleichbare Technologien (Local Storage). Cookies sind kleine Textdateien, die im Browser gespeichert werden.</p>
+      <p><strong>Technisch notwendige Speicherungen</strong> (Rechtsgrundlage: § 25 Abs. 2 Nr. 2 TDDDG i.&nbsp;V.&nbsp;m. Art. 6 Abs. 1 lit. f DSGVO):</p>
+      <ul>
+        <li><code>cookie-consent</code> (Local Storage) – speichert Ihre Cookie-Entscheidung, damit der Banner nicht erneut erscheint.</li>
+        <li>Admin-Session-Cookies und <code>csrf-token</code> – nur im Admin-Bereich nach Login. Sie dienen ausschließlich der Authentifizierung und CSRF-Abwehr und werden nur gesetzt, wenn ich mich aktiv einlogge.</li>
+      </ul>
+      <p><strong>Einwilligungspflichtige Cookies</strong> (Rechtsgrundlage: § 25 Abs. 1 TDDDG i.&nbsp;V.&nbsp;m. Art. 6 Abs. 1 lit. a DSGVO): Cookies und Verarbeitungen für die Reichweitenmessung (siehe Abschnitt 5.1) werden erst gesetzt, wenn Sie über den Cookie-Banner einwilligen. Sie können Ihre Einwilligung jederzeit widerrufen, indem Sie im Browser den Eintrag <code>cookie-consent</code> für diese Domain im Local Storage entfernen oder die Seite im privaten Modus öffnen.</p>
+
+      <h3 id="4-3-kontaktformular">4.3 Kontaktformular</h3>
+      <p>Wenn Sie das Kontaktformular auf <a href="/kontakt/">/kontakt/</a> nutzen, werden folgende Daten verarbeitet:</p>
+      <ul>
+        <li>Name (Pflichtfeld)</li>
+        <li>E-Mail-Adresse (Pflichtfeld)</li>
+        <li>Nachrichtentext (Pflichtfeld)</li>
+        <li>Zeitpunkt der Übermittlung</li>
+        <li>ein gesalzener, nicht rückführbarer Hash Ihrer IP-Adresse zur Spam- und Missbrauchsabwehr</li>
+      </ul>
+      <p>Zweck der Verarbeitung ist die Bearbeitung Ihrer Anfrage. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO bei vorvertraglichen Anfragen, im Übrigen Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an der Beantwortung von Anfragen). Die Daten werden in einer eigenen PostgreSQL-Datenbank gespeichert und gelöscht, sobald die Anfrage abschließend bearbeitet ist und keine Aufbewahrungspflichten bestehen, spätestens jedoch nach 24 Monaten.</p>
+      <p>Zur Spam-Abwehr setze ich ein Honeypot-Feld sowie eine IP-basierte Rate-Limit-Sperre (3 Anfragen pro 10 Minuten) ein. Die IP-Adresse selbst wird dabei nicht im Klartext gespeichert.</p>
+
+      <h3 id="4-4-admin-login">4.4 Anmeldung im Admin-Bereich</h3>
+      <p>Der Admin-Bereich unter <code>/admin/</code> ist ausschließlich für mich als Betreiber zugänglich. Eine Registrierung oder Anmeldung als Nutzerin oder Nutzer ist auf dieser Website nicht vorgesehen. Bei der Anmeldung werden Authentifizierungs-Cookies gesetzt (siehe 4.2).</p>
+
+      <h2 id="5-analyse-und-tracking">5. Analyse und Reichweitenmessung</h2>
+
+      <h3 id="5-1-google-analytics">5.1 Google Analytics 4</h3>
+      <p>Diese Website nutzt nach Ihrer ausdrücklichen Einwilligung den Webanalysedienst <strong>Google Analytics 4</strong>. Anbieter ist die <strong>Google Ireland Limited</strong>, Gordon House, Barrow Street, Dublin 4, Irland („Google"). Die Muttergesellschaft Google LLC, 1600 Amphitheatre Parkway, Mountain View, CA 94043, USA, kann Daten in den USA verarbeiten.</p>
+      <p>Google Analytics ermöglicht es, das Verhalten der Websitebesucher zu analysieren und Reichweiten zu messen. Dabei werden u.&nbsp;a. folgende Daten verarbeitet:</p>
+      <ul>
+        <li>aufgerufene Seiten und Verweildauer</li>
+        <li>ungefährer Standort (auf Stadt-/Regionsebene)</li>
+        <li>Geräte- und Browser-Informationen</li>
+        <li>gekürzte IP-Adresse</li>
+        <li>Klick- und Interaktionsdaten</li>
+      </ul>
+      <p><strong>Consent Mode v2 und IP-Anonymisierung:</strong> Google Analytics ist mit aktiviertem Consent Mode v2 eingebunden. Solange Sie nicht eingewilligt haben, werden weder Analytics- noch Werbe-Cookies gesetzt; es werden lediglich anonymisierte, modellierte Statistiken erzeugt. Erst nach Ihrer Einwilligung über den Cookie-Banner („Akzeptieren") wird der Analytics-Speicher freigegeben. Die IP-Adresse wird vor jeder Speicherung durch Google gekürzt (<code>anonymize_ip</code>).</p>
+      <p>Rechtsgrundlage ist Art. 6 Abs. 1 lit. a DSGVO und § 25 Abs. 1 TDDDG (Einwilligung). Sie können Ihre Einwilligung jederzeit mit Wirkung für die Zukunft widerrufen, indem Sie im Cookie-Banner „Ablehnen" wählen oder den Eintrag <code>cookie-consent</code> aus dem Local Storage entfernen.</p>
+      <p><strong>Drittlandtransfer:</strong> Google ist unter dem EU-US Data Privacy Framework zertifiziert. Mit Google besteht zudem ein Auftragsverarbeitungsvertrag mit EU-Standardvertragsklauseln. Trotz dieser Maßnahmen kann ein Zugriff durch US-Behörden nicht vollständig ausgeschlossen werden.</p>
+      <p>Speicherdauer: Nutzer- und Ereignisdaten werden bei Google standardmäßig für 14 Monate gespeichert.</p>
+      <p>Weitere Informationen: <a href="https://policies.google.com/privacy?hl=de" target="_blank" rel="noopener noreferrer">policies.google.com/privacy</a> · Opt-Out-Browser-Add-on: <a href="https://tools.google.com/dlpage/gaoptout?hl=de" target="_blank" rel="noopener noreferrer">tools.google.com/dlpage/gaoptout</a>.</p>
+
+      <h2 id="6-auftragsverarbeiter-und-drittdienste">6. Auftragsverarbeiter und eingebundene Dienste</h2>
+
+      <h3 id="6-1-datenbank-auth">6.1 Eigene Datenbank und Admin-Authentifizierung</h3>
+      <p>Für die Speicherung von Kontaktanfragen und die Authentifizierung im Admin-Bereich nutze ich eine eigene PostgreSQL-Datenbank und Better Auth innerhalb der Server-Infrastruktur dieser Website.</p>
+      <p>Verarbeitete Daten: Inhalte des Kontaktformulars (Name, E-Mail, Nachricht, Zeitstempel, IP-Hash) sowie technisch notwendige Admin-Session-Daten. Rechtsgrundlage: Art. 6 Abs. 1 lit. b und f DSGVO.</p>
+
+      <h2 id="7-betroffenenrechte">7. Ihre Rechte als betroffene Person</h2>
+      <p>Sie haben gegenüber mir als Verantwortlichem folgende Rechte hinsichtlich der Sie betreffenden personenbezogenen Daten:</p>
+      <ul>
+        <li><strong>Auskunft</strong> (Art. 15 DSGVO)</li>
+        <li><strong>Berichtigung</strong> unrichtiger Daten (Art. 16 DSGVO)</li>
+        <li><strong>Löschung</strong> („Recht auf Vergessenwerden", Art. 17 DSGVO)</li>
+        <li><strong>Einschränkung der Verarbeitung</strong> (Art. 18 DSGVO)</li>
+        <li><strong>Datenübertragbarkeit</strong> (Art. 20 DSGVO)</li>
+        <li><strong>Widerspruch</strong> gegen die Verarbeitung (Art. 21 DSGVO)</li>
+        <li><strong>Widerruf erteilter Einwilligungen</strong> mit Wirkung für die Zukunft (Art. 7 Abs. 3 DSGVO)</li>
+      </ul>
+      <p>Zur Ausübung Ihrer Rechte genügt eine formlose Nachricht an <a href="mailto:schneider@alexle135.de">schneider@alexle135.de</a>.</p>
+
+      <h3 id="7-1-widerspruchsrecht">7.1 Hinweis auf Ihr Widerspruchsrecht (Art. 21 DSGVO)</h3>
+      <p>Sie haben das Recht, aus Gründen, die sich aus Ihrer besonderen Situation ergeben, jederzeit gegen die Verarbeitung Sie betreffender personenbezogener Daten Widerspruch einzulegen, die auf Grundlage von Art. 6 Abs. 1 lit. f DSGVO erfolgt.</p>
+
+      <h2 id="8-beschwerderecht">8. Beschwerderecht bei der Aufsichtsbehörde</h2>
+      <p>Unbeschadet anderweitiger Rechtsbehelfe steht Ihnen ein Beschwerderecht bei einer Datenschutz-Aufsichtsbehörde zu, insbesondere in dem Mitgliedstaat Ihres Aufenthaltsorts, Ihres Arbeitsplatzes oder des Orts des mutmaßlichen Verstoßes. Für mich zuständige Aufsichtsbehörde:</p>
+      <p>
+        <strong>Sächsischer Datenschutzbeauftragter</strong><br />
+        Devrientstraße 5<br />
+        01067 Dresden<br />
+        Telefon: +49 351 85471-101<br />
+        E-Mail: <a href="mailto:saechsdsb@slt.sachsen.de">saechsdsb@slt.sachsen.de</a><br />
+        Web: <a href="https://www.saechsdsb.de" target="_blank" rel="noopener noreferrer">www.saechsdsb.de</a>
+      </p>
+
+      <h2 id="9-keine-automatisierte-entscheidung">9. Keine automatisierte Entscheidungsfindung</h2>
+      <p>Eine automatisierte Entscheidungsfindung einschließlich Profiling im Sinne von Art. 22 DSGVO findet nicht statt.</p>
+
+      <h2 id="10-aktualitaet">10. Aktualität dieser Datenschutzerklärung</h2>
+      <p>Diese Datenschutzerklärung ist aktuell gültig und hat den Stand {lastUpdated}. Durch die Weiterentwicklung der Website oder geänderte gesetzliche bzw. behördliche Vorgaben kann es notwendig werden, diese Datenschutzerklärung anzupassen. Die jeweils aktuelle Fassung ist jederzeit unter <a href="/legal/datenschutz/">/legal/datenschutz/</a> abrufbar.</p>
+    </article>
+  </main>
+</V2Layout>

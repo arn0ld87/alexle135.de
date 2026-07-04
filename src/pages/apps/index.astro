@@ -1,0 +1,97 @@
+---
+import V2Layout from '../../layouts/V2Layout.astro';
+import PageIntro from '../../components/site/PageIntro.astro';
+import CTASection from '../../components/site/CTASection.astro';
+
+const apps = [
+  {
+    index: '01',
+    title: 'Linux Terminal-Missionen',
+    description: 'Lerne Linux, Docker und Git spielerisch mit interaktiven Terminal-Simulationen.',
+    href: '/projekte/terminal-missionen/app/',
+    stack: 'Linux / DevOps / Interaktiv',
+    proof: '6 Tutorial-Tracks mit Echtzeit-Feedback',
+  },
+  {
+    index: '02',
+    title: 'Windows Terminal-Missionen',
+    description: 'Lerne Windows CMD und PowerShell mit interaktiven Terminal-Simulationen.',
+    href: '/projekte/windows-terminal-missionen/',
+    stack: 'Windows / PowerShell / Interaktiv',
+    proof: 'CMD, PowerShell, Diskpart und Scheduled Tasks',
+  },
+  {
+    index: '03',
+    title: 'Docker Compose Builder',
+    description: 'Klick dir deinen Docker-Stack zusammen. Fertige YAML zum Kopieren.',
+    href: '/projekte/compose-builder/',
+    stack: 'DevOps / Docker / Tool',
+    proof: 'Service-Auswahl, YAML-Generator, Copy & Paste',
+  },
+  {
+    index: '04',
+    title: 'ROI-Rechner',
+    description: 'Berechne, wie viel Zeit und Geld du mit Automatisierung sparst.',
+    href: '/apps/roi-rechner/',
+    stack: 'Kalkulator / Business',
+    proof: 'Zeitersparnis, Kostenanalyse, ROI-Berechnung',
+  },
+  {
+    index: '05',
+    title: 'IHK Radar',
+    description: 'FISI-Prüfungstracker. Behalte den Überblick über alle Themen.',
+    href: '/apps/ihk-radar/',
+    stack: 'FISI / Lernen / Tracker',
+    proof: '60 Themen, Fortschritt speichern, Kategorien',
+  },
+];
+---
+
+<V2Layout
+  title="Tools & Apps"
+  description="Interaktive Tools für Docker, DevOps und Produktivität - direkt im Browser nutzbar."
+>
+  <main class="v2-shell py-20 md:py-28">
+    <PageIntro
+      kicker="Tools & Apps"
+      title="DevOps & Produktivitäts-Tools"
+      lead="Interaktive Tools für Docker, Automatisierung und Prüfungsvorbereitung - direkt im Browser."
+      aside="Alle Tools laufen komplett im Browser. Kein Account, kein Setup."
+    />
+
+    <!-- App-Liste -->
+    <section class="mt-16 space-y-0 divide-y divide-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)]">
+      {apps.map((app) => (
+        <a href={app.href} class="group grid gap-4 py-8 md:grid-cols-[3rem_1fr_minmax(12rem,0.4fr)] md:items-start transition-colors hover:bg-[color:color-mix(in_srgb,var(--color-mono-50)_3%,transparent)] -mx-4 px-4 rounded-sm">
+          <span class="font-mono text-sm text-[color:var(--color-mono-400)] tabular-nums">{app.index}</span>
+
+          <div class="space-y-2">
+            <h2 class="font-editorial text-[clamp(1.6rem,3vw,2.4rem)] leading-[1.1] tracking-[-0.03em] text-[color:var(--color-mono-50)] group-hover:text-[color:var(--color-neon-orange)] transition-colors">{app.title}</h2>
+            <p class="max-w-2xl text-sm leading-7 text-[color:var(--color-mono-300)]">{app.description}</p>
+            <p class="text-xs font-mono uppercase tracking-[0.18em] text-[color:var(--color-mono-400)]">{app.proof}</p>
+          </div>
+
+          <div class="md:text-right">
+            <span class="v2-kicker">{app.stack}</span>
+            <span class="mt-3 inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.2em] text-[color:var(--color-neon-orange)] opacity-0 group-hover:opacity-100 transition-opacity">
+              Öffnen <span aria-hidden="true">&rarr;</span>
+            </span>
+          </div>
+        </a>
+      ))}
+    </section>
+
+    <!-- CTA -->
+    <div class="mt-20">
+      <CTASection
+        kicker="Mehr sehen"
+        title="Projekte, an denen man Arbeitsweise erkennt."
+        body="Tools sind nur ein Teil. Hier findest du alle Projekte mit Hintergrund und technischem Kontext."
+        primaryHref="/projekte/"
+        primaryLabel="Projekte ansehen"
+        secondaryHref="/kontakt/"
+        secondaryLabel="Kontakt"
+      />
+    </div>
+  </main>
+</V2Layout>

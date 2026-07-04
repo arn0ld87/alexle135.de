@@ -1,0 +1,298 @@
+---
+import { getCollection, getEntry, render, type CollectionEntry } from 'astro:content';
+import V2Layout from '../../layouts/V2Layout.astro';
+import RelatedPosts from '../../components/v2/RelatedPosts.astro';
+import { getReadingTime } from '../../utils/readingTime';
+import { getRelatedPosts, isPublishedBlogPost } from '../../utils/content';
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+  const posts = (await getCollection('blog')).filter(isPublishedBlogPost);
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { slug } = Astro.params;
+let post: CollectionEntry<'blog'> | undefined = Astro.props.post;
+
+if (!post && slug) {
+  post = await getEntry('blog', slug);
+}
+
+// Gleiche Publish-Regel wie getStaticPaths (Draft + Future-Date-Guard), statt
+// nur draft zu prüfen — sonst wären zukünftig datierte Posts direkt erreichbar.
+if (!post || !isPublishedBlogPost(post)) {
+  return Astro.redirect('/404');
+}
+
+const { Content } = await render(post);
+
+const formattedDate = post.data.publishedAt
+  ? new Intl.DateTimeFormat('de-DE', {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+    }).format(new Date(post.data.publishedAt))
+  : null;
+
+const readingTime = post.data.readingTime || getReadingTime(post.body || '');
+
+const allPosts = await getCollection('blog');
+const relatedPosts = getRelatedPosts(post, allPosts);
+
+// Schema — BlogPosting + optional FAQPage, zusammengefasst im @graph
+const blogPostingNode = {
+  "@type": "BlogPosting",
+  "headline": post.data.title,
+  "description": post.data.summary,
+  "author": { "@id": "https://alexle135.de/#person" },
+  "publisher": { "@id": "https://alexle135.de/#person" },
+  "datePublished": post.data.publishedAt,
+  "dateModified": post.data.updatedAt ?? post.data.publishedAt,
+  "image": post.data.heroImage ? new URL(post.data.heroImage, Astro.site).toString() : undefined,
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": new URL(Astro.url.pathname, Astro.site).toString()
+  }
+};
+
+const faqNode = post.data.faq && post.data.faq.length > 0
+  ? {
+      "@type": "FAQPage",
+      "mainEntity": post.data.faq.map((item) => ({
+        "@type": "Question",
+        "name": item.question,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": item.answer,
+        },
+      })),
+    }
+  : null;
+
+const schemas = {
+  "@context": "https://schema.org",
+  "@graph": faqNode ? [blogPostingNode, faqNode] : [blogPostingNode],
+};
+---
+
+<V2Layout
+  title={post.data.title}
+  description={post.data.summary}
+  image={post.data.heroImage}
+  ogSlug={post.id}
+  schema={schemas}
+  ogType="article"
+  publishedTime={post.data.publishedAt?.toISOString()}
+  modifiedTime={(post.data.updatedAt ?? post.data.publishedAt)?.toISOString()}
+  imageAlt={post.data.heroImageAlt ?? post.data.title}
+>
+  <div
+    id="reading-progress"
+    class="fixed inset-x-0 top-0 z-[60] h-[3px] origin-left scale-x-0 bg-[color:var(--color-neon-orange)] motion-reduce:hidden"
+    aria-hidden="true"
+  ></div>
+
+  <main>
+  <article class="v2-shell py-20 md:py-28 max-w-4xl mx-auto">
+    
+    <header class="space-y-8 mb-16 border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pb-12">
+      <div class="flex items-center gap-3 v2-kicker">
+        <span class="v2-accent-dot" aria-hidden="true"></span>
+        <span>Logbuch / {post.data.format || 'Article'}</span>
+      </div>
+
+      <div class="flex items-center gap-4 text-sm font-mono tracking-[0.18em] uppercase text-[color:var(--color-mono-400)]">
+        {formattedDate && <time datetime={post.data.publishedAt?.toISOString()}>{formattedDate}</time>}
+        <span class="text-[color:var(--color-neon-orange)]">/</span>
+        <span>{readingTime}</span>
+      </div>
+
+      <h1 class="font-editorial text-[clamp(2.5rem,6vw,4.5rem)] leading-[0.95] tracking-[-0.04em] text-[color:var(--color-mono-50)]">
+        {post.data.title}
+      </h1>
+
+      <p class="text-xl leading-relaxed text-[color:var(--color-mono-200)] max-w-3xl">
+        {post.data.summary}
+      </p>
+
+      {post.data.tags && (
+        <ul class="flex flex-wrap gap-3 pt-4">
+          {post.data.tags.map((tag) => (
+             <li class="font-mono text-xs uppercase tracking-[0.2em] text-[color:var(--color-mono-400)] border border-[color:color-mix(in_srgb,var(--color-mono-50)_15%,transparent)] px-3 py-1">
+               {tag}
+             </li>
+          ))}
+        </ul>
+      )}
+    </header>
+
+    {post.data.tldr && (
+      <section
+        class="mb-16 border-y border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] py-8 md:grid md:grid-cols-[10rem_minmax(0,1fr)] md:gap-8"
+        aria-labelledby="tldr-title"
+        data-aeo="summary"
+      >
+        <div class="pb-4 md:pb-0">
+          <p
+            id="tldr-title"
+            class="font-mono text-xs uppercase tracking-[0.2em] text-[color:var(--color-neon-orange)]"
+          >
+            TL;DR
+          </p>
+        </div>
+        <p class="max-w-[65ch] text-lg leading-8 text-[color:var(--color-mono-200)]">
+          {post.data.tldr}
+        </p>
+      </section>
+    )}
+
+    {post.data.heroImage && (
+      <figure class="mb-16 border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] p-2">
+         <img src={post.data.heroImage} alt={post.data.heroImageAlt ?? post.data.title} class="w-full h-auto aspect-video object-cover grayscale-[20%] contrast-125" loading="lazy" decoding="async" />
+      </figure>
+    )}
+
+    <div class="v2-prose">
+      <Content />
+    </div>
+
+    {post.data.faq && post.data.faq.length > 0 && (
+      <section class="mt-20 space-y-8 border-t border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pt-12" aria-labelledby="faq-title">
+        <div class="space-y-4">
+          <p class="v2-kicker">FAQ</p>
+          <h2 id="faq-title" class="font-editorial text-[clamp(2.4rem,4.5vw,3.6rem)] leading-[0.95] tracking-[-0.04em] text-[color:var(--color-mono-50)]">
+            Häufige Fragen
+          </h2>
+        </div>
+        <dl class="space-y-6">
+          {post.data.faq.map((item) => (
+            <div class="border-t border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pt-6 first:border-t-0 first:pt-0">
+              <dt class="font-editorial text-[clamp(1.3rem,2.2vw,1.7rem)] leading-[1.15] tracking-[-0.02em] text-[color:var(--color-mono-50)]">
+                {item.question}
+              </dt>
+              <dd class="mt-3 max-w-[65ch] text-base leading-8 text-[color:var(--color-mono-200)]">
+                {item.answer}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+    )}
+
+    <RelatedPosts posts={relatedPosts} />
+
+    <footer class="mt-20 border-t border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pt-12">
+      <a href="/blog/" class="group inline-flex items-center gap-3 font-mono text-sm uppercase tracking-[0.2em] text-[color:var(--color-mono-300)] hover:text-[color:var(--color-neon-orange)] transition-colors">
+        <span class="text-[color:var(--color-neon-orange)] group-hover:-translate-x-1 transition-transform">←</span>
+        Blog
+      </a>
+    </footer>
+  </article>
+  </main>
+</V2Layout>
+
+<script>
+  function initReadingProgress() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const bar = document.getElementById('reading-progress');
+    const article = document.querySelector('article');
+    if (!bar || !article) return;
+    if (bar.dataset.initialized === 'true') return;
+    bar.dataset.initialized = 'true';
+
+    let ticking = false;
+    const update = () => {
+      const rect = article.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const total = Math.max(1, rect.height - viewportHeight);
+      const scrolled = Math.min(Math.max(-rect.top, 0), total);
+      const progress = total > 0 ? scrolled / total : 0;
+      bar.style.transform = `scaleX(${Math.max(0, Math.min(1, progress))})`;
+      ticking = false;
+    };
+
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(update);
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    update();
+  }
+
+  document.addEventListener('astro:page-load', initReadingProgress);
+</script>
+
+<script>
+  // Copy-Button für Codeblöcke (Issue #215). Nur auf Blog-Artikelseiten
+  // eingebunden (nicht global), damit die Mobile-TBT-Bilanz (#200) nicht
+  // durch ungenutztes JS auf anderen Seiten belastet wird. Initialisiert auf
+  // astro:page-load statt DOMContentLoaded, weil ViewTransitions aktiv sind;
+  // pro Codeblock verhindert data-copy-ready doppelte Buttons bei erneutem
+  // Feuern des Events (z. B. Browser-Zurück innerhalb der SPA-Navigation).
+  function initCodeCopyButtons() {
+    const codeBlocks = document.querySelectorAll<HTMLElement>('.v2-prose pre > code');
+
+    codeBlocks.forEach((code) => {
+      const pre = code.parentElement;
+      if (!pre || pre.dataset.copyReady === 'true') return;
+      pre.dataset.copyReady = 'true';
+
+      // Wrapper trägt position:relative — Button in einem scrollenden pre
+      // würde sonst horizontal mit dem Code mitwandern
+      const wrapper = document.createElement('div');
+      wrapper.className = 'v2-code-block';
+      pre.parentNode?.insertBefore(wrapper, pre);
+      wrapper.appendChild(pre);
+
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'v2-copy-btn';
+      button.setAttribute('aria-label', 'Code kopieren');
+
+      const label = document.createElement('span');
+      label.setAttribute('aria-live', 'polite');
+      label.textContent = 'Kopieren';
+      button.appendChild(label);
+
+      // number statt ReturnType<typeof setTimeout>: window.setTimeout liefert
+      // number, ReturnType löst hier zu NodeJS.Timeout auf (astro check ts2322)
+      let resetTimer: number | undefined;
+
+      const resetButton = () => {
+        button.classList.remove('is-copied', 'is-error');
+        button.setAttribute('aria-label', 'Code kopieren');
+        label.textContent = 'Kopieren';
+      };
+
+      button.addEventListener('click', async () => {
+        window.clearTimeout(resetTimer);
+
+        try {
+          await navigator.clipboard.writeText(code.textContent ?? '');
+          button.classList.remove('is-error');
+          button.classList.add('is-copied');
+          button.setAttribute('aria-label', 'Code kopiert');
+          label.textContent = 'Kopiert';
+        } catch {
+          button.classList.remove('is-copied');
+          button.classList.add('is-error');
+          label.textContent = 'Fehler';
+        }
+
+        resetTimer = window.setTimeout(resetButton, 2000);
+      });
+
+      wrapper.appendChild(button);
+    });
+  }
+
+  document.addEventListener('astro:page-load', initCodeCopyButtons);
+</script>

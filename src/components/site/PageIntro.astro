@@ -1,0 +1,32 @@
+---
+interface Props {
+  kicker: string;
+  title: string;
+  lead: string;
+  aside?: string;
+  accentDot?: boolean;
+}
+
+const { kicker, title, lead, aside, accentDot = true } = Astro.props;
+---
+
+<header class="grid gap-8 border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pb-12 md:pb-14 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.7fr)] lg:items-end">
+  <div class="space-y-5">
+    <div class="v2-kicker flex items-center gap-3">
+      {accentDot && <span class="v2-accent-dot" aria-hidden="true"></span>}
+      <span>{kicker}</span>
+    </div>
+    <h1 class="max-w-5xl text-balance font-editorial text-[clamp(2.75rem,1.5rem_+_3.6vw,5.25rem)] leading-[0.92] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+      {title}
+    </h1>
+    <p class="max-w-3xl text-lg leading-8 text-[color:var(--color-mono-200)]">
+      {lead}
+    </p>
+  </div>
+
+  {aside && (
+    <p class="max-w-[34ch] text-sm leading-7 text-[color:var(--color-mono-300)] lg:justify-self-end">
+      {aside}
+    </p>
+  )}
+</header>

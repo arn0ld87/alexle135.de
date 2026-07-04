@@ -1,0 +1,53 @@
+---
+const GA_ID = import.meta.env.PUBLIC_GA_MEASUREMENT_ID;
+---
+{GA_ID && (
+  <script define:vars={{ GA_ID }}>
+    window.dataLayer = window.dataLayer || [];
+    // gtag.js erwartet das echte Arguments-Objekt — Rest-Params brechen das Tracking
+    // eslint-disable-next-line prefer-rest-params
+    function gtag() { dataLayer.push(arguments); }
+    window.gtag = gtag;
+
+    // Remote-Script (Kontakt zu Google) erst nach ausdrücklicher Zustimmung laden.
+    // Global + idempotent, damit Astro View Transitions (Script läuft pro Navigation
+    // erneut) keine doppelten Script-Injektionen oder Listener erzeugen.
+    window.loadGtagScript = window.loadGtagScript || function () {
+      if (window.gtagScriptRequested) return;
+      window.gtagScriptRequested = true;
+      gtag('consent', 'update', { analytics_storage: 'granted' });
+      const s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+      document.head.appendChild(s);
+    };
+
+    // Einmalige Initialisierung über die gesamte SPA-Session.
+    if (!window.gtagInitialized) {
+      window.gtagInitialized = true;
+
+      // Consent Mode v2: alles denied bis Banner-Entscheid
+      gtag('consent', 'default', {
+        analytics_storage: 'denied',
+        ad_storage: 'denied',
+        wait_for_update: 500,
+      });
+
+      gtag('js', new Date());
+
+      // config bei jedem Seitenwechsel senden — sonst zählt GA bei View-Transition-
+      // Navigation keinen neuen Pageview. astro:page-load feuert auch beim Erstaufruf.
+      document.addEventListener('astro:page-load', () => {
+        gtag('config', GA_ID, { anonymize_ip: true });
+      });
+
+      // Auf die Zustimmung aus dem Cookie-Banner warten.
+      window.addEventListener('ga-consent-granted', window.loadGtagScript);
+    }
+
+    // Bereits gespeicherte Zustimmung (z. B. nach Reload): direkt laden (idempotent).
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('cookie-consent') === 'granted') {
+      window.loadGtagScript();
+    }
+  </script>
+)}

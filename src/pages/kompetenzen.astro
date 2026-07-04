@@ -1,0 +1,89 @@
+---
+import { getEntry } from 'astro:content';
+import V2Layout from '../layouts/V2Layout.astro';
+import PageIntro from '../components/site/PageIntro.astro';
+import CTASection from '../components/site/CTASection.astro';
+
+const skillsData = await getEntry('skills', 'skills');
+
+if (!skillsData) {
+  throw new Error('Skills collection entry not found');
+}
+---
+
+<V2Layout
+  title="Kompetenzen"
+  description="Kompetenzen für Betrieb und Automatisierung: Docker, Kubernetes, Linux, Monitoring und mehr."
+>
+  <main class="v2-shell py-20 md:py-28">
+    <PageIntro
+      kicker="Kompetenzen"
+      title="Kompetenzen für Betrieb und Automatisierung"
+      lead="Technische Schwerpunkte mit Fokus auf Betriebssicherheit, Automatisierung und Monitoring."
+      aside="Werkzeuge, mit denen ich oft arbeite. Nicht als Sammlung, sondern aus der Praxis heraus."
+    />
+
+    <!-- Skills Grid -->
+    <section class="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {skillsData.data.items.map((skill) => (
+        <article class="v2-panel rounded-sm p-5 flex flex-col h-full transition-colors hover:border-[color:color-mix(in_srgb,var(--color-neon-orange)_30%,transparent)]">
+          <div class="flex items-baseline justify-between mb-1">
+            <h3 class="font-editorial text-lg text-[color:var(--color-mono-50)]">{skill.name}</h3>
+            <span class="font-mono text-xs tabular-nums text-[color:var(--color-neon-orange)]">{skill.percentage}%</span>
+          </div>
+          <p class="v2-kicker mb-4">{skill.category}</p>
+          <div class="mt-auto h-1 rounded-full bg-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] overflow-hidden" role="progressbar" aria-valuenow={skill.percentage} aria-valuemin={0} aria-valuemax={100} aria-label={`${skill.name}: ${skill.percentage}%`}>
+            <div
+              class="h-full rounded-full bg-[color:var(--color-neon-orange)] transition-all duration-1000 ease-out"
+              style={`width: ${skill.percentage}%`}
+            ></div>
+          </div>
+        </article>
+      ))}
+    </section>
+
+    <!-- Weitere Kenntnisse -->
+    <section class="mt-20">
+      <h2 class="font-editorial text-[clamp(2rem,4vw,3rem)] leading-[0.95] tracking-[-0.04em] text-[color:var(--color-mono-50)] mb-10">Weitere Kenntnisse</h2>
+      <div class="grid gap-8 md:grid-cols-3">
+        <div class="v2-panel rounded-sm p-6 space-y-4">
+          <h3 class="v2-kicker">Betriebssysteme</h3>
+          <ul class="text-sm text-[color:var(--color-mono-200)] space-y-2">
+            <li class="flex items-center gap-2"><span class="v2-accent-dot !w-1.5 !h-1.5 !shadow-none" aria-hidden="true"></span> Linux (Ubuntu, CentOS, Debian)</li>
+            <li class="flex items-center gap-2"><span class="v2-accent-dot !w-1.5 !h-1.5 !shadow-none" aria-hidden="true"></span> Windows Server</li>
+            <li class="flex items-center gap-2"><span class="v2-accent-dot !w-1.5 !h-1.5 !shadow-none" aria-hidden="true"></span> Proxmox VE</li>
+          </ul>
+        </div>
+        <div class="v2-panel rounded-sm p-6 space-y-4">
+          <h3 class="v2-kicker">Tools & Automatisierung</h3>
+          <ul class="text-sm text-[color:var(--color-mono-200)] space-y-2">
+            <li class="flex items-center gap-2"><span class="v2-accent-dot !w-1.5 !h-1.5 !shadow-none" aria-hidden="true"></span> Git, GitHub Actions</li>
+            <li class="flex items-center gap-2"><span class="v2-accent-dot !w-1.5 !h-1.5 !shadow-none" aria-hidden="true"></span> Ansible, Terraform</li>
+            <li class="flex items-center gap-2"><span class="v2-accent-dot !w-1.5 !h-1.5 !shadow-none" aria-hidden="true"></span> Grafana, Prometheus</li>
+          </ul>
+        </div>
+        <div class="v2-panel rounded-sm p-6 space-y-4">
+          <h3 class="v2-kicker">Sprachen & APIs</h3>
+          <ul class="text-sm text-[color:var(--color-mono-200)] space-y-2">
+            <li class="flex items-center gap-2"><span class="v2-accent-dot !w-1.5 !h-1.5 !shadow-none" aria-hidden="true"></span> Python, Bash</li>
+            <li class="flex items-center gap-2"><span class="v2-accent-dot !w-1.5 !h-1.5 !shadow-none" aria-hidden="true"></span> TypeScript, JavaScript</li>
+            <li class="flex items-center gap-2"><span class="v2-accent-dot !w-1.5 !h-1.5 !shadow-none" aria-hidden="true"></span> OpenAI, Gemini API</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <div class="mt-20">
+      <CTASection
+        kicker="Mehr sehen"
+        title="Werkzeuge zeigen Möglichkeiten. Projekte zeigen Umsetzung."
+        body="Schau dir an, wie diese Kenntnisse in echten Projekten eingesetzt werden."
+        primaryHref="/projekte/"
+        primaryLabel="Projekte ansehen"
+        secondaryHref="/kontakt/"
+        secondaryLabel="Kontakt"
+      />
+    </div>
+  </main>
+</V2Layout>

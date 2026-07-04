@@ -1,0 +1,70 @@
+name: Lighthouse CI
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: lighthouse-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lighthouse:
+    name: Lighthouse-Budgets
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        # Version stammt aus "packageManager" in package.json (Single Source of Truth).
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build (SSR)
+        run: pnpm build
+
+      # Der SSR-Server läuft auf Port 4321 und wird im Hintergrund gestartet.
+      # HOST=0.0.0.0 stellt sicher, dass Lighthouse den Loopback erreicht.
+      - name: Start SSR-Server
+        run: |
+          HOST=0.0.0.0 PORT=4321 node ./dist/server/entry.mjs &
+          echo "SSR_PID=$!" >> "$GITHUB_ENV"
+          # Warten bis der Server antwortet (max. 30 s)
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:4321/ -o /dev/null; then
+              echo "Server bereit nach ${i}s"
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          urls: |
+            http://localhost:4321/
+            http://localhost:4321/blog/
+            http://localhost:4321/projekte/
+          configPath: ./lighthouserc.json
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+
+      - name: Stop SSR-Server
+        if: always()
+        run: |
+          if [ -n "${SSR_PID:-}" ]; then
+            kill "$SSR_PID" 2>/dev/null || true
+          fi

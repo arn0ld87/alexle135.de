@@ -1,0 +1,152 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import '../styles/v2-theme.css';
+import V2Header from '../components/v2/V2Header.astro';
+import V2Footer from '../components/v2/V2Footer.astro';
+import { buildBreadcrumbSchema } from '../lib/breadcrumbs';
+import { safeJsonLd } from '../lib/jsonLd';
+import GoogleAnalytics from '../components/v2/GoogleAnalytics.astro';
+import CookieBanner from '../components/v2/CookieBanner.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  /** Optional custom OG image path. Defaults to the brand banner. */
+  image?: string;
+  /**
+   * When set, og:image resolves to {ogBasePath}/{slug}.png (dynamic per-page
+   * image). Used by blog posts and project pages so link previews show a
+   * page-specific card instead of the generic brand banner.
+  */
+  ogSlug?: string;
+  /**
+   * Basis-Pfad für die dynamische OG-Route, nur zusammen mit ogSlug relevant.
+   * Default '/og' passt zur Blog-Route src/pages/og/[slug].png.ts. Projekte
+   * nutzen '/og/projekte' (eigene Route, kollisionsfrei mit Blog-Slugs, #220).
+   */
+  ogBasePath?: string;
+  schema?: object;
+  noindex?: boolean;
+  canonical?: string;
+  robots?: string;
+  /** og:type — Blogposts setzen 'article', sonst 'website'. */
+  ogType?: 'website' | 'article';
+  /** ISO-String, nur bei ogType='article' relevant. */
+  publishedTime?: string;
+  modifiedTime?: string;
+  /** Alt-Text für og:image / twitter:image. */
+  imageAlt?: string;
+}
+
+const {
+  title,
+  description,
+  image,
+  ogSlug,
+  ogBasePath = '/og',
+  schema,
+  noindex = false,
+  canonical,
+  robots,
+  ogType = 'website',
+  publishedTime,
+  modifiedTime,
+  imageAlt,
+} = Astro.props;
+const canonicalURL = canonical ? new URL(canonical, Astro.site) : new URL(Astro.url.pathname, Astro.site);
+const robotsContent = robots ?? (noindex ? 'noindex, nofollow' : undefined);
+
+const brandSuffix = ' · alexle135';
+const htmlTitle =
+  title.includes('alexle135') ||
+  title.includes('Alexander Schneider') ||
+  title.length + brandSuffix.length > 60
+    ? title
+    : `${title}${brandSuffix}`;
+const htmlEscapedLength = (value: string) =>
+  value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+    .length;
+let pageTitle = htmlTitle;
+while (htmlEscapedLength(pageTitle) > 70) {
+  pageTitle = `${pageTitle.slice(0, -4).trimEnd()}...`;
+}
+const ogImage = ogSlug
+  ? new URL(`${ogBasePath}/${ogSlug}.png`, Astro.site)
+  : new URL(image ?? '/media/alexle135-og-banner.png', Astro.site);
+const ogImageAlt = imageAlt ?? title;
+
+const breadcrumbSchema = buildBreadcrumbSchema(Astro.url.pathname);
+---
+
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content={description}>
+    <meta name="author" content="Alexander Schneider">
+    {robotsContent && <meta name="robots" content={robotsContent} />}
+
+    <title>{pageTitle}</title>
+    <link rel="canonical" href={canonicalURL}>
+    <link rel="alternate" hreflang="de-DE" href={canonicalURL}>
+    <link rel="alternate" hreflang="x-default" href={canonicalURL}>
+
+    <!-- Preconnect / DNS-prefetch for external origins -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+    <!-- Brand Font Preload: Geist Variable (Sans + Mono) + Newsreader display serif, selfhosted -->
+    <link rel="preload" href="/fonts/GeistSans-Variable.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/GeistMono-Variable.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/Newsreader-roman-latin.woff2" as="font" type="font/woff2" crossorigin>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="48x48" href="/icons/favicon-48.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="/icons/favicon-64.png">
+    <link rel="icon" href="/brand/alexle135-logo-primary.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="Alexander Schneider">
+    <meta property="og:type" content={ogType}>
+    <meta property="og:title" content={title}>
+    <meta property="og:description" content={description}>
+    <meta property="og:url" content={canonicalURL}>
+    <meta property="og:image" content={ogImage}>
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content={ogImageAlt}>
+    {ogType === 'article' && publishedTime && <meta property="article:published_time" content={publishedTime} />}
+    {ogType === 'article' && modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
+    <meta property="og:locale" content="de_DE">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content={title}>
+    <meta name="twitter:description" content={description}>
+    <meta name="twitter:image" content={ogImage}>
+    <meta name="twitter:image:alt" content={ogImageAlt}>
+
+    {schema && <script type="application/ld+json" set:html={safeJsonLd(schema)} />}
+    {breadcrumbSchema && <script type="application/ld+json" set:html={safeJsonLd(breadcrumbSchema)} />}
+
+    <ClientRouter />
+    <GoogleAnalytics />
+  </head>
+
+  <body class="flex min-h-screen flex-col bg-[#0d0c0c] text-[#f6f2eb] antialiased selection:bg-[#ff6a00] selection:text-[#2a1100]">
+    <a
+      href="#main-content"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-none focus:border focus:border-[color:var(--color-neon-orange)] focus:bg-[color:var(--color-mono-950)] focus:px-4 focus:py-2 focus:font-mono focus:text-xs focus:uppercase focus:tracking-[0.18em] focus:text-[color:var(--color-neon-orange)] focus:outline-none"
+    >
+      Zum Inhalt springen
+    </a>
+    <V2Header />
+    <div id="main-content" class="flex-1">
+      <slot />
+    </div>
+    <V2Footer />
+    <CookieBanner />
+  </body>
+</html>

@@ -1,0 +1,257 @@
+---
+import { getCollection } from 'astro:content';
+import V2Layout from '../layouts/V2Layout.astro';
+import PageIntro from '../components/site/PageIntro.astro';
+import CTASection from '../components/site/CTASection.astro';
+import { getReadingTime } from '../utils/readingTime';
+
+// Alle FISI-relevanten Blog-Artikel. Explizit kuratiert, damit klar ist, was
+// zum Lernpfad gehört und was nicht. Reihenfolge = Lesereihenfolge.
+const curatedSlugs = [
+  'fisi-tools',
+  'bash-scripting-fisi-umschueler-praxis',
+  'linux-befehle-fuer-einsteiger',
+  'ssh-keys-einrichten-linux',
+  'tmux-terminal-multiplexing-server-admins',
+  'systemd-services-erstellen-autostart',
+  'systemd-timer-cron-alternative-tutorial',
+  'docker-container-einfach-erklaert',
+  'docker-ubuntu-setup',
+  'docker-compose-beispiele',
+  'nginx-reverse-proxy-einrichten-ssl',
+  'git-workflow-einsteiger-branching-merge',
+  'github-actions-ci-cd-tutorial-fisi',
+  'ki-tools-fisi-umschulung-2025',
+  'ollama-openwebui-docker-tutorial',
+] as const;
+
+const allPosts = await getCollection('blog');
+const curated = curatedSlugs
+  .map((slug) => allPosts.find((p) => p.id === slug))
+  .filter((p): p is NonNullable<typeof p> => Boolean(p));
+
+// Thematische Blöcke für den Lernpfad
+const sections = [
+  {
+    title: 'Linux-Grundlagen',
+    intro: 'Shell, Dateisystem, Nutzer, SSH. Alles was man täglich anfasst, bevor irgendwas anderes Sinn macht.',
+    slugs: [
+      'linux-befehle-fuer-einsteiger',
+      'ssh-keys-einrichten-linux',
+      'tmux-terminal-multiplexing-server-admins',
+      'bash-scripting-fisi-umschueler-praxis',
+    ],
+  },
+  {
+    title: 'Services & Netzwerk',
+    intro: 'Dienste sauber starten, Reverse Proxy, Zertifikate. Der Übergang vom Lernen zum Betrieb.',
+    slugs: [
+      'systemd-services-erstellen-autostart',
+      'systemd-timer-cron-alternative-tutorial',
+      'nginx-reverse-proxy-einrichten-ssl',
+    ],
+  },
+  {
+    title: 'Container & Deployment',
+    intro: 'Docker ist in der IHK-Prüfung noch dezent, im Berufsalltag aber überall. Hier mein Weg rein.',
+    slugs: [
+      'docker-container-einfach-erklaert',
+      'docker-ubuntu-setup',
+      'docker-compose-beispiele',
+      'git-workflow-einsteiger-branching-merge',
+      'github-actions-ci-cd-tutorial-fisi',
+    ],
+  },
+  {
+    title: 'KI als Werkzeug',
+    intro: 'Nicht als Ersatz fürs Verstehen, sondern als Beschleuniger. Lokal laufende Modelle, eigene Experimente.',
+    slugs: [
+      'ki-tools-fisi-umschulung-2025',
+      'ollama-openwebui-docker-tutorial',
+    ],
+  },
+] as const;
+
+const sectionsHydrated = sections.map((section) => ({
+  ...section,
+  posts: section.slugs
+    .map((slug) => allPosts.find((p) => p.id === slug))
+    .filter((p): p is NonNullable<typeof p> => Boolean(p)),
+}));
+
+const resources = [
+  {
+    label: 'IHK Radar',
+    href: '/projekte/ihk-radar/',
+    description: 'Eigenes Tool, mit dem ich den Prüfungstermin, offene Themen und Erwartungshorizonte im Blick behalte.',
+  },
+  {
+    label: 'Terminal-Missionen',
+    href: '/projekte/terminal-missionen/',
+    description: 'Interaktive Linux- und Docker-Übungen im Browser. Für Mit-Umschüler, die nicht direkt ihren Rechner zerlegen wollen.',
+  },
+  {
+    label: 'Windows Terminal-Missionen',
+    href: '/projekte/windows-terminal-missionen/',
+    description: 'Dasselbe Prinzip für CMD und PowerShell. In der Prüfung gerne mal unterschätzt.',
+  },
+  {
+    label: 'Docker Compose Builder',
+    href: '/apps/compose-builder/',
+    description: 'Klick-Tool für den typischen docker-compose.yml-Einstieg, wenn man das Format noch frisch lernt.',
+  },
+];
+
+const fisiSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  '@id': 'https://alexle135.de/fisi/#page',
+  name: 'FISI-Lernpfad — Fachinformatiker Systemintegration',
+  description:
+    'Kuratierter Einstieg in die Umschulung zum Fachinformatiker Systemintegration. Tutorials, Tools und Projekte aus der Praxis eines Umschülers am BFW Leipzig.',
+  url: 'https://alexle135.de/fisi/',
+  inLanguage: 'de-DE',
+  isPartOf: { '@id': 'https://alexle135.de/#website' },
+  about: { '@id': 'https://alexle135.de/#person' },
+  mainEntity: {
+    '@type': 'ItemList',
+    itemListElement: curated.map((post, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      url: `https://alexle135.de/blog/${post.id}/`,
+      name: post.data.title,
+    })),
+  },
+};
+---
+
+<V2Layout
+  title="FISI-Lernpfad – Fachinformatiker Systemintegration"
+  description="Kuratierte Tutorials, Tools und Projekte für die Umschulung zum Fachinformatiker Systemintegration. Von Linux-Grundlagen bis KI im Alltag, geschrieben aus der Umschüler-Perspektive."
+  schema={fisiSchema}
+>
+  <main class="v2-shell py-20 md:py-28 lg:py-36" id="main-content">
+    <PageIntro
+      kicker="FISI"
+      title="Meine Umschulung zum Fachinformatiker Systemintegration."
+      lead="Seit 2025 lerne ich am BFW Leipzig. Alles, was unter dieser Seite verlinkt ist, habe ich selbst durchgearbeitet oder gebraucht. Keine Sammlung fürs Auge, sondern der Weg, den ich tatsächlich gegangen bin."
+      aside="Abschluss geplant für Juni 2027. Bis dahin landet hier, was im Kurs FI-S 25/02 und im Homelab ansteht."
+    />
+
+    <section class="mt-16 grid gap-6 border-y border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] py-8 font-mono text-[0.78rem] uppercase tracking-[0.18em] text-[color:var(--color-mono-300)] md:grid-cols-4">
+      <div>
+        <p class="v2-kicker">Status</p>
+        <p class="mt-2 text-[color:var(--color-neon-orange)]">In Umschulung</p>
+      </div>
+      <div>
+        <p class="v2-kicker">Ort</p>
+        <p class="mt-2 text-[color:var(--color-mono-100)]">BFW Leipzig</p>
+      </div>
+      <div>
+        <p class="v2-kicker">Kurs</p>
+        <p class="mt-2 text-[color:var(--color-mono-100)]">FI-S 25/02</p>
+      </div>
+      <div>
+        <p class="v2-kicker">Abschluss</p>
+        <p class="mt-2 text-[color:var(--color-mono-100)]">Juni 2027 (IHK)</p>
+      </div>
+    </section>
+
+    {sectionsHydrated.map((section) => (
+      <section class="mt-20 md:mt-28">
+        <div class="grid gap-8 border-y border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] py-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(18rem,0.7fr)] lg:items-end">
+          <h2 class="max-w-3xl font-editorial text-[clamp(2.6rem,6vw,4.6rem)] leading-[0.92] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+            {section.title}
+          </h2>
+          <p class="max-w-[38ch] text-sm leading-7 text-[color:var(--color-mono-300)] lg:justify-self-end">
+            {section.intro}
+          </p>
+        </div>
+
+        <ul class="mt-10 space-y-6">
+          {section.posts.map((post) => {
+            const date = post.data.publishedAt?.toISOString().split('T')[0] ?? '';
+            const reading = post.data.readingTime || getReadingTime(post.body || '');
+            return (
+              <li class="grid gap-3 border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pb-6 md:grid-cols-[8rem_minmax(0,1fr)_6rem] md:items-baseline md:gap-6">
+                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[color:var(--color-mono-400)]">{date}</p>
+                <div>
+                  <a
+                    href={`/blog/${post.id}/`}
+                    class="font-editorial text-xl leading-tight text-[color:var(--color-mono-50)] transition-colors hover:text-[color:var(--color-neon-orange)]"
+                  >
+                    {post.data.title}
+                  </a>
+                  <p class="mt-1 max-w-[60ch] text-sm leading-7 text-[color:var(--color-mono-300)]">{post.data.summary}</p>
+                </div>
+                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[color:var(--color-mono-400)] md:text-right">{reading}</p>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    ))}
+
+    <section class="mt-24 border-y border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] py-10 md:py-14">
+      <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.8fr)] lg:items-end">
+        <h2 class="max-w-3xl font-editorial text-[clamp(2.4rem,5vw,4rem)] leading-[0.92] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+          Eigene Tools, die mir durch die Umschulung geholfen haben
+        </h2>
+        <p class="max-w-[40ch] text-sm leading-7 text-[color:var(--color-mono-300)] lg:justify-self-end">
+          Nebenbei gebaut, weil ich sie selbst brauchte. Wenn sie dir auch helfen, umso besser.
+        </p>
+      </div>
+
+      <ul class="mt-10 grid gap-4 md:grid-cols-2">
+        {resources.map((res) => (
+          <li class="group border border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] p-6 transition-colors hover:border-[color:color-mix(in_srgb,var(--color-neon-orange)_30%,transparent)]">
+            <a href={res.href} class="block">
+              <p class="font-mono text-[0.72rem] uppercase tracking-[0.22em] text-[color:var(--color-neon-orange)]">
+                {res.label}
+              </p>
+              <p class="mt-3 text-sm leading-7 text-[color:var(--color-mono-200)]">{res.description}</p>
+              <p class="mt-4 font-mono text-[0.72rem] uppercase tracking-[0.18em] text-[color:var(--color-mono-400)] group-hover:text-[color:var(--color-neon-orange)]">
+                Öffnen →
+              </p>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="mt-24 grid gap-8 border-y border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] py-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(18rem,0.7fr)]">
+      <div class="space-y-5">
+        <p class="v2-kicker">Prüfung</p>
+        <h2 class="max-w-2xl font-editorial text-[clamp(2.4rem,5vw,4rem)] leading-[0.92] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+          Was gerade ansteht
+        </h2>
+        <p class="max-w-[65ch] text-base leading-8 text-[color:var(--color-mono-200)]">
+          AP Teil 1 ist grundlegende IT-Wissen und schriftlich. AP Teil 2 kommt am Ende mit einem realen Projekt aus dem Betrieb, Projektantrag bei der IHK und einer mündlichen Verteidigung. Auf dieser Seite sammele ich laufend, was mir beim Vorbereiten geholfen hat.
+        </p>
+      </div>
+      <aside class="space-y-3 border-l border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pl-4 font-mono text-[0.76rem] uppercase tracking-[0.16em] text-[color:var(--color-mono-300)] lg:pl-6">
+        <p class="border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pb-3">
+          <span class="text-[color:var(--color-neon-orange)]">$</span> IHK Sachsen
+        </p>
+        <p class="border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pb-3">
+          <span class="text-[color:var(--color-neon-orange)]">$</span> AP1: Sommer 2026
+        </p>
+        <p class="border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pb-3">
+          <span class="text-[color:var(--color-neon-orange)]">$</span> AP2: Sommer 2027
+        </p>
+      </aside>
+    </section>
+
+    <section class="mt-20 pb-10">
+      <CTASection
+        kicker="Austausch"
+        title="Machst du auch gerade die FISI-Umschulung? Dann schreib mir."
+        body="Keine Werbung, kein Beratungsangebot. Nur ein offener Kanal für Leute auf dem gleichen Weg. Fragen zu Lernmaterial, Homelab-Setups oder Projektideen gern direkt per Mail."
+        primaryHref="/kontakt/"
+        primaryLabel="Kontakt aufnehmen"
+        secondaryHref="/blog/"
+        secondaryLabel="Alle Blog-Artikel"
+      />
+    </section>
+  </main>
+</V2Layout>

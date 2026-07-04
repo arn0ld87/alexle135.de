@@ -1,0 +1,40 @@
+---
+import V2Layout from '../layouts/V2Layout.astro';
+---
+
+<V2Layout
+  title="404 – Seite nicht gefunden"
+  description="Diese Seite existiert nicht oder wurde verschoben."
+>
+  <main class="v2-shell py-20 md:py-28 lg:py-36 min-h-[70vh] flex items-center">
+    <div class="max-w-3xl space-y-8">
+      <p class="v2-kicker flex items-center gap-3">
+        <span class="v2-accent-dot" aria-hidden="true"></span>
+        <span>Error / 404</span>
+      </p>
+
+      <h1 class="font-editorial text-[clamp(3.5rem,8vw,7rem)] leading-[0.88] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+        Seite nicht gefunden.
+      </h1>
+
+      <p class="text-xl leading-relaxed text-[color:var(--color-mono-300)] max-w-xl">
+        Die gesuchte Seite wurde verschoben, entfernt oder hat nie existiert.
+      </p>
+
+      <div class="pt-6 flex items-center gap-8">
+        <a
+          href="/"
+          class="v2-cta"
+        >
+          Startseite
+        </a>
+        <a
+          href="/projekte/"
+          class="font-mono text-sm uppercase tracking-[0.2em] text-[color:var(--color-mono-300)] hover:text-[color:var(--color-neon-orange)] transition-colors"
+        >
+          Projekte ansehen
+        </a>
+      </div>
+    </div>
+  </main>
+</V2Layout>

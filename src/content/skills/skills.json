@@ -1,0 +1,24 @@
+{
+  "items": [
+    {
+      "name": "Systemintegration",
+      "percentage": 45,
+      "category": "Netzwerke, Server, Infrastruktur"
+    },
+    {
+      "name": "Server-Administration",
+      "percentage": 40,
+      "category": "Windows & Linux Systeme"
+    },
+    {
+      "name": "Netzwerktechnik",
+      "percentage": 35,
+      "category": "Routing, Switching, Security"
+    },
+    {
+      "name": "DevOps & Automatisierung",
+      "percentage": 30,
+      "category": "CI/CD, Container, Monitoring"
+    }
+  ]
+}

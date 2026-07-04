@@ -1,0 +1,145 @@
+---
+import V2Layout from "../../layouts/V2Layout.astro";
+import { getAdminSession } from "../../lib/adminSession";
+
+const adminSession = await getAdminSession(Astro.request.headers).catch(() => null);
+if (adminSession) {
+  return Astro.redirect('/admin/dashboard');
+}
+---
+
+<V2Layout title="Admin Login" description="Admin-Zugang" noindex>
+  <main class="flex min-h-[80vh] items-center justify-center px-6 py-20">
+    <div class="w-full max-w-sm relative">
+
+      <!-- Card -->
+      <div class="v2-panel rounded-none p-8 sm:p-10 relative">
+
+        <!-- Lock icon -->
+        <div class="mb-8 flex flex-col items-center gap-4">
+          <div class="flex h-12 w-12 items-center justify-center border border-[color:color-mix(in_srgb,var(--color-mono-50)_16%,transparent)]">
+            <svg class="h-5 w-5 text-[color:var(--color-neon-orange)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+            </svg>
+          </div>
+          <h1 class="font-[family-name:var(--font-editorial)] text-3xl tracking-tight text-[color:var(--color-mono-50)]">Admin</h1>
+          <p class="v2-kicker">Nur fuer Alexander Schneider</p>
+        </div>
+
+        <!-- Divider -->
+        <div class="v2-rule mb-8"></div>
+
+        <!-- Form -->
+        <form id="login-form" class="space-y-5">
+          <div>
+            <label for="email" class="v2-kicker mb-2 block">E-Mail</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              placeholder="info@alexle135.de"
+              required
+              autocomplete="email"
+              class="w-full border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] bg-[color:color-mix(in_srgb,var(--color-mono-50)_4%,transparent)] px-4 py-3 font-[family-name:var(--font-ui)] text-sm text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-500)] outline-none transition-all focus:border-[color:var(--color-neon-orange)] focus:ring-1 focus:ring-[color:var(--color-neon-orange)]"
+            />
+          </div>
+
+          <div>
+            <label for="password" class="v2-kicker mb-2 block">Passwort</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="••••••••"
+              required
+              autocomplete="current-password"
+              class="w-full border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] bg-[color:color-mix(in_srgb,var(--color-mono-50)_4%,transparent)] px-4 py-3 font-[family-name:var(--font-ui)] text-sm text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-500)] outline-none transition-all focus:border-[color:var(--color-neon-orange)] focus:ring-1 focus:ring-[color:var(--color-neon-orange)]"
+            />
+          </div>
+
+          <button
+            type="submit"
+            id="submit-btn"
+            class="group mt-2 flex w-full items-center justify-center gap-2 border border-[color:var(--color-neon-orange)] bg-[color:var(--color-neon-orange)] px-4 py-3 font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--color-neon-orange-ink)] transition-all hover:bg-transparent hover:text-[color:var(--color-neon-orange)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-neon-orange)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-mono-950)] disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <span id="btn-text">Anmelden</span>
+            <svg id="btn-spinner" class="hidden h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+            <svg class="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+            </svg>
+          </button>
+
+          <!-- Error message -->
+          <div id="error-message" class="hidden border border-red-500/20 bg-red-500/5 px-4 py-3 text-center font-[family-name:var(--font-ui)] text-sm text-red-400"></div>
+        </form>
+
+      </div>
+    </div>
+  </main>
+</V2Layout>
+
+<script>
+  function initLogin() {
+    const form = document.getElementById("login-form") as HTMLFormElement | null;
+    if (!form) return;
+    if (form.dataset.initialized === "true") return;
+    form.dataset.initialized = "true";
+
+    form.addEventListener("submit", async (e: SubmitEvent) => {
+      e.preventDefault();
+
+      const errorMsg = document.getElementById("error-message");
+      const submitBtn = document.getElementById("submit-btn") as HTMLButtonElement;
+      const btnText = document.getElementById("btn-text");
+      const btnSpinner = document.getElementById("btn-spinner");
+
+      errorMsg?.classList.add("hidden");
+      if (submitBtn) submitBtn.disabled = true;
+      if (btnText) btnText.textContent = "Wird angemeldet...";
+      if (btnSpinner) btnSpinner.classList.remove("hidden");
+
+      const formData = new FormData(form);
+      const email = formData.get("email") as string;
+      const password = formData.get("password") as string;
+
+      try {
+        const response = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+
+        if (response.ok) {
+          window.location.href = "/admin/dashboard";
+          return;
+        }
+
+        let message = "Login fehlgeschlagen.";
+        try {
+          const data = await response.json();
+          if (data?.error && typeof data.error === "string") message = data.error;
+        } catch {
+          // ignore parse failure
+        }
+        if (errorMsg) {
+          errorMsg.textContent = message;
+          errorMsg.classList.remove("hidden");
+        }
+      } catch {
+        if (errorMsg) {
+          errorMsg.textContent = "Verbindungsfehler. Bitte erneut versuchen.";
+          errorMsg.classList.remove("hidden");
+        }
+      }
+
+      if (submitBtn) submitBtn.disabled = false;
+      if (btnText) btnText.textContent = "Anmelden";
+      if (btnSpinner) btnSpinner.classList.add("hidden");
+    });
+  }
+
+  document.addEventListener("astro:page-load", initLogin);
+</script>

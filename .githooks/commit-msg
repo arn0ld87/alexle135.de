@@ -1,0 +1,43 @@
+#!/bin/sh
+# commit-msg hook: strips private AI/tool-session links from commit messages.
+#
+# Background: some AI coding assistants (Claude Code, ChatGPT, Gemini, ...)
+# append trailers like "Claude-Session: https://claude.ai/code/session_..."
+# to commit messages by default. These are private, ephemeral debug links
+# and must not end up in the repo's permanent history (see AGENTS.md,
+# Issue #292).
+#
+# Strategy: STRIP known session-link lines instead of rejecting the commit.
+# Rejecting would block every commit if the environment force-appends the
+# trailer; stripping is robust regardless of what triggered it.
+#
+# Activation: git config core.hooksPath .githooks
+# See .githooks/README.md for details.
+set -eu
+
+msg_file="${1:-}"
+if [ -z "$msg_file" ] || [ ! -f "$msg_file" ]; then
+  echo "commit-msg: erwartet den Pfad zur Commit-Message-Datei als Argument." >&2
+  exit 1
+fi
+
+# Known private tool-session URL/trailer patterns. Extend as new tools or
+# formats are discovered. Anchored at the LINE START (optional leading
+# whitespace, optional http(s)://, optional subdomains) so only lines that
+# ARE a session link/trailer are stripped. A legitimate mention like
+# "Siehe Doku auf claude.ai/docs" mid-sentence is preserved.
+pattern='^[[:space:]]*(https?://)?([a-zA-Z0-9-]+\.)*(claude\.ai|chatgpt\.com|chat\.openai\.com)/|^[[:space:]]*(Claude-Session|Codex-Session|Gemini-Session):'
+
+tmp_file="${msg_file}.tmp.$$"
+trap 'rm -f "$tmp_file"' EXIT
+
+# grep -Ev exits 1 when every line matches (nothing left) or input is
+# empty; that is a valid outcome here, not an error, so ignore it.
+grep -Ev "$pattern" "$msg_file" >"$tmp_file" || true
+
+if ! cmp -s "$msg_file" "$tmp_file"; then
+  echo "commit-msg: private Tool-Session-Link(s) aus der Commit-Message entfernt (siehe AGENTS.md, Issue #292)." >&2
+  cat "$tmp_file" >"$msg_file"
+fi
+
+exit 0

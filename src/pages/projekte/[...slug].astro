@@ -1,0 +1,118 @@
+---
+import { getCollection, getEntry, render, type CollectionEntry } from 'astro:content';
+import V2Layout from '../../layouts/V2Layout.astro';
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+  const projects = await getCollection('projects');
+  return projects.map((project) => ({
+    params: { slug: project.id },
+    props: { project },
+  }));
+}
+
+const { slug } = Astro.params;
+let project: CollectionEntry<'projects'> | undefined = Astro.props.project;
+
+if (!project && slug) {
+  project = await getEntry('projects', slug);
+}
+
+if (!project) {
+  return Astro.redirect('/404');
+}
+
+const { Content } = await render(project);
+
+// Schema.org-Typ nach Inhaltsart: Schema-Default ist SoftwareApplication
+// (interaktive Tools/Apps); Vorträge/Case-Studies setzen schemaType im
+// Frontmatter (z.B. CreativeWork). applicationCategory/operatingSystem sind
+// nur für SoftwareApplication/SoftwareSourceCode gültig und entfallen sonst.
+const schemaType = project.data.schemaType;
+const isSoftwareType = schemaType === "SoftwareApplication" || schemaType === "SoftwareSourceCode";
+
+const projectSchema = {
+  "@context": "https://schema.org",
+  "@type": schemaType,
+  "name": project.data.title,
+  "description": project.data.summary,
+  "author": { "@id": "https://alexle135.de/#person" },
+  "image": project.data.heroImage ? new URL(project.data.heroImage, Astro.site).toString() : undefined,
+  "applicationCategory": isSoftwareType ? "DeveloperApplication" : undefined,
+  "operatingSystem": isSoftwareType ? "Web" : undefined,
+  "keywords": project.data.tags ? project.data.tags.join(", ") : undefined
+};
+
+// Breadcrumb wird in V2Layout per buildBreadcrumbSchema() automatisch generiert.
+// Keine Duplikation mehr hier, sonst liefert Google zwei BreadcrumbList-Graphen.
+const schema = projectSchema;
+---
+
+<V2Layout
+  title={project.data.title}
+  description={project.data.summary}
+  image={project.data.heroImage}
+  ogSlug={project.id}
+  ogBasePath="/og/projekte"
+  schema={schema}
+>
+  <main>
+  <article class="v2-shell py-20 md:py-28 max-w-5xl mx-auto">
+    
+    <header class="space-y-10 mb-20">
+      <div class="flex items-center gap-3 v2-kicker">
+        <span class="v2-accent-dot" aria-hidden="true"></span>
+        <span>Projekt / {project.data.role || 'Development'}</span>
+      </div>
+
+      <h1 class="max-w-4xl font-editorial text-[clamp(2.8rem,7vw,5.5rem)] leading-[0.9] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+        {project.data.title}
+      </h1>
+
+      <p class="max-w-2xl text-xl leading-relaxed text-[color:var(--color-mono-200)] pb-6 border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)]">
+        {project.data.summary}
+      </p>
+
+      {project.data.techStack && project.data.techStack.length > 0 && (
+        <div class="flex flex-col gap-3">
+          <span class="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-[color:var(--color-mono-500)]">Tech Stack</span>
+          <ul class="flex flex-wrap gap-2 text-xs uppercase tracking-[0.15em] text-[color:var(--color-mono-300)]">
+            {project.data.techStack.map((tech) => (
+              <li class="rounded-none border border-[color:color-mix(in_srgb,var(--color-mono-50)_15%,transparent)] px-3 py-1 bg-[color:var(--color-mono-950)]">{tech}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </header>
+
+    {project.data.heroImage && (
+      <figure class="mb-20 border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] p-2">
+         <img src={project.data.heroImage} alt={project.data.heroImageAlt ?? project.data.title} class="w-full h-auto aspect-video object-cover grayscale-[10%] contrast-[1.1]" loading="lazy" decoding="async" />
+         {project.data.frameLabel && (
+           <figcaption class="mt-3 font-mono text-[0.65rem] uppercase tracking-[0.2em] text-[color:var(--color-mono-400)] text-right">
+             Fig 1.0 — {project.data.frameLabel}
+           </figcaption>
+         )}
+      </figure>
+    )}
+
+    <div class="v2-prose max-w-3xl mx-auto">
+      <Content />
+    </div>
+
+    <footer class="mt-32 max-w-3xl mx-auto border-t border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pt-12 flex justify-between items-center">
+      <a href="/projekte/" class="group inline-flex items-center gap-3 font-mono text-sm uppercase tracking-[0.2em] text-[color:var(--color-mono-300)] hover:text-[color:var(--color-neon-orange)] transition-colors">
+        <span class="text-[color:var(--color-neon-orange)] group-hover:-translate-x-1 transition-transform">←</span>
+        Projekte
+      </a>
+      
+      {project.data.repoUrl && (
+        <a href={project.data.repoUrl} target="_blank" rel="noopener noreferrer" class="font-mono text-xs uppercase tracking-[0.2em] text-[color:var(--color-mono-400)] hover:text-[color:var(--color-neon-orange)] transition-colors underline underline-offset-4">
+          View Repository ↗
+        </a>
+      )}
+    </footer>
+  </article>
+  </main>
+</V2Layout>

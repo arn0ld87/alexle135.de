@@ -1,0 +1,189 @@
+---
+import V2Layout from '../layouts/V2Layout.astro';
+import PageIntro from '../components/site/PageIntro.astro';
+import ServiceEntry from '../components/site/ServiceEntry.astro';
+import CTASection from '../components/site/CTASection.astro';
+
+const services = [
+  {
+    index: '01',
+    eyebrow: 'Infrastruktur aufbauen',
+    title: 'Linux-, Server- und Container-Setups mit sauberem Grundriss.',
+    when: 'Wenn neue Systeme aufgesetzt oder bestehende Umgebungen endlich aus dem Schraubstock improvisierter Einzellösungen befreit werden müssen.',
+    action: 'Ich richte Server, Container, Reverse Proxies, Netzwerkgrundlagen und Deployments so ein, dass Betrieb und Übergabe nachvollziehbar bleiben.',
+    result: 'Weniger Bastelzustand, klarere Struktur und ein Setup, das nicht nur heute, sondern auch nach der nächsten Änderung noch funktioniert.',
+  },
+  {
+    index: '02',
+    eyebrow: 'Abläufe automatisieren',
+    title: 'Wiederkehrende Arbeit in klare technische Workflows übersetzen.',
+    when: 'Wenn Deployments, Content-Prozesse, interne Freigaben oder kleine Datenflüsse jeden Tag zu viel Handarbeit brauchen.',
+    action: 'Ich baue Skripte, Orchestrierungen und kleine Helfersysteme, die Routineaufgaben zuverlässig übernehmen und trotzdem lesbar bleiben.',
+    result: 'Weniger Klickerei, weniger Fehlerquellen und deutlich mehr Ruhe im Tagesgeschäft.',
+  },
+  {
+    index: '03',
+    eyebrow: 'Bestehendes stabilisieren',
+    title: 'Gewachsene Technik wieder kontrollierbar machen.',
+    when: 'Wenn ein Setup zwar läuft, aber niemand mehr sauber sagen kann, wo Risiken liegen oder was beim nächsten Problem zuerst angefasst werden muss.',
+    action: 'Ich analysiere Engstellen, ziehe Struktur nach, dokumentiere Zustände und reduziere unnötige Komplexität.',
+    result: 'Schnellere Fehlersuche, klarere Verantwortlichkeiten und weniger Technik, die nur aus Gewohnheit überlebt.',
+  },
+  {
+    index: '04',
+    eyebrow: 'KI sinnvoll integrieren',
+    title: 'KI als Prozessbaustein statt als Dekorationsobjekt.',
+    when: 'Wenn Inhalte, Anfragen, Tickets oder Voranalysen vorbereitet werden sollen und ein klassischer Ablauf dafür zu träge ist.',
+    action: 'Ich integriere KI dort, wo sie Vorarbeit leisten oder Reibung reduzieren kann, ohne dass der ganze Prozess zur Black Box wird.',
+    result: 'Konkreter Nutzwert im Alltag und keine teure Spielerei, die nur auf Screenshots beeindruckt.',
+  },
+] as const;
+
+const useCases = [
+  'Ein interner Dienst soll sauber auf einem Server laufen, statt halb manuell gepflegt zu werden.',
+  'Ein manueller Ablauf frisst jede Woche Zeit und verdient endlich einen klaren Workflow.',
+  'Ein kleines Dashboard oder Tool soll einen nervigen Prozess vereinfachen.',
+  'Ein bestehendes Setup ist gewachsen, aber nicht mehr sauber dokumentiert oder überblickbar.',
+] as const;
+
+const audiences = [
+  'Ausbildungsbetriebe und kleine Teams, die einen praktisch denkenden Azubi oder Junior-Dev suchen',
+  'Side-Projects und Solo-Operatoren mit einem konkreten technischen Problem',
+  'Teams, die pragmatische Umsetzung und offene Doku mehr schätzen als Agenturtheater',
+] as const;
+
+const relatedHubs = [
+  {
+    href: '/apps/',
+    label: 'Tools & Apps',
+    text: 'Direkte Browser-Tools, Rechner und kleine Helfer für den operativen Alltag.',
+  },
+  {
+    href: '/ki-agenten-lab/',
+    label: 'KI-Agenten Lab',
+    text: 'Use Cases und Planungslogik für Agenten-Workflows, bevor daraus Scope-Chaos wird.',
+  },
+  {
+    href: '/kompetenzen/',
+    label: 'Kompetenzen',
+    text: 'Die technischen Schwerpunkte hinter Infrastruktur, Automation und Monitoring.',
+  },
+] as const;
+---
+
+<V2Layout
+  title="Kooperationsbereiche – Infrastruktur & Automation"
+  description="Kernbereiche, an denen ich arbeite: Linux-Server, Container, Systemintegration, Automatisierung und KI-Integration. Portfolio + Kooperationsanfragen aus Leipzig."
+  schema={{
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Kooperationsbereiche – Alexander Schneider",
+    "url": "https://alexle135.de/leistungen/",
+    "description": "Die vier Kernbereiche, in denen ich Projekte und Kooperationen umsetze: Infrastruktur, Automation, Stabilisierung, KI-Integration.",
+    "inLanguage": "de-DE",
+    "author": {
+      "@type": "Person",
+      "name": "Alexander Schneider",
+      "url": "https://alexle135.de/ueber-mich/"
+    },
+    "mainEntity": {
+      "@type": "ItemList",
+      "name": "Kernbereiche",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Infrastruktur aufbauen", "description": "Linux-, Server- und Container-Setups mit sauberem Grundriss." },
+        { "@type": "ListItem", "position": 2, "name": "Abläufe automatisieren", "description": "Wiederkehrende Arbeit in klare technische Workflows übersetzen." },
+        { "@type": "ListItem", "position": 3, "name": "Bestehendes stabilisieren", "description": "Gewachsene Technik wieder kontrollierbar machen." },
+        { "@type": "ListItem", "position": 4, "name": "KI sinnvoll integrieren", "description": "KI als Prozessbaustein statt als Dekorationsobjekt." }
+      ]
+    }
+  }}
+>
+  <main class="v2-shell py-20 md:py-28">
+    <PageIntro
+      kicker="Kooperationsbereiche / Systemintegration & Automation"
+      title="Kernbereiche – woran ich arbeite und wo wir zusammen etwas bauen könnten."
+      lead="Kein Agentur-Katalog, sondern die vier Felder, in denen ich mich in meiner Ausbildung und in eigenen Projekten bewege. Für Ausbildungsplätze, Kooperationen und kleine Side-Projects."
+      aside="Aufbau bewusst schlicht: Problem, Ansatz, Ergebnis. Reicht völlig."
+    />
+
+    <section class="grid gap-8 py-12 md:py-16 lg:grid-cols-[minmax(0,1.05fr)_minmax(18rem,0.7fr)] lg:items-start">
+      <div class="space-y-5">
+        <p class="v2-kicker">Für wen?</p>
+        <h2 class="font-editorial text-[clamp(2.6rem,5vw,4.5rem)] leading-[0.94] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+          Für Teams, die Technik nicht nur planen, sondern auch betreiben müssen.
+        </h2>
+      </div>
+      <ul class="space-y-3 border-l border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pl-4 text-sm leading-7 text-[color:var(--color-mono-200)] lg:pl-6">
+        {audiences.map((audience) => (
+          <li class="border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pb-3">{audience}</li>
+        ))}
+      </ul>
+    </section>
+
+    <section aria-labelledby="services-title" class="pt-4 md:pt-8">
+      <div class="space-y-5 pb-12 md:pb-16">
+        <p class="v2-kicker">Leistungsblöcke</p>
+        <h2 id="services-title" class="font-editorial text-[clamp(3rem,6vw,5rem)] leading-[0.92] tracking-[-0.06em] text-[color:var(--color-mono-50)]">
+          Vier typische Einsatzfelder. Direkt beschrieben.
+        </h2>
+      </div>
+      {services.map((service) => <ServiceEntry {...service} />)}
+    </section>
+
+    <section class="grid gap-8 border-y border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] py-10 md:py-12 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.75fr)] lg:items-start mt-16 md:mt-20">
+      <div class="space-y-5">
+        <p class="v2-kicker">Typische Einsatzfälle</p>
+        <h2 class="font-editorial text-[clamp(2.6rem,5vw,4.4rem)] leading-[0.94] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+          Daran merkt man meist ziemlich schnell, ob ich helfen kann.
+        </h2>
+      </div>
+      <ul class="space-y-4 text-sm leading-7 text-[color:var(--color-mono-200)]">
+        {useCases.map((item) => (
+          <li class="border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pb-4 font-mono text-[0.8rem] uppercase tracking-[0.12em] text-[color:var(--color-mono-300)]">
+            <span class="text-[color:var(--color-neon-orange)]">$</span> {item}
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="grid gap-8 py-16 md:py-20 lg:grid-cols-[minmax(0,1.25fr)_minmax(18rem,0.65fr)] lg:items-start">
+      <div class="space-y-5">
+        <p class="v2-kicker">Arbeitsweise</p>
+        <h2 class="font-editorial text-[clamp(2.8rem,5vw,4.6rem)] leading-[0.94] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+          Erst verständlich. Dann belastbar. Dann erst größer.
+        </h2>
+      </div>
+      <div class="space-y-5 border-l border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pl-4 lg:pl-6">
+        <p class="text-sm leading-7 text-[color:var(--color-mono-200)]">Ich bevorzuge Lösungen, die jemand nach mir lesen, warten und weiterentwickeln kann. Beeindruckende Komplexität ist wertlos, wenn sie Betrieb und Übergabe sabotiert.</p>
+        <p class="text-sm leading-7 text-[color:var(--color-mono-300)]">Dokumentation, sinnvolle Defaults und ehrliche Scope-Grenzen gehören deshalb zum Angebot dazu. Alles andere ist nur teurer Lärm.</p>
+      </div>
+    </section>
+
+    <section class="grid gap-8 border-y border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] py-10 md:py-12 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.8fr)] lg:items-start">
+      <div class="space-y-5">
+        <p class="v2-kicker">Mehr Kontext</p>
+        <h2 class="font-editorial text-[clamp(2.4rem,5vw,4rem)] leading-[0.94] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+          Die Leistungsfelder werden klarer, wenn man die Tools, Agentenideen und Skills daneben sieht.
+        </h2>
+      </div>
+      <div class="space-y-4">
+        {relatedHubs.map((hub) => (
+          <a href={hub.href} class="block border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pb-4 transition-colors hover:text-[color:var(--color-neon-orange)]">
+            <span class="v2-kicker">{hub.label}</span>
+            <p class="mt-2 text-sm leading-7 text-[color:var(--color-mono-200)]">{hub.text}</p>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <CTASection
+      kicker="Kontakt"
+      title="Wenn eines dieser Felder zu dir passt, freue ich mich über eine Nachricht."
+      body="Ob Ausbildungsstelle, kleines Kooperationsprojekt oder technischer Austausch: Schreib mir kurz, was der Kontext ist. Ich antworte ehrlich, ob und wie ich helfen kann."
+      primaryHref="/kontakt/"
+      primaryLabel="In Kontakt kommen"
+      secondaryHref="/projekte/"
+      secondaryLabel="Projekte ansehen"
+    />
+  </main>
+</V2Layout>

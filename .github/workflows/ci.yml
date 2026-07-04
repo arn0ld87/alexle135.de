@@ -1,0 +1,337 @@
+name: ci
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint and format
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Prettier check
+        run: pnpm format:all
+
+      - name: Astro and TypeScript check
+        run: pnpm check
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Tests mit Coverage-Gate
+        run: pnpm test:coverage
+
+      - name: Coverage-Report als Artefakt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 14
+
+  db:
+    name: PostgreSQL migrations
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: alexle135_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test -d alexle135_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://test:test@localhost:5432/alexle135_test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Apply migrations
+        run: pnpm db:migrate
+
+      - name: Verify schema
+        run: pnpm db:verify
+
+  test-integration:
+    name: Admin-Login-Integrationstest
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: alexle135_integration
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test -d alexle135_integration"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://test:test@localhost:5432/alexle135_integration
+      # Dummy-Secret nur für diesen Wegwerf-CI-Lauf — kein echtes Produktions-Secret.
+      BETTER_AUTH_SECRET: ci-integration-only-dummy-secret-not-used-in-prod-32chars
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Admin-Login-Integrationstest (echte Postgres, keine Mocks)
+        run: pnpm test:integration
+
+  e2e:
+    name: E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Additiv und NICHT required (#296): Branch Protection kennt diesen Job
+    # nicht, "Lint and format" / "Test" / "Build" bleiben unverändert die
+    # einzigen Required Checks.
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: alexle135_e2e
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test -d alexle135_e2e"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://test:test@localhost:5432/alexle135_e2e
+      # Dummy-Secret nur für diesen Wegwerf-CI-Lauf — kein echtes Produktions-Secret.
+      BETTER_AUTH_SECRET: ci-e2e-only-dummy-secret-not-used-in-prod-32chars
+      BETTER_AUTH_URL: http://localhost:4321
+      GEMINI_API_KEY: ci-e2e-only-dummy-key-not-used-in-prod
+      HOST: localhost
+      PORT: '4321'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Playwright-Browser installieren (Chromium)
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: App bauen (SSR)
+        run: pnpm build
+
+      # Migrationen + Admin-Seed laufen NICHT als separater Schritt: Playwrights
+      # globalSetup (e2e/global-setup.ts) führt scripts/run-postgres-migrations.mjs
+      # und scripts/seed-admin.mjs bereits vor der Suite aus — identisch zum Muster
+      # in src/tests/integration/global-setup.ts (Job "test-integration" oben).
+      - name: Playwright-E2E-Suite
+        run: pnpm test:e2e
+
+      - name: Playwright-HTML-Report als Artefakt (bei Fehler)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Playwright-Traces/Screenshots/Videos als Artefakt (bei Fehler)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: test-results/
+          retention-days: 14
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build (SSR)
+        run: pnpm build
+
+      # Technische Prüfungen nach dem Build (#200)
+      - name: HTML validation (html-validate)
+        run: pnpm check:html
+
+      - name: Internal link check
+        run: pnpm check:links
+
+      - name: A11y regression (axe-core)
+        run: pnpm check:a11y
+
+      - name: Security audit
+        run: pnpm audit --audit-level=high
+
+  docker:
+    name: Docker image
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: alexle135_docker
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test -d alexle135_docker"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Produktionsimage bauen
+        run: docker build -t alexle135:ci .
+
+      # --network host: Der App-Container teilt sich den Netzwerk-Namespace mit
+      # dem Runner-Host, auf dem auch der postgres-Service-Container seinen Port
+      # veröffentlicht (siehe ports: oben). So erreicht der Container den
+      # Postgres-Service über "localhost:5432" und wir erreichen den Container
+      # anschließend selbst über "localhost:3000" — ohne zusätzliches
+      # Docker-Netzwerk oder Compose.
+      #
+      # Migrationen laufen NICHT als separater Schritt: scripts/entrypoint.sh
+      # führt "node ./scripts/run-postgres-migrations.mjs" bereits beim
+      # Container-Start aus (identisch zu "pnpm db:migrate"), bevor der Server
+      # startet.
+      #
+      # Nur CI-Dummy-Werte, keine echten Secrets.
+      - name: Container mit Test-Postgres starten
+        run: |
+          docker run -d \
+            --name alexle135-ci \
+            --network host \
+            -e NODE_ENV=production \
+            -e HOST=0.0.0.0 \
+            -e PORT=3000 \
+            -e DATABASE_URL=postgresql://test:test@localhost:5432/alexle135_docker \
+            -e BETTER_AUTH_SECRET=ci-docker-only-dummy-secret-not-used-in-prod-32chars \
+            -e BETTER_AUTH_URL=http://localhost:3000 \
+            -e GEMINI_API_KEY=ci-docker-only-dummy-key-not-used-in-prod \
+            alexle135:ci
+
+      - name: Auf Container-Health warten
+        run: |
+          status="starting"
+          for i in $(seq 1 40); do
+            status="$(docker inspect --format='{{.State.Health.Status}}' alexle135-ci 2>/dev/null || echo "starting")"
+            echo "Versuch $i/40: Health-Status=$status"
+            if [ "$status" = "healthy" ]; then
+              break
+            fi
+            if [ "$status" = "unhealthy" ]; then
+              echo "::error::Container wurde unhealthy."
+              break
+            fi
+            sleep 3
+          done
+
+          if [ "$status" != "healthy" ]; then
+            echo "::error::Container ist nach 120s nicht healthy geworden (Status: $status)"
+            exit 1
+          fi
+
+      - name: HTTP-Smoke-Test (/healthz und /)
+        run: |
+          healthz_status="$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/healthz)"
+          echo "GET /healthz -> $healthz_status"
+          if [ "$healthz_status" != "200" ]; then
+            echo "::error::/healthz antwortete nicht mit 200 (war $healthz_status)"
+            exit 1
+          fi
+
+          root_status="$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/)"
+          echo "GET / -> $root_status"
+          if [ "$root_status" != "200" ]; then
+            echo "::error::/ antwortete nicht mit 200 (war $root_status)"
+            exit 1
+          fi
+
+      - name: Container-Logs (bei Fehler)
+        if: failure()
+        run: docker logs alexle135-ci || true
+
+      - name: Container aufräumen
+        if: always()
+        run: docker rm -f alexle135-ci || true

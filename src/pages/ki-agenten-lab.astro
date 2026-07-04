@@ -1,0 +1,219 @@
+---
+import V2Layout from '../layouts/V2Layout.astro';
+import PageIntro from '../components/site/PageIntro.astro';
+import CTASection from '../components/site/CTASection.astro';
+
+const useCases = [
+  {
+    index: '01',
+    title: 'DevOps-Automation',
+    description: 'CI/CD-Pipelines überwachen, Deployments orchestrieren, Infrastruktur-Health-Checks automatisieren.',
+  },
+  {
+    index: '02',
+    title: 'Log-Analyse',
+    description: 'Server-Logs intelligent auswerten, Anomalien erkennen und automatisch Alerts generieren.',
+  },
+  {
+    index: '03',
+    title: 'Wissens-Agenten',
+    description: 'Dokumentation durchsuchen, Fragen beantworten und Lernmaterial aufbereiten - RAG-basiert.',
+  },
+];
+---
+
+<V2Layout
+  title="KI-Agenten Lab"
+  description="Entwirf und plane eigene KI-Agenten mit dem interaktiven Agent Builder."
+  noindex={true}
+>
+  <main class="v2-shell py-20 md:py-28">
+    <PageIntro
+      kicker="KI-Labor"
+      title="KI-Agenten Lab"
+      lead="Hier entsteht dein nächster autonomer Agent - von der Idee bis zum Konzept. Plane Aufgabe, Stack und Tools, und sieh sofort eine strukturierte Vorschau."
+    />
+
+    <!-- Use Cases -->
+    <section class="mt-16">
+      <h2 class="font-editorial text-[clamp(2rem,4vw,3rem)] leading-[0.95] tracking-[-0.04em] text-[color:var(--color-mono-50)] mb-10">Was KI-Agenten leisten</h2>
+      <div class="space-y-0 divide-y divide-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)]">
+        {useCases.map((uc) => (
+          <div class="grid gap-4 py-8 md:grid-cols-[3rem_1fr]">
+            <span class="font-mono text-sm text-[color:var(--color-mono-400)] tabular-nums">{uc.index}</span>
+            <div>
+              <h3 class="font-editorial text-xl text-[color:var(--color-mono-50)] mb-2">{uc.title}</h3>
+              <p class="text-sm leading-7 text-[color:var(--color-mono-300)] max-w-2xl">{uc.description}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Agent Builder -->
+    <section class="mt-20">
+      <h2 class="font-editorial text-[clamp(2rem,4vw,3rem)] leading-[0.95] tracking-[-0.04em] text-[color:var(--color-mono-50)] mb-4">Agent Builder</h2>
+      <p class="text-sm leading-7 text-[color:var(--color-mono-300)] mb-10 max-w-xl">
+        Beschreibe deinen Agenten und erhalte eine strukturierte Vorschau. Ideal für die Planung und Dokumentation.
+      </p>
+
+      <div class="grid gap-10 lg:grid-cols-2">
+        <!-- Form -->
+        <div class="v2-panel rounded-sm p-6">
+          <h3 class="v2-kicker mb-6">Agent-Konfigurator</h3>
+          <form id="agent-builder-form" class="space-y-5">
+            <div>
+              <label for="agent-name" class="block v2-kicker mb-2">Agent-Name</label>
+              <input type="text" id="agent-name" placeholder="z.B. Log Analyzer Agent" required
+                class="w-full px-4 py-3 bg-transparent border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] rounded-sm text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-500)] focus:outline-none focus:border-[color:var(--color-neon-orange)] transition-colors font-ui text-sm" />
+            </div>
+
+            <div>
+              <label for="agent-purpose" class="block v2-kicker mb-2">Aufgabe / Zweck</label>
+              <textarea id="agent-purpose" rows="3" placeholder="Was soll der Agent tun?" required
+                class="w-full px-4 py-3 bg-transparent border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] rounded-sm text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-500)] focus:outline-none focus:border-[color:var(--color-neon-orange)] transition-colors font-ui text-sm resize-y"></textarea>
+            </div>
+
+            <div>
+              <label for="agent-stack" class="block v2-kicker mb-2">Tech-Stack</label>
+              <input type="text" id="agent-stack" placeholder="z.B. Python, OpenAI API, Docker"
+                class="w-full px-4 py-3 bg-transparent border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] rounded-sm text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-500)] focus:outline-none focus:border-[color:var(--color-neon-orange)] transition-colors font-ui text-sm" />
+            </div>
+
+            <div>
+              <label for="agent-tools" class="block v2-kicker mb-2">Tools &amp; Integrationen</label>
+              <input type="text" id="agent-tools" placeholder="z.B. GitHub API, Slack, Prometheus"
+                class="w-full px-4 py-3 bg-transparent border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] rounded-sm text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-500)] focus:outline-none focus:border-[color:var(--color-neon-orange)] transition-colors font-ui text-sm" />
+            </div>
+
+            <div>
+              <label for="agent-metrics" class="block v2-kicker mb-2">Erfolgsmetriken (optional)</label>
+              <input type="text" id="agent-metrics" placeholder="z.B. Response Time <2s, Accuracy >90%"
+                class="w-full px-4 py-3 bg-transparent border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] rounded-sm text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-500)] focus:outline-none focus:border-[color:var(--color-neon-orange)] transition-colors font-ui text-sm" />
+            </div>
+
+            <div class="flex gap-4 pt-2">
+              <button type="submit" class="v2-cta flex-1">
+                Vorschau generieren
+              </button>
+              <button type="button" id="reset-form" class="v2-cta-ghost">
+                Reset
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Preview -->
+        <div class="v2-panel rounded-sm p-6">
+          <h3 class="v2-kicker mb-6">Vorschau</h3>
+          <div id="agent-preview" class="min-h-[280px]">
+            <div class="flex h-full items-center justify-center text-center">
+              <p class="text-sm text-[color:var(--color-mono-400)]">
+                Fülle das Formular aus, um eine Vorschau deines Agenten zu sehen.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 v2-panel rounded-sm p-4 border-[color:color-mix(in_srgb,var(--color-neon-orange)_20%,transparent)]">
+        <p class="text-sm text-[color:var(--color-mono-300)]">
+          <strong class="text-[color:var(--color-neon-orange)]">Hinweis:</strong> Um deinen Agenten als Projekt zu veröffentlichen, speichere die Vorschau und erstelle einen neuen Eintrag über das CMS oder kontaktiere mich direkt.
+        </p>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <div class="mt-20">
+      <CTASection
+        kicker="Next step"
+        title="KI soll arbeiten, nicht beeindrucken."
+        body="Wenn du einen konkreten Anwendungsfall für KI-Agenten hast, lass uns darüber sprechen."
+        primaryHref="/kontakt/"
+        primaryLabel="Kontakt aufnehmen"
+        secondaryHref="/projekte/"
+        secondaryLabel="Projekte ansehen"
+      />
+    </div>
+  </main>
+
+  <script>
+    const form = document.getElementById('agent-builder-form') as HTMLFormElement | null;
+    const preview = document.getElementById('agent-preview');
+    const resetBtn = document.getElementById('reset-form');
+
+    function escapeHtml(str: string): string {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    if (form && preview && resetBtn) {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const name = (document.getElementById('agent-name') as HTMLInputElement).value;
+        const purpose = (document.getElementById('agent-purpose') as HTMLTextAreaElement).value;
+        const stack = (document.getElementById('agent-stack') as HTMLInputElement).value || 'Nicht angegeben';
+        const tools = (document.getElementById('agent-tools') as HTMLInputElement).value || 'Nicht angegeben';
+        const metrics = (document.getElementById('agent-metrics') as HTMLInputElement).value;
+
+        preview.innerHTML = `
+          <div class="space-y-5">
+            <div class="border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pb-4">
+              <h4 class="font-editorial text-xl text-[color:var(--color-mono-50)]">${escapeHtml(name)}</h4>
+            </div>
+
+            <div>
+              <p class="v2-kicker mb-1">Aufgabe</p>
+              <p class="text-sm text-[color:var(--color-mono-300)]">${escapeHtml(purpose)}</p>
+            </div>
+
+            <div>
+              <p class="v2-kicker mb-1">Stack</p>
+              <p class="font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--color-mono-400)]">${escapeHtml(stack)}</p>
+            </div>
+
+            <div>
+              <p class="v2-kicker mb-1">Tools &amp; Integrationen</p>
+              <p class="font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--color-mono-400)]">${escapeHtml(tools)}</p>
+            </div>
+
+            ${metrics ? `
+            <div class="pt-3 border-t border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)]">
+              <p class="v2-kicker mb-2">Zielmetriken</p>
+              <div class="flex items-center gap-2">
+                <span class="h-2 w-2 bg-[color:var(--color-neon-orange)]"></span>
+                <span class="font-mono text-xs text-[color:var(--color-mono-400)]">${escapeHtml(metrics)}</span>
+              </div>
+            </div>
+            ` : ''}
+
+            <div class="pt-4">
+              <button
+                onclick="navigator.clipboard.writeText(document.getElementById('agent-preview').innerText).then(() => { const b = this; b.textContent = 'Kopiert'; setTimeout(() => b.textContent = 'Konzept kopieren', 2000); })"
+                class="v2-cta-ghost w-full"
+              >
+                Konzept kopieren
+              </button>
+            </div>
+          </div>
+        `;
+      });
+
+      resetBtn.addEventListener('click', () => {
+        form.reset();
+        preview.innerHTML = `
+          <div class="flex h-full items-center justify-center text-center">
+            <p class="text-sm text-[color:var(--color-mono-400)]">
+              Fülle das Formular aus, um eine Vorschau deines Agenten zu sehen.
+            </p>
+          </div>
+        `;
+      });
+    }
+  </script>
+</V2Layout>

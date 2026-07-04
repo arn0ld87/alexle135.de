@@ -1,0 +1,47 @@
+---
+/**
+ * Responsive Image Component
+ * Automatisch WebP + srcset Support
+ */
+
+interface Props {
+  src: string;
+  alt: string;
+  class?: string;
+  loading?: 'lazy' | 'eager';
+  width?: number | string;
+  height?: number | string;
+}
+
+const { src, alt, class: className, loading = 'lazy', width, height } = Astro.props;
+
+// Prüfen ob es sich um ein Bild aus dem media-Ordner handelt
+const isMediaImage = src.startsWith('/media/') || src.startsWith('/images/');
+const isSvg = src.toLowerCase().endsWith('.svg');
+
+// Konvertiere .png/.jpg zu .webp (nur für nicht-media Bilder und keine SVGs)
+const webpSrc = (isMediaImage || isSvg) ? src : src.replace(/\.(png|jpg|jpeg)$/i, '.webp');
+
+// Generiere srcset für responsive Versionen (nur für nicht-media Bilder und keine SVGs)
+const basePath = webpSrc.replace('.webp', '');
+const srcset = `${basePath}-400w.webp 400w, ${basePath}-800w.webp 800w, ${basePath}-1200w.webp 1200w`;
+---
+
+<picture>
+  {!isMediaImage && !isSvg && (
+    <source
+      srcset={srcset}
+      type="image/webp"
+      sizes="(max-width: 640px) 400px, (max-width: 1024px) 800px, 1200px"
+    />
+  )}
+  <img
+    src={src}
+    alt={alt}
+    class={className}
+    loading={loading}
+    decoding="async"
+    width={width}
+    height={height}
+  />
+</picture>

@@ -1,0 +1,1312 @@
+/* ============================================================
+   AlexLE135 — "Warm Noir" Design System
+   Ported from the Claude Design handoff (claude.ai/design).
+
+   Integration note: Tailwind v4 owns the GLOBAL --text-*, --leading-*,
+   --tracking-*, --radius-* and --shadow-* theme variables (its utilities
+   read them via var()). To avoid silently rewriting `rounded-sm`,
+   `tracking-wide`, `leading-tight`, … across every existing page, ALL
+   Warm-Noir design tokens are scoped under `.warm-noir` instead of :root.
+   Apply `class="warm-noir"` on the homepage <main> and the design-system
+   showcase. Only the Newsreader @font-face is global (see also the
+   --font-editorial upgrade in v2-theme.css).
+   ============================================================ */
+
+/* ── Newsreader — self-hosted editorial display serif (SIL OFL) ──── */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 300 600;
+  font-display: swap;
+  src: url('/fonts/Newsreader-roman-latin.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 300 600;
+  font-display: swap;
+  src: url('/fonts/Newsreader-roman-latinext.woff2') format('woff2');
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Newsreader';
+  font-style: italic;
+  font-weight: 300 500;
+  font-display: swap;
+  src: url('/fonts/Newsreader-italic-latin.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Newsreader';
+  font-style: italic;
+  font-weight: 300 500;
+  font-display: swap;
+  src: url('/fonts/Newsreader-italic-latinext.woff2') format('woff2');
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+/* ============================================================
+   SHARED PRIMITIVES — single source of truth (Issue #213).
+   These are the mono/orange tokens that the v2-theme.css
+   `--color-mono-*` / `--color-neon-orange*` theme keys alias via
+   var(). They live on :root, NOT under .warm-noir, because 41+ v2
+   components reference `--color-mono-*` / `--color-neon-orange`
+   directly via Tailwind arbitrary-value syntax (e.g.
+   `bg-[color:var(--color-mono-950)]`), which needs the variable to
+   exist wherever it is used, not just inside a .warm-noir-scoped
+   subtree. None of these names collide with Tailwind reserved theme
+   namespaces (--color-*, --text-*, --radius-*, --shadow-*, and so
+   on); `--mono-*`/`--orange-*` are plain custom properties, not
+   `--color-*`.
+
+   Fonts (--font-serif/-sans/-mono) are intentionally NOT duplicated
+   here: those names are Tailwind own reserved font-family theme
+   keys, so the v2-theme.css @theme block is kept as the single
+   literal source for them (aliasing an identically-named variable to
+   itself via var() would create a self-referential, guaranteed-
+   invalid custom property). This block below only needs mono/orange,
+   which use a different name than their `--color-*` theme-key
+   aliases.
+   ============================================================ */
+:root {
+  --mono-50: #f6f2eb;
+  --mono-100: #e6e0d7;
+  --mono-200: #ccc4ba;
+  --mono-300: #ada398;
+  --mono-400: #8b8177;
+  --mono-500: #6a625a;
+  --mono-600: #4f4a44;
+  --mono-700: #37332f;
+  --mono-800: #221f1d;
+  --mono-900: #171514;
+  --mono-950: #0d0c0c;
+
+  --orange-500: #ff6a00;
+  --orange-ink: #2a1100;
+}
+
+/* ============================================================
+   TOKENS — scoped to the Warm-Noir surface
+   ============================================================ */
+.warm-noir {
+  /* --- Warm monochrome ink scale (50–950 shared via :root above) --- */
+  --mono-975: #080707;
+
+  /* --- Signal orange (500/ink shared via :root above) --- */
+  --orange-300: #ff9a4d;
+  --orange-400: #ff8124;
+  --orange-600: #e85d00;
+  --orange-700: #b94a00;
+  --orange-glow: rgba(255, 106, 0, 0.55);
+
+  /* --- Clay companion --- */
+  --clay-400: #c97a4f;
+  --clay-500: #b5613a;
+  --clay-600: #934a2b;
+
+  /* --- Semantic signals (warm-tuned) --- */
+  --signal-success: #5fa86b;
+  --signal-success-ink: #0c1a0f;
+  --signal-warn: #e0a740;
+  --signal-warn-ink: #241803;
+  --signal-danger: #d9543f;
+  --signal-danger-ink: #270a06;
+  --signal-info: #6f9bc0;
+  --signal-info-ink: #061320;
+
+  /* --- Semantic aliases — Noir (default) --- */
+  --bg-base: var(--mono-950);
+  --bg-sunken: var(--mono-975);
+  --bg-raised: var(--mono-900);
+
+  --surface-1: color-mix(in srgb, var(--mono-50) 4%, transparent);
+  --surface-2: color-mix(in srgb, var(--mono-50) 6.5%, transparent);
+  --surface-3: color-mix(in srgb, var(--mono-50) 10%, transparent);
+  --surface-solid: var(--mono-900);
+
+  --border-subtle: color-mix(in srgb, var(--mono-50) 8%, transparent);
+  --border-default: color-mix(in srgb, var(--mono-50) 14%, transparent);
+  --border-strong: color-mix(in srgb, var(--mono-50) 26%, transparent);
+
+  --text-primary: var(--mono-50);
+  --text-secondary: var(--mono-300);
+  --text-tertiary: var(--mono-400);
+  --text-faint: var(--mono-500);
+  --text-inverse: var(--mono-950);
+
+  --accent: var(--orange-500);
+  --accent-hover: var(--orange-400);
+  --accent-press: var(--orange-600);
+  --accent-ink: var(--orange-ink);
+  --accent-soft: color-mix(in srgb, var(--orange-500) 14%, transparent);
+  --accent-line: color-mix(in srgb, var(--orange-500) 40%, transparent);
+
+  --focus-ring: color-mix(in srgb, var(--orange-500) 55%, transparent);
+
+  --atmos-glow: radial-gradient(circle at 12% -8%, rgba(255, 106, 0, 0.14), transparent 42%);
+  --dot-grid: radial-gradient(
+    circle at 1px 1px,
+    color-mix(in srgb, var(--mono-50) 22%, transparent) 1px,
+    transparent 0
+  );
+
+  /* --- Fonts: inherited from the Tailwind @theme block in
+     v2-theme.css, which emits --font-serif/-sans/-mono onto :root
+     as the single literal source (see Issue #213). --- */
+
+  /* --- Fluid display + heading scale ---
+     Flachere Slopes + niedrigere Caps, damit Display-Größen auf
+     13-Zoll-Laptops (~1440-1512px) nicht schon am Maximum kleben. --- */
+  --text-display-xl: clamp(3rem, 1.25rem + 4vw, 5.5rem);
+  --text-display-l: clamp(2.4rem, 1.25rem + 3vw, 4rem);
+  --text-display-m: clamp(1.9rem, 1.3rem + 2.1vw, 3rem);
+  --text-h1: 2.5rem;
+  --text-h2: 1.9rem;
+  --text-h3: 1.45rem;
+  --text-h4: 1.15rem;
+
+  /* --- Body & supporting (ds- prefix avoids Tailwind --text-sm/-xs clash) --- */
+  --ds-text-lead: 1.3rem;
+  --ds-text-body: 1.0625rem;
+  --ds-text-sm: 0.9375rem;
+  --ds-text-xs: 0.8125rem;
+  --ds-text-label: 0.75rem;
+  --ds-text-micro: 0.6875rem;
+
+  /* --- Weights --- */
+  --weight-light: 300;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* --- Line heights (ds- prefix avoids Tailwind --leading-* clash) --- */
+  --ds-leading-tight: 1.05;
+  --ds-leading-snug: 1.22;
+  --ds-leading-normal: 1.55;
+  --ds-leading-relaxed: 1.85;
+
+  /* --- Tracking (ds- prefix avoids Tailwind --tracking-* clash) --- */
+  --ds-tracking-tight: -0.02em;
+  --ds-tracking-normal: 0;
+  --ds-tracking-wide: 0.08em;
+  --ds-tracking-label: 0.22em;
+
+  /* --- Spacing (4px rhythm) --- */
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 2.5rem;
+  --space-8: 3rem;
+  --space-9: 4rem;
+  --space-10: 5rem;
+  --space-11: 6.5rem;
+  --space-12: 8rem;
+
+  --shell-max: 1240px;
+  --shell-narrow: 760px;
+  --shell-pad: clamp(1.25rem, 0.5rem + 3vw, 2.75rem);
+  --section-gap: clamp(3.5rem, 2rem + 5vw, 7rem);
+
+  /* --- Radii (ds- prefix avoids Tailwind --radius-* clash) --- */
+  --ds-radius-0: 0;
+  --ds-radius-xs: 4px;
+  --ds-radius-sm: 7px;
+  --ds-radius-md: 10px;
+  --ds-radius-lg: 14px;
+  --ds-radius-xl: 20px;
+  --ds-radius-pill: 999px;
+
+  --border-hair: 1px;
+  --border-thick: 1.5px;
+
+  /* --- Shadows (ds- prefix avoids Tailwind --shadow-* clash) --- */
+  --ds-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --ds-shadow-sm: 0 4px 14px rgba(0, 0, 0, 0.34);
+  --ds-shadow-md: 0 14px 40px rgba(0, 0, 0, 0.42);
+  --ds-shadow-lg: 0 28px 80px rgba(0, 0, 0, 0.5);
+  --ds-shadow-glow: 0 0 0 1px var(--accent-line), 0 8px 30px var(--orange-glow);
+  --inset-top: inset 0 1px 0 color-mix(in srgb, var(--mono-50) 9%, transparent);
+  --blur-panel: 18px;
+
+  /* --- Motion --- */
+  --dur-instant: 90ms;
+  --dur-fast: 150ms;
+  --dur-base: 240ms;
+  --dur-slow: 420ms;
+  --dur-reveal: 720ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-entry: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .warm-noir {
+    --dur-instant: 0ms;
+    --dur-fast: 0ms;
+    --dur-base: 0ms;
+    --dur-slow: 0ms;
+    --dur-reveal: 0ms;
+  }
+}
+
+/* ── PAPER — warm light reading scope ──────────────────────────── */
+.warm-noir.paper,
+.warm-noir .paper {
+  --bg-base: var(--mono-50);
+  --bg-sunken: #efe9df;
+  --bg-raised: #fffdf8;
+  --surface-1: color-mix(in srgb, var(--mono-950) 3%, transparent);
+  --surface-2: color-mix(in srgb, var(--mono-950) 5%, transparent);
+  --surface-3: color-mix(in srgb, var(--mono-950) 8%, transparent);
+  --surface-solid: #fffdf8;
+  --border-subtle: color-mix(in srgb, var(--mono-950) 8%, transparent);
+  --border-default: color-mix(in srgb, var(--mono-950) 14%, transparent);
+  --border-strong: color-mix(in srgb, var(--mono-950) 24%, transparent);
+  --text-primary: var(--mono-900);
+  --text-secondary: var(--mono-700);
+  --text-tertiary: var(--mono-600);
+  --text-faint: var(--mono-500);
+  --text-inverse: var(--mono-50);
+  --atmos-glow: radial-gradient(circle at 12% -8%, rgba(255, 106, 0, 0.1), transparent 42%);
+}
+
+/* ============================================================
+   BASE UTILITIES
+   ============================================================ */
+.ds-ground {
+  background: var(--atmos-glow), var(--bg-base);
+}
+
+.ds-dotgrid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: var(--dot-grid);
+  background-size: 38px 38px;
+  opacity: 0.5;
+  mask-image: radial-gradient(circle at 50% 0%, #000 0%, transparent 78%);
+  -webkit-mask-image: radial-gradient(circle at 50% 0%, #000 0%, transparent 78%);
+}
+
+.ds-shell {
+  width: 100%;
+  max-width: var(--shell-max);
+  margin-inline: auto;
+  padding-inline: var(--shell-pad);
+}
+
+.ds-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--ds-text-label);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--ds-tracking-label);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.ds-kicker::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  background: var(--accent);
+}
+
+.ds-rule {
+  height: 1px;
+  border: 0;
+  background: linear-gradient(90deg, transparent, var(--border-strong), transparent);
+}
+
+.ds-serif {
+  font-family: var(--font-serif);
+  font-weight: var(--weight-light);
+  letter-spacing: var(--ds-tracking-tight);
+  line-height: var(--ds-leading-snug);
+}
+
+/* ── RETICLE — terminal corner-bracket frame ───────────────────── */
+.ds-reticle {
+  --tick: 13px;
+  --tick-w: 1.5px;
+  --tick-color: var(--border-strong);
+  position: relative;
+  background-image:
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color));
+  background-repeat: no-repeat;
+  background-size:
+    var(--tick) var(--tick-w),
+    var(--tick-w) var(--tick),
+    var(--tick) var(--tick-w),
+    var(--tick-w) var(--tick),
+    var(--tick) var(--tick-w),
+    var(--tick-w) var(--tick),
+    var(--tick) var(--tick-w),
+    var(--tick-w) var(--tick);
+  background-position:
+    top left,
+    top left,
+    top right,
+    top right,
+    bottom left,
+    bottom left,
+    bottom right,
+    bottom right;
+}
+.ds-reticle[data-accent] {
+  --tick-color: var(--accent);
+}
+
+.ds-reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity var(--dur-reveal) var(--ease-entry),
+    transform var(--dur-reveal) var(--ease-entry);
+}
+.ds-reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ds-reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ============================================================
+   COMPONENT CSS — token-driven, SSR-safe (no runtime injection)
+   ============================================================ */
+
+/* ── Button ─────────────────────────────────────────────────── */
+.axb {
+  --axb-h: 44px;
+  --axb-px: 20px;
+  --axb-fs: 0.9375rem;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  height: var(--axb-h);
+  padding-inline: var(--axb-px);
+  font-family: var(--font-sans);
+  font-size: var(--axb-fs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.005em;
+  line-height: 1;
+  border: var(--border-hair) solid transparent;
+  border-radius: var(--ds-radius-sm);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+.axb:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+.axb:active {
+  transform: translateY(0) scale(0.982);
+}
+.axb[disabled],
+.axb[aria-disabled='true'] {
+  opacity: 0.42;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.axb svg {
+  width: 1.05em;
+  height: 1.05em;
+  flex: none;
+}
+.axb[data-size='sm'] {
+  --axb-h: 36px;
+  --axb-px: 14px;
+  --axb-fs: 0.875rem;
+  gap: 7px;
+}
+.axb[data-size='lg'] {
+  --axb-h: 52px;
+  --axb-px: 28px;
+  --axb-fs: 1.0625rem;
+  gap: 11px;
+}
+.axb[data-block='true'] {
+  display: flex;
+  width: 100%;
+}
+
+.axb[data-variant='primary'] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: var(--inset-top), var(--ds-shadow-xs);
+}
+.axb[data-variant='primary']:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--inset-top);
+}
+.axb[data-variant='primary']:active {
+  background: var(--accent-press);
+}
+
+.axb[data-variant='secondary'] {
+  background: var(--surface-2);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+  box-shadow: var(--inset-top);
+}
+.axb[data-variant='secondary']:hover {
+  background: var(--surface-3);
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+.axb[data-variant='ghost'] {
+  background: transparent;
+  color: var(--text-secondary);
+}
+.axb[data-variant='ghost']:hover {
+  background: var(--surface-1);
+  color: var(--text-primary);
+}
+
+.axb[data-variant='terminal'] {
+  --tick: 9px;
+  --tick-w: 1.5px;
+  --tick-color: var(--border-strong);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-medium);
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  border-radius: 0;
+  background-image:
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color));
+  background-repeat: no-repeat;
+  background-size:
+    var(--tick) var(--tick-w),
+    var(--tick-w) var(--tick),
+    var(--tick) var(--tick-w),
+    var(--tick-w) var(--tick),
+    var(--tick) var(--tick-w),
+    var(--tick-w) var(--tick),
+    var(--tick) var(--tick-w),
+    var(--tick-w) var(--tick);
+  background-position:
+    top left,
+    top left,
+    top right,
+    top right,
+    bottom left,
+    bottom left,
+    bottom right,
+    bottom right;
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+.axb[data-variant='terminal']:hover {
+  --tick-color: var(--accent);
+  color: var(--text-primary);
+}
+.axb[data-variant='terminal']:active {
+  transform: none;
+  color: var(--accent);
+}
+
+.axb[data-variant='danger'] {
+  background: color-mix(in srgb, var(--signal-danger) 16%, transparent);
+  color: var(--signal-danger);
+  border-color: color-mix(in srgb, var(--signal-danger) 38%, transparent);
+}
+.axb[data-variant='danger']:hover {
+  background: var(--signal-danger);
+  color: var(--signal-danger-ink);
+  border-color: transparent;
+}
+
+.axb[data-loading='true'] {
+  color: transparent !important;
+}
+.axb-spin {
+  position: absolute;
+  width: 1.05em;
+  height: 1.05em;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 999px;
+  animation: axb-spin 0.7s linear infinite;
+  color: var(--accent-ink);
+}
+.axb[data-variant='secondary'] .axb-spin,
+.axb[data-variant='ghost'] .axb-spin,
+.axb[data-variant='terminal'] .axb-spin {
+  color: var(--text-primary);
+}
+@keyframes axb-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── IconButton ─────────────────────────────────────────────── */
+.axib {
+  --axib-s: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--axib-s);
+  height: var(--axib-s);
+  border: var(--border-hair) solid transparent;
+  border-radius: var(--ds-radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  flex: none;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+.axib svg {
+  width: 1.15em;
+  height: 1.15em;
+}
+.axib:hover {
+  background: var(--surface-2);
+  color: var(--text-primary);
+}
+.axib:active {
+  transform: scale(0.9);
+}
+.axib:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+.axib[disabled] {
+  opacity: 0.4;
+  pointer-events: none;
+}
+.axib[data-size='sm'] {
+  --axib-s: 32px;
+}
+.axib[data-size='lg'] {
+  --axib-s: 48px;
+}
+.axib[data-variant='solid'] {
+  background: var(--surface-2);
+  border-color: var(--border-default);
+}
+.axib[data-variant='solid']:hover {
+  background: var(--surface-3);
+  border-color: var(--border-strong);
+}
+.axib[data-variant='accent'] {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.axib[data-variant='accent']:hover {
+  background: var(--accent-hover);
+  color: var(--accent-ink);
+}
+
+/* ── Badge ──────────────────────────────────────────────────── */
+.axbadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding-inline: 9px;
+  font-family: var(--font-mono);
+  font-size: var(--ds-text-micro);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: var(--ds-radius-xs);
+  border: var(--border-hair) solid var(--border-default);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.axbadge[data-soft='true'] {
+  border-color: transparent;
+}
+.axbadge-dot {
+  width: 6px;
+  height: 6px;
+  background: currentColor;
+  flex: none;
+}
+.axbadge[data-tone='accent'] {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+}
+.axbadge[data-tone='success'] {
+  color: var(--signal-success);
+  background: color-mix(in srgb, var(--signal-success) 14%, transparent);
+  border-color: color-mix(in srgb, var(--signal-success) 34%, transparent);
+}
+.axbadge[data-tone='warn'] {
+  color: var(--signal-warn);
+  background: color-mix(in srgb, var(--signal-warn) 14%, transparent);
+  border-color: color-mix(in srgb, var(--signal-warn) 34%, transparent);
+}
+.axbadge[data-tone='danger'] {
+  color: var(--signal-danger);
+  background: color-mix(in srgb, var(--signal-danger) 14%, transparent);
+  border-color: color-mix(in srgb, var(--signal-danger) 34%, transparent);
+}
+.axbadge[data-tone='info'] {
+  color: var(--signal-info);
+  background: color-mix(in srgb, var(--signal-info) 14%, transparent);
+  border-color: color-mix(in srgb, var(--signal-info) 34%, transparent);
+}
+
+/* ── Tag ────────────────────────────────────────────────────── */
+.axtag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 30px;
+  padding-inline: 12px;
+  font-family: var(--font-sans);
+  font-size: var(--ds-text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+  background: var(--surface-1);
+  border: var(--border-hair) solid var(--border-default);
+  border-radius: var(--ds-radius-pill);
+  appearance: none;
+  -webkit-appearance: none;
+  text-align: inherit;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
+}
+.axtag svg {
+  width: 14px;
+  height: 14px;
+  opacity: 0.8;
+}
+.axtag[data-interactive='true'] {
+  cursor: pointer;
+}
+.axtag[data-interactive='true']:hover {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+.axtag[data-selected='true'] {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+}
+.axtag-x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-right: -4px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.6;
+  border-radius: 999px;
+}
+.axtag-x:hover {
+  opacity: 1;
+  background: var(--surface-3);
+}
+.axtag-x svg {
+  width: 11px;
+  height: 11px;
+}
+
+/* ── Avatar ─────────────────────────────────────────────────── */
+.axav {
+  --axav-s: 44px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--axav-s);
+  height: var(--axav-s);
+  flex: none;
+  border-radius: var(--ds-radius-md);
+  overflow: hidden;
+  background: var(--surface-3);
+  color: var(--text-secondary);
+  border: var(--border-hair) solid var(--border-default);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-medium);
+  font-size: calc(var(--axav-s) * 0.36);
+  letter-spacing: 0.02em;
+  user-select: none;
+}
+.axav[data-shape='round'] {
+  border-radius: 999px;
+}
+.axav[data-size='sm'] {
+  --axav-s: 32px;
+}
+.axav[data-size='lg'] {
+  --axav-s: 60px;
+}
+.axav[data-size='xl'] {
+  --axav-s: 88px;
+}
+.axav img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.axav-status {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 30%;
+  height: 30%;
+  min-width: 9px;
+  min-height: 9px;
+  border: 2px solid var(--bg-base);
+  background: var(--text-faint);
+}
+.axav-status[data-online='true'] {
+  background: var(--signal-success);
+}
+
+/* ── Card ───────────────────────────────────────────────────── */
+.axcard {
+  position: relative;
+  background: var(--surface-1);
+  border: var(--border-hair) solid var(--border-subtle);
+  border-radius: var(--ds-radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--inset-top);
+  transition:
+    border-color var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out),
+    background var(--dur-base) var(--ease-out);
+}
+.axcard[data-variant='solid'] {
+  background: var(--surface-solid);
+  border-color: var(--border-default);
+}
+.axcard[data-variant='raised'] {
+  background: var(--bg-raised);
+  border-color: var(--border-default);
+  box-shadow: var(--inset-top), var(--ds-shadow-md);
+}
+.axcard[data-pad='sm'] {
+  padding: var(--space-4);
+}
+.axcard[data-pad='lg'] {
+  padding: var(--space-8);
+}
+.axcard[data-pad='none'] {
+  padding: 0;
+}
+.axcard[data-interactive='true'] {
+  cursor: pointer;
+}
+.axcard[data-interactive='true']:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-3px);
+  box-shadow: var(--inset-top), var(--ds-shadow-lg);
+}
+.axcard[data-interactive='true']:hover.axcard[data-reticle='true'] {
+  --tick-color: var(--accent);
+}
+
+.axcard[data-reticle='true'] {
+  --tick: 16px;
+  --tick-w: 1.5px;
+  --tick-color: var(--border-strong);
+  border-color: transparent;
+  background-image:
+    linear-gradient(var(--surface-1), var(--surface-1)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color));
+  background-repeat: no-repeat;
+  background-size:
+    100% 100%,
+    var(--tick) var(--tick-w),
+    var(--tick-w) var(--tick),
+    var(--tick) var(--tick-w),
+    var(--tick-w) var(--tick),
+    var(--tick) var(--tick-w),
+    var(--tick-w) var(--tick),
+    var(--tick) var(--tick-w),
+    var(--tick-w) var(--tick);
+  background-position:
+    center,
+    top left,
+    top left,
+    top right,
+    top right,
+    bottom left,
+    bottom left,
+    bottom right,
+    bottom right;
+  transition:
+    background var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
+}
+
+/* ── Input / textarea field ─────────────────────────────────── */
+.axfield {
+  display: grid;
+  gap: 7px;
+}
+.axfield-label {
+  font-family: var(--font-mono);
+  font-size: var(--ds-text-label);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.axinput-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.axinput-ic {
+  position: absolute;
+  left: 14px;
+  display: inline-flex;
+  color: var(--text-faint);
+  pointer-events: none;
+}
+.axinput-ic svg {
+  width: 17px;
+  height: 17px;
+}
+.axinput {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  font-family: var(--font-sans);
+  font-size: var(--ds-text-body);
+  color: var(--text-primary);
+  background: var(--surface-1);
+  border: var(--border-hair) solid var(--border-default);
+  border-radius: var(--ds-radius-md);
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
+}
+.axinput::placeholder {
+  color: var(--text-faint);
+}
+.axinput:hover {
+  border-color: var(--border-strong);
+}
+.axinput:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+  background: var(--surface-2);
+}
+.axinput[data-hasicon='true'] {
+  padding-left: 42px;
+}
+.axinput[data-invalid='true'] {
+  border-color: color-mix(in srgb, var(--signal-danger) 60%, transparent);
+}
+.axinput[data-invalid='true']:focus {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--signal-danger) 30%, transparent);
+}
+.axinput:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.axinput[data-mono='true'] {
+  font-family: var(--font-mono);
+  font-size: var(--ds-text-sm);
+}
+.axfield-hint {
+  font-size: var(--ds-text-xs);
+  color: var(--text-faint);
+}
+.axfield-hint[data-invalid='true'] {
+  color: var(--signal-danger);
+}
+textarea.axinput {
+  height: auto;
+  min-height: 96px;
+  padding: 12px 14px;
+  resize: vertical;
+  line-height: var(--ds-leading-normal);
+}
+
+/* ── Select ─────────────────────────────────────────────────── */
+.axsel-field {
+  display: grid;
+  gap: 7px;
+}
+.axsel-label {
+  font-family: var(--font-mono);
+  font-size: var(--ds-text-label);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.axsel-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.axsel {
+  width: 100%;
+  height: 46px;
+  padding: 0 40px 0 14px;
+  font-family: var(--font-sans);
+  font-size: var(--ds-text-body);
+  color: var(--text-primary);
+  background: var(--surface-1);
+  border: var(--border-hair) solid var(--border-default);
+  border-radius: var(--ds-radius-md);
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
+}
+.axsel:hover {
+  border-color: var(--border-strong);
+}
+.axsel:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+  background: var(--surface-2);
+}
+.axsel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.axsel option {
+  background: var(--bg-raised);
+  color: var(--text-primary);
+}
+.axsel-chev {
+  position: absolute;
+  right: 14px;
+  pointer-events: none;
+  color: var(--text-tertiary);
+  display: inline-flex;
+}
+.axsel-chev svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ── Switch ─────────────────────────────────────────────────── */
+.axswitch {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  cursor: pointer;
+  user-select: none;
+}
+.axswitch[data-disabled='true'] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.axswitch-track {
+  position: relative;
+  width: 44px;
+  height: 26px;
+  flex: none;
+  background: var(--surface-3);
+  border: var(--border-hair) solid var(--border-default);
+  border-radius: 999px;
+  transition:
+    background var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out);
+}
+.axswitch-thumb {
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--mono-100);
+  box-shadow: var(--ds-shadow-xs);
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    background var(--dur-base) var(--ease-out);
+}
+.axswitch input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.axswitch input:checked + .axswitch-track {
+  background: var(--accent);
+  border-color: transparent;
+}
+.axswitch input:checked + .axswitch-track .axswitch-thumb {
+  transform: translateY(-50%) translateX(18px);
+  background: var(--accent-ink);
+}
+.axswitch input:focus-visible + .axswitch-track {
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+.axswitch-label {
+  font-family: var(--font-sans);
+  font-size: var(--ds-text-sm);
+  color: var(--text-primary);
+}
+
+/* ── Checkbox ───────────────────────────────────────────────── */
+.axcheck {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+.axcheck[data-disabled='true'] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.axcheck input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.axcheck-box {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  flex: none;
+  margin-top: 1px;
+  background: var(--surface-1);
+  border: var(--border-hair) solid var(--border-strong);
+  border-radius: var(--ds-radius-xs);
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+.axcheck-box svg {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 13px;
+  height: 13px;
+  color: var(--accent-ink);
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    opacity var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+.axcheck input:checked + .axcheck-box {
+  background: var(--accent);
+  border-color: transparent;
+}
+.axcheck input:checked + .axcheck-box svg {
+  opacity: 1;
+  transform: scale(1);
+}
+.axcheck input:focus-visible + .axcheck-box {
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+.axcheck-label {
+  font-family: var(--font-sans);
+  font-size: var(--ds-text-sm);
+  color: var(--text-primary);
+  line-height: var(--ds-leading-snug);
+}
+
+/* ── Tabs ───────────────────────────────────────────────────── */
+.axtabs {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 2px;
+  position: relative;
+  border-bottom: var(--border-hair) solid var(--border-subtle);
+}
+.axtabs[data-block='true'] {
+  display: flex;
+  width: 100%;
+}
+.axtab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 16px 13px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: var(--ds-text-sm);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.02em;
+  color: var(--text-tertiary);
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.axtabs[data-block='true'] .axtab {
+  flex: 1;
+  justify-content: center;
+}
+.axtab svg {
+  width: 15px;
+  height: 15px;
+}
+.axtab:hover {
+  color: var(--text-secondary);
+}
+.axtab:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+.axtab[data-active='true'] {
+  color: var(--text-primary);
+}
+.axtab[data-active='true']::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: -1px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px 2px 0 0;
+}
+.axtab-count {
+  font-size: var(--ds-text-micro);
+  color: var(--text-faint);
+  background: var(--surface-2);
+  border-radius: var(--ds-radius-xs);
+  padding: 1px 5px;
+}
+
+/* ── Callout ────────────────────────────────────────────────── */
+.axcallout {
+  display: flex;
+  gap: 13px;
+  padding: 15px 17px;
+  background: var(--surface-1);
+  border: var(--border-hair) solid var(--border-default);
+  border-left-width: 2px;
+  border-left-color: var(--text-faint);
+  border-radius: var(--ds-radius-md);
+}
+.axcallout-ic {
+  flex: none;
+  margin-top: 1px;
+  color: var(--text-tertiary);
+  display: inline-flex;
+}
+.axcallout-ic svg {
+  width: 18px;
+  height: 18px;
+}
+.axcallout-body {
+  display: grid;
+  gap: 3px;
+}
+.axcallout-title {
+  font-family: var(--font-sans);
+  font-weight: var(--weight-semibold);
+  font-size: var(--ds-text-sm);
+  color: var(--text-primary);
+}
+.axcallout-text {
+  font-size: var(--ds-text-sm);
+  color: var(--text-secondary);
+  line-height: var(--ds-leading-normal);
+}
+.axcallout[data-tone='accent'] {
+  border-left-color: var(--accent);
+}
+.axcallout[data-tone='accent'] .axcallout-ic {
+  color: var(--accent);
+}
+.axcallout[data-tone='success'] {
+  border-left-color: var(--signal-success);
+}
+.axcallout[data-tone='success'] .axcallout-ic {
+  color: var(--signal-success);
+}
+.axcallout[data-tone='warn'] {
+  border-left-color: var(--signal-warn);
+}
+.axcallout[data-tone='warn'] .axcallout-ic {
+  color: var(--signal-warn);
+}
+.axcallout[data-tone='danger'] {
+  border-left-color: var(--signal-danger);
+}
+.axcallout[data-tone='danger'] .axcallout-ic {
+  color: var(--signal-danger);
+}

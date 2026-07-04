@@ -1,0 +1,69 @@
+---
+// LinkedInBadge.astro
+// Offizielles LinkedIn-Profil-Badge. Das Drittanbieter-Script (platform.linkedin.com)
+// wird DSGVO-konform erst nach Cookie-Einwilligung geladen (Key `cookie-consent`).
+// Ohne Einwilligung bleibt nur der lokale Fallback-Link sichtbar — kein externer Request.
+const vanity = 'alexander-schneider-9a8b38379';
+const name = 'Alexander Schneider';
+---
+
+<div class="mt-2">
+  <div
+    class="badge-base LI-profile-badge"
+    data-locale="de_DE"
+    data-size="medium"
+    data-theme="dark"
+    data-type="VERTICAL"
+    data-vanity={vanity}
+    data-version="v1"
+  >
+    <a
+      class="badge-base__link LI-simple-link font-mono text-[0.85rem] text-[color:var(--color-mono-300)] underline underline-offset-4 transition-colors hover:text-[color:var(--color-neon-orange)]"
+      href={`https://de.linkedin.com/in/${vanity}?trk=profile-badge`}
+      target="_blank"
+      rel="me noopener noreferrer">{name} auf LinkedIn</a
+    >
+  </div>
+</div>
+
+<script>
+  const SRC = 'https://platform.linkedin.com/badges/js/profile.js';
+
+  function injectScript() {
+    // Frisch einhängen, damit profile.js den aktuellen Badge-DOM scannt und rendert.
+    // Vorheriges Script entfernen, damit sich bei Navigation nichts ansammelt.
+    document.querySelectorAll(`script[src="${SRC}"]`).forEach((el) => el.remove());
+    const s = document.createElement('script');
+    s.src = SRC;
+    s.async = true;
+    s.defer = true;
+    s.type = 'text/javascript';
+    document.body.appendChild(s);
+  }
+
+  // Rendert das Badge nur, wenn Einwilligung vorliegt und es noch nicht gerendert ist.
+  function renderBadge() {
+    if (localStorage.getItem('cookie-consent') !== 'granted') return;
+    const badge = document.querySelector('.LI-profile-badge');
+    if (!badge || badge.querySelector('iframe')) return;
+    injectScript();
+  }
+
+  // Listener nur einmal pro Session registrieren — defensiv gegen mehrfaches
+  // Ausführen des Scripts bei View Transitions (verhindert doppelte Listener).
+  const w = window as Window & { __liBadgeListenersBound?: boolean };
+  if (!w.__liBadgeListenersBound) {
+    w.__liBadgeListenersBound = true;
+
+    // Erstaufruf UND jede View-Transition-Navigation (Footer/Badge werden neu erzeugt) —
+    // astro:page-load feuert in beiden Fällen.
+    document.addEventListener('astro:page-load', renderBadge);
+
+    // Banner-Entscheidung ohne Reload sofort anwenden.
+    window.addEventListener('cookie-consent-changed', (event) => {
+      if ((event as CustomEvent<'granted' | 'denied'>).detail === 'granted') {
+        renderBadge();
+      }
+    });
+  }
+</script>

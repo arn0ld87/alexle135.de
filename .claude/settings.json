@@ -1,0 +1,48 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e 'const p=JSON.parse(require(\"fs\").readFileSync(0,\"utf8\")).tool_input?.file_path||\"\"; if(/\\.(ts|tsx|js|jsx|astro|mjs|cjs|json|md|mdx|css)$/.test(p) && p.startsWith(process.cwd())){process.exit(0)} else {process.exit(2)}' 2>/dev/null && npx --no-install prettier --write \"$CLAUDE_FILE_PATHS\" 2>/dev/null || true"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat >/dev/null || true; git rev-parse --git-dir >/dev/null 2>&1 && code-review-graph update --skip-flows --repo \"/Volumes/T7/Projekte/alexle-vsco\" || true",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e 'const input=JSON.parse(require(\"fs\").readFileSync(0,\"utf8\")); const p=input.tool_input?.file_path||\"\"; const blocked=[/\\.env$/,/\\.env\\.[^/]+$/,/(^|\\/)dist\\//,/(^|\\/)\\.well-known\\//,/package-lock\\.json$/,/pnpm-lock\\.yaml$/]; if(blocked.some(r=>r.test(p))){console.error(\"BLOCKED by csp/secret guard: \"+p+\" (siehe CLAUDE.md Gotchas)\"); process.exit(2)} process.exit(0)'"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat >/dev/null || true; git rev-parse --git-dir >/dev/null 2>&1 && code-review-graph status --repo \"/Volumes/T7/Projekte/alexle-vsco\" || echo 'Not a git repo, skipping'",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

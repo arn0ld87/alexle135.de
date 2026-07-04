@@ -1,0 +1,314 @@
+---
+import V2Layout from '../../layouts/V2Layout.astro';
+import PageIntro from '../../components/site/PageIntro.astro';
+
+const categories = [
+  {
+    id: 'netzwerk',
+    name: 'Netzwerktechnik',
+    topics: [
+      'OSI-Modell & TCP/IP',
+      'IP-Adressierung & Subnetting',
+      'Routing & Switching',
+      'VLAN & Trunking',
+      'DNS, DHCP, NAT',
+      'Firewalls & Proxy',
+      'VPN-Technologien',
+      'WLAN-Standards',
+      'Netzwerk-Protokolle (HTTP, FTP, SSH)',
+      'Netzwerk-Troubleshooting'
+    ]
+  },
+  {
+    id: 'server',
+    name: 'Server & Betriebssysteme',
+    topics: [
+      'Windows Server Administration',
+      'Linux-Grundlagen & Shell',
+      'Active Directory & GPOs',
+      'Benutzer- & Rechteverwaltung',
+      'Datei- & Druckdienste',
+      'Virtualisierung (VMware, Hyper-V)',
+      'Container (Docker)',
+      'Backup & Recovery',
+      'Monitoring & Logging',
+      'Patch-Management'
+    ]
+  },
+  {
+    id: 'sicherheit',
+    name: 'IT-Sicherheit',
+    topics: [
+      'Schutzziele (CIA)',
+      'Verschlüsselung (symmetrisch/asymmetrisch)',
+      'Zertifikate & PKI',
+      'Authentifizierung & Autorisierung',
+      'Malware-Arten & Schutz',
+      'Firewall-Konfiguration',
+      'Datenschutz & DSGVO',
+      'IT-Grundschutz & BSI',
+      'Penetrationstests',
+      'Incident Response'
+    ]
+  },
+  {
+    id: 'programmierung',
+    name: 'Programmierung & Scripting',
+    topics: [
+      'Programmierlogik & Algorithmen',
+      'Variablen & Datentypen',
+      'Kontrollstrukturen (if, for, while)',
+      'Funktionen & Parameter',
+      'Objektorientierung Basics',
+      'Bash-Scripting',
+      'PowerShell-Scripting',
+      'Python-Grundlagen',
+      'SQL & Datenbanken',
+      'Versionskontrolle (Git)'
+    ]
+  },
+  {
+    id: 'projekt',
+    name: 'Projektmanagement',
+    topics: [
+      'Projektphasen & Meilensteine',
+      'Lastenheft & Pflichtenheft',
+      'Gantt-Diagramm & Netzplan',
+      'Scrum & Kanban Basics',
+      'Risikoanalyse',
+      'Qualitätssicherung',
+      'Dokumentation',
+      'Präsentationstechniken',
+      'Kosten- & Nutzenanalyse',
+      'Stakeholder-Management'
+    ]
+  },
+  {
+    id: 'wirtschaft',
+    name: 'Wirtschaft & Recht',
+    topics: [
+      'Vertragsarten',
+      'Kaufvertragsstörungen',
+      'Urheberrecht & Lizenzen',
+      'Datenschutz (BDSG, DSGVO)',
+      'Arbeitsrecht Basics',
+      'Angebotserstellung',
+      'Kalkulation & Kostenrechnung',
+      'Marketing Basics',
+      'Beschaffung & Logistik',
+      'Qualitätsmanagement'
+    ]
+  }
+];
+---
+
+<V2Layout
+  title="FISI Prüfungstracker – IHK Radar"
+  description="Behalte den Überblick über deine IHK-Prüfungsthemen. Hake ab, was du kannst."
+>
+  <main class="v2-shell py-20 md:py-28">
+    <PageIntro
+      kicker="FISI Survival Kit"
+      title="IHK Radar"
+      lead="Hake ab, was du drauf hast. Dein Fortschritt wird im Browser gespeichert."
+    />
+
+    <!-- Overall Progress -->
+    <div class="mt-12 v2-panel rounded-sm p-6">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-sm font-medium text-[color:var(--color-mono-50)]">Gesamtfortschritt</span>
+        <span id="overall-percent" class="font-mono text-sm text-[color:var(--color-neon-orange)]">0%</span>
+      </div>
+      <div class="h-1.5 rounded-full bg-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] overflow-hidden">
+        <div id="overall-bar" class="ihk-progress-bar h-full bg-[color:var(--color-neon-orange)] rounded-full transition-all duration-300" style="--progress: 0%"></div>
+      </div>
+      <p id="overall-count" class="text-xs font-mono text-[color:var(--color-mono-400)] mt-2">0 von 60 Themen abgehakt</p>
+    </div>
+
+    <!-- Categories -->
+    <div class="mt-10 space-y-4">
+      {categories.map(category => (
+        <div class="v2-panel rounded-sm overflow-hidden">
+          <button
+            class="category-toggle w-full flex items-center justify-between p-5 transition-colors hover:bg-[color:color-mix(in_srgb,var(--color-mono-50)_3%,transparent)]"
+            data-category={category.id}
+          >
+            <div class="flex items-center gap-3">
+              <span class="text-sm font-medium text-[color:var(--color-mono-50)]">{category.name}</span>
+              <span class="category-count font-mono text-xs text-[color:var(--color-mono-400)]" data-category={category.id}>0/{category.topics.length}</span>
+            </div>
+            <div class="flex items-center gap-4">
+              <div class="w-20 h-1 rounded-full bg-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] overflow-hidden">
+                <div
+                  class="category-bar ihk-progress-bar h-full bg-[color:var(--color-neon-orange)] rounded-full transition-all duration-300"
+                  data-category={category.id}
+                  style="--progress: 0%"
+                ></div>
+              </div>
+              <svg class="category-chevron w-4 h-4 text-[color:var(--color-mono-400)] transition-transform" data-category={category.id} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </button>
+
+          <div class="category-content hidden border-t border-[color:color-mix(in_srgb,var(--color-mono-50)_8%,transparent)] p-5" data-category={category.id}>
+            <div class="space-y-1">
+              {category.topics.map((topic, index) => (
+                <label class="flex items-center gap-3 rounded-sm p-2 cursor-pointer transition-colors hover:bg-[color:color-mix(in_srgb,var(--color-mono-50)_4%,transparent)]">
+                  <input
+                    type="checkbox"
+                    class="topic-checkbox h-4 w-4 accent-[color:var(--color-neon-orange)] bg-transparent border-[color:var(--color-mono-500)] rounded-sm"
+                    data-category={category.id}
+                    data-topic={`${category.id}-${index}`}
+                  />
+                  <span class="text-sm text-[color:var(--color-mono-200)]">{topic}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- Actions -->
+    <div class="mt-10 flex flex-wrap gap-4 justify-center">
+      <button
+        id="reset-btn"
+        class="v2-cta-ghost"
+      >
+        Zurücksetzen
+      </button>
+      <a
+        href="/blog/"
+        class="v2-cta"
+      >
+        Tutorials lesen
+      </a>
+    </div>
+
+    <!-- Tips -->
+    <div class="mt-16 v2-panel rounded-sm p-6">
+      <h3 class="font-editorial text-lg text-[color:var(--color-mono-50)] mb-3">Lern-Tipps</h3>
+      <ul class="text-sm text-[color:var(--color-mono-300)] space-y-2">
+        <li class="flex items-start gap-2"><span class="text-[color:var(--color-neon-orange)]" aria-hidden="true">&bull;</span> Fang mit den Grundlagen an: Netzwerk, dann Server, dann Sicherheit</li>
+        <li class="flex items-start gap-2"><span class="text-[color:var(--color-neon-orange)]" aria-hidden="true">&bull;</span> Mach zu jedem Thema mindestens eine praktische Übung</li>
+        <li class="flex items-start gap-2"><span class="text-[color:var(--color-neon-orange)]" aria-hidden="true">&bull;</span> Wiederhole regelmäßig - nicht alles auf einmal</li>
+        <li class="flex items-start gap-2"><span class="text-[color:var(--color-neon-orange)]" aria-hidden="true">&bull;</span> Die IHK fragt gerne Zusammenhänge zwischen Themen</li>
+      </ul>
+    </div>
+  </main>
+
+  <script>
+    const STORAGE_KEY = 'ihk-radar-progress';
+
+    function loadProgress(): Record<string, boolean> {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? JSON.parse(saved) : {};
+    }
+
+    function saveProgress(progress: Record<string, boolean>) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+    }
+
+    function updateUI() {
+      const progress = loadProgress();
+      const checkboxes = document.querySelectorAll('.topic-checkbox');
+
+      let totalChecked = 0;
+      const categoryStats: Record<string, { checked: number; total: number }> = {};
+
+      checkboxes.forEach(cb => {
+        const el = cb as HTMLInputElement;
+        const category = el.dataset.category!;
+        const topic = el.dataset.topic!;
+
+        if (!categoryStats[category]) {
+          categoryStats[category] = { checked: 0, total: 0 };
+        }
+        categoryStats[category].total++;
+
+        if (progress[topic]) {
+          el.checked = true;
+          categoryStats[category].checked++;
+          totalChecked++;
+        }
+      });
+
+      Object.keys(categoryStats).forEach(category => {
+        const stats = categoryStats[category];
+        const percent = (stats.checked / stats.total) * 100;
+
+        const bar = document.querySelector(`.category-bar[data-category="${category}"]`) as HTMLElement;
+        const count = document.querySelector(`.category-count[data-category="${category}"]`);
+
+        if (bar) bar.style.setProperty('--progress', `${percent}%`);
+        if (count) count.textContent = `${stats.checked}/${stats.total}`;
+      });
+
+      const totalTopics = checkboxes.length;
+      const overallPercent = (totalChecked / totalTopics) * 100;
+
+      (document.getElementById('overall-bar') as HTMLElement).style.setProperty(
+        '--progress',
+        `${overallPercent}%`,
+      );
+      document.getElementById('overall-percent')!.textContent = `${Math.round(overallPercent)}%`;
+      document.getElementById('overall-count')!.textContent = `${totalChecked} von ${totalTopics} Themen abgehakt`;
+    }
+
+    // ViewTransitions: das Modul läuft nur einmal pro Session, astro:page-load
+    // feuert aber bei jeder Navigation (auch auf fremden Seiten) — daher
+    // Element-Check als Bail-out und data-initialized als Doppelbindungs-Guard.
+    function initIhkRadar() {
+      const resetBtn = document.getElementById('reset-btn');
+      if (!resetBtn || resetBtn.dataset.initialized === 'true') return;
+      resetBtn.dataset.initialized = 'true';
+
+      document.querySelectorAll('.category-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const category = (btn as HTMLElement).dataset.category!;
+          const content = document.querySelector(`.category-content[data-category="${category}"]`);
+          const chevron = document.querySelector(`.category-chevron[data-category="${category}"]`);
+
+          content?.classList.toggle('hidden');
+          chevron?.classList.toggle('rotate-180');
+        });
+      });
+
+      document.querySelectorAll('.topic-checkbox').forEach(cb => {
+        cb.addEventListener('change', () => {
+          const el = cb as HTMLInputElement;
+          const progress = loadProgress();
+          const topic = el.dataset.topic!;
+
+          if (el.checked) {
+            progress[topic] = true;
+          } else {
+            delete progress[topic];
+          }
+
+          saveProgress(progress);
+          updateUI();
+        });
+      });
+
+      resetBtn.addEventListener('click', () => {
+        if (confirm('Wirklich alles zurücksetzen?')) {
+          localStorage.removeItem(STORAGE_KEY);
+          document.querySelectorAll('.topic-checkbox').forEach(cb => (cb as HTMLInputElement).checked = false);
+          updateUI();
+        }
+      });
+
+      updateUI();
+    }
+
+    document.addEventListener('astro:page-load', initIhkRadar);
+  </script>
+
+  <style>
+    .ihk-progress-bar {
+      width: var(--progress, 0%);
+    }
+  </style>
+</V2Layout>

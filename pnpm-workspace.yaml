@@ -1,0 +1,15 @@
+packages:
+  - .
+
+allowBuilds:
+  esbuild: true
+  sharp: true
+
+overrides:
+  'ws@>=8.0.0 <8.21.0': '>=8.21.0'
+  electron-to-chromium: 1.5.383
+  es-module-lexer: 2.2.0
+
+onlyBuiltDependencies:
+  - esbuild
+  - sharp

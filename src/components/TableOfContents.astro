@@ -1,0 +1,33 @@
+---
+import type { MarkdownHeading } from 'astro';
+
+interface Props {
+  headings: MarkdownHeading[];
+}
+
+const { headings } = Astro.props;
+
+// Filter headings (e.g., only h2 and h3)
+const filteredHeadings = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
+---
+
+{filteredHeadings.length > 0 && (
+  <nav class="toc sticky top-24">
+    <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-4">Inhalt</h2>
+    <ul class="space-y-2 text-sm border-l border-white/10">
+      {filteredHeadings.map((heading) => (
+        <li>
+          <a
+            href={`#${heading.slug}`}
+            class:list={[
+              "block py-1 pl-4 border-l-2 border-transparent transition-colors hover:text-blue-400 hover:border-blue-400",
+              heading.depth === 2 ? "text-gray-300" : "text-gray-400 pl-8"
+            ]}
+          >
+            {heading.text}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+)}

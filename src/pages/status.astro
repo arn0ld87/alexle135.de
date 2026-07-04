@@ -1,0 +1,47 @@
+---
+import V2Layout from '../layouts/V2Layout.astro';
+import PageIntro from '../components/site/PageIntro.astro';
+---
+
+<V2Layout
+  title="System Status"
+  description="Aktueller Status der Website und Services von Alexander Schneider."
+  noindex={true}
+>
+  <main class="v2-shell py-20 md:py-28">
+    <PageIntro
+      kicker="Status"
+      title="System Status"
+      lead="Transparenz für Verfügbarkeit und Betrieb. Bei Störungen antworte ich schnell über die Kontaktseite."
+    />
+
+    <section class="mt-16 grid gap-6 md:grid-cols-3">
+      <article class="v2-panel rounded-sm p-6">
+        <div class="mb-4 inline-flex items-center gap-2 border border-[color:color-mix(in_srgb,var(--color-neon-orange)_30%,transparent)] bg-[color:color-mix(in_srgb,var(--color-neon-orange)_8%,transparent)] px-3 py-1">
+          <span class="h-2 w-2 bg-[color:var(--color-neon-orange)]"></span>
+          <span class="v2-kicker">Operational</span>
+        </div>
+        <h2 class="font-editorial text-xl text-[color:var(--color-mono-50)] mb-2">Website</h2>
+        <p class="text-sm text-[color:var(--color-mono-300)]">Frontend und Routing laufen stabil.</p>
+      </article>
+
+      <article class="v2-panel rounded-sm p-6">
+        <div class="mb-4 inline-flex items-center gap-2 border border-[color:color-mix(in_srgb,var(--color-neon-orange)_30%,transparent)] bg-[color:color-mix(in_srgb,var(--color-neon-orange)_8%,transparent)] px-3 py-1">
+          <span class="h-2 w-2 bg-[color:var(--color-neon-orange)]"></span>
+          <span class="v2-kicker">Operational</span>
+        </div>
+        <h2 class="font-editorial text-xl text-[color:var(--color-mono-50)] mb-2">API/Services</h2>
+        <p class="text-sm text-[color:var(--color-mono-300)]">Suche und Projekt-APIs sind erreichbar.</p>
+      </article>
+
+      <article class="v2-panel rounded-sm p-6">
+        <div class="mb-4 inline-flex items-center gap-2 border border-[color:color-mix(in_srgb,var(--color-mono-50)_30%,transparent)] bg-[color:color-mix(in_srgb,var(--color-mono-50)_5%,transparent)] px-3 py-1">
+          <span class="h-2 w-2 bg-[color:var(--color-mono-300)]"></span>
+          <span class="v2-kicker">Monitoring</span>
+        </div>
+        <h2 class="font-editorial text-xl text-[color:var(--color-mono-50)] mb-2">Externe Checks</h2>
+        <p class="text-sm text-[color:var(--color-mono-300)]">Detail-Monitoring wird aktuell erweitert.</p>
+      </article>
+    </section>
+  </main>
+</V2Layout>

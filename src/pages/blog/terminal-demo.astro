@@ -1,0 +1,22 @@
+---
+import V2Layout from '../../layouts/V2Layout.astro';
+import PageIntro from '../../components/site/PageIntro.astro';
+import MissionTerminal from '../../components/interactive/MissionTerminal.tsx';
+---
+
+<V2Layout
+  title="Terminal Demo"
+  description="Interaktive Terminal-Simulation für Tutorials."
+>
+  <main class="v2-shell py-20 md:py-28">
+    <PageIntro
+      kicker="Interactive Learning"
+      title="Terminal Missionen"
+      lead="Lerne Linux-Grundlagen interaktiv. Erfülle die Aufgaben im Terminal, um die Mission abzuschließen."
+    />
+
+    <div class="mt-12 max-w-6xl">
+      <MissionTerminal client:visible />
+    </div>
+  </main>
+</V2Layout>

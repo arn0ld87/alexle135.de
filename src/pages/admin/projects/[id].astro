@@ -1,0 +1,207 @@
+---
+import V2Layout from '../../../layouts/V2Layout.astro';
+import { getProject } from '../../../lib/db/repositories';
+
+const { id } = Astro.params;
+
+let project = {
+  title: '',
+  slug: '',
+  summary: '',
+  description: '',
+  status: 'completed',
+  demo_url: '',
+  repo_url: '',
+  featured: false,
+};
+
+if (id && id !== 'new') {
+  try {
+    const data = await getProject(id);
+    if (data) {
+      project = {
+        title: typeof data.title === 'string' ? data.title : '',
+        slug: typeof data.slug === 'string' ? data.slug : '',
+        summary: typeof data.summary === 'string' ? data.summary : '',
+        description: typeof data.description === 'string' ? data.description : '',
+        status: typeof data.status === 'string' ? data.status : 'completed',
+        demo_url: typeof data.demo_url === 'string' ? data.demo_url : '',
+        repo_url: typeof data.repo_url === 'string' ? data.repo_url : '',
+        featured: data.featured === true,
+      };
+    }
+  } catch {
+    // ungültige UUID oder DB-Fehler → leere Editor-Form statt 500
+  }
+}
+
+const pageTitle = id === 'new' ? 'Neues Projekt' : 'Projekt bearbeiten';
+---
+
+<V2Layout title={pageTitle} description="Project Editor" noindex>
+  <main class="mx-auto max-w-4xl px-6 py-16">
+    <form id="project-form" class="space-y-8">
+
+      <!-- Header -->
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p class="v2-kicker mb-2">Projekte</p>
+          <h1 class="font-[family-name:var(--font-editorial)] text-3xl tracking-tight text-[color:var(--color-mono-50)]">{pageTitle}</h1>
+        </div>
+        <div class="flex items-center gap-3">
+          <button
+            type="button"
+            onclick="history.back()"
+            class="border border-[color:color-mix(in_srgb,var(--color-mono-50)_16%,transparent)] px-4 py-2 font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--color-mono-400)] transition-all hover:border-[color:var(--color-mono-50)] hover:text-[color:var(--color-mono-50)]"
+          >
+            Abbrechen
+          </button>
+          <button
+            type="submit"
+            class="border border-[color:var(--color-neon-orange)] bg-[color:var(--color-neon-orange)] px-4 py-2 font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--color-neon-orange-ink)] transition-all hover:bg-transparent hover:text-[color:var(--color-neon-orange)]"
+          >
+            Speichern
+          </button>
+        </div>
+      </div>
+
+      <div class="v2-rule"></div>
+
+      <!-- Form Fields -->
+      <div class="v2-panel p-6 sm:p-8 space-y-6">
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div>
+            <label class="v2-kicker mb-2 block">Titel</label>
+            <input
+              type="text"
+              name="title"
+              value={project.title}
+              required
+              class="w-full border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] bg-[color:color-mix(in_srgb,var(--color-mono-50)_4%,transparent)] px-4 py-3 font-[family-name:var(--font-ui)] text-sm text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-500)] outline-none transition-all focus:border-[color:var(--color-neon-orange)] focus:ring-1 focus:ring-[color:var(--color-neon-orange)]"
+            />
+          </div>
+          <div>
+            <label class="v2-kicker mb-2 block">Slug</label>
+            <input
+              type="text"
+              name="slug"
+              value={project.slug}
+              required
+              class="w-full border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] bg-[color:color-mix(in_srgb,var(--color-mono-50)_4%,transparent)] px-4 py-3 font-[family-name:var(--font-ui)] text-sm text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-500)] outline-none transition-all focus:border-[color:var(--color-neon-orange)] focus:ring-1 focus:ring-[color:var(--color-neon-orange)]"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label class="v2-kicker mb-2 block">Zusammenfassung</label>
+          <textarea
+            name="summary"
+            rows="3"
+            class="w-full border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] bg-[color:color-mix(in_srgb,var(--color-mono-50)_4%,transparent)] px-4 py-3 font-[family-name:var(--font-ui)] text-sm text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-500)] outline-none transition-all focus:border-[color:var(--color-neon-orange)] focus:ring-1 focus:ring-[color:var(--color-neon-orange)]"
+          >{project.summary}</textarea>
+        </div>
+
+        <div>
+          <label class="v2-kicker mb-2 block">Beschreibung</label>
+          <textarea
+            name="description"
+            rows="8"
+            class="w-full border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] bg-[color:color-mix(in_srgb,var(--color-mono-50)_4%,transparent)] px-4 py-3 font-[family-name:var(--font-ui)] text-sm text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-500)] outline-none transition-all focus:border-[color:var(--color-neon-orange)] focus:ring-1 focus:ring-[color:var(--color-neon-orange)]"
+          >{project.description}</textarea>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div>
+            <label class="v2-kicker mb-2 block">Demo URL</label>
+            <input
+              type="url"
+              name="demo_url"
+              value={project.demo_url}
+              class="w-full border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] bg-[color:color-mix(in_srgb,var(--color-mono-50)_4%,transparent)] px-4 py-3 font-[family-name:var(--font-ui)] text-sm text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-500)] outline-none transition-all focus:border-[color:var(--color-neon-orange)] focus:ring-1 focus:ring-[color:var(--color-neon-orange)]"
+            />
+          </div>
+          <div>
+            <label class="v2-kicker mb-2 block">Repo URL</label>
+            <input
+              type="url"
+              name="repo_url"
+              value={project.repo_url}
+              class="w-full border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] bg-[color:color-mix(in_srgb,var(--color-mono-50)_4%,transparent)] px-4 py-3 font-[family-name:var(--font-ui)] text-sm text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-500)] outline-none transition-all focus:border-[color:var(--color-neon-orange)] focus:ring-1 focus:ring-[color:var(--color-neon-orange)]"
+            />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div>
+            <label class="v2-kicker mb-2 block">Status</label>
+            <select
+              name="status"
+              class="w-full border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] bg-[color:var(--color-mono-950)] px-4 py-3 font-[family-name:var(--font-ui)] text-sm text-[color:var(--color-mono-50)] outline-none transition-all focus:border-[color:var(--color-neon-orange)] focus:ring-1 focus:ring-[color:var(--color-neon-orange)]"
+            >
+              <option value="planning" selected={project.status === 'planning'}>Planning</option>
+              <option value="in-progress" selected={project.status === 'in-progress'}>In Progress</option>
+              <option value="completed" selected={project.status === 'completed'}>Completed</option>
+              <option value="archived" selected={project.status === 'archived'}>Archived</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-3 pt-8">
+            <input
+              type="checkbox"
+              id="featured"
+              name="featured"
+              checked={project.featured}
+              class="h-4 w-4 border-[color:var(--color-mono-600)] bg-[color:var(--color-mono-900)] text-[color:var(--color-neon-orange)] focus:ring-[color:var(--color-neon-orange)]"
+            />
+            <label for="featured" class="font-[family-name:var(--font-ui)] text-sm text-[color:var(--color-mono-300)]">Featured</label>
+          </div>
+        </div>
+      </div>
+    </form>
+  </main>
+</V2Layout>
+
+<script define:vars={{ id }}>
+  window.__projectId = id;
+</script>
+
+<script>
+  import { adminFetch } from '../../../lib/adminClient';
+
+  function initProjectEditor() {
+    const form = document.getElementById('project-form') as HTMLFormElement | null;
+    if (!form) return;
+    if (form.dataset.initialized === 'true') return;
+    form.dataset.initialized = 'true';
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const projectId = (window as unknown as { __projectId: string }).__projectId;
+      const formData = new FormData(form);
+      const payload: Record<string, unknown> = {
+        title: String(formData.get('title') ?? ''),
+        slug: String(formData.get('slug') ?? ''),
+        summary: String(formData.get('summary') ?? ''),
+        description: String(formData.get('description') ?? ''),
+        status: String(formData.get('status') ?? 'completed'),
+        demo_url: String(formData.get('demo_url') ?? '') || null,
+        repo_url: String(formData.get('repo_url') ?? '') || null,
+        featured: formData.get('featured') === 'on',
+      };
+
+      const isNew = projectId === 'new';
+      const result = await adminFetch('/api/admin/projects', {
+        method: isNew ? 'POST' : 'PUT',
+        json: isNew ? payload : { id: projectId, ...payload },
+      });
+
+      if (!result.ok) {
+        alert('Fehler: ' + (result.error ?? 'unbekannt'));
+        return;
+      }
+      window.location.href = '/admin/projects';
+    });
+  }
+
+  document.addEventListener('astro:page-load', initProjectEditor);
+</script>

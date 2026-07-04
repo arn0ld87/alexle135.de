@@ -1,0 +1,251 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Sensitive files - NIEMALS ins Repo!
+KEY_FOR_GITHUB.txt
+*.key
+*.pem
+
+# Environment files - NIEMALS ins Repo oder public!
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+!.env.example
+public/**/.env
+public/**/.env.*
+!public/**/.env.example
+api/**/.env
+api/**/.env.*
+!api/**/.env.example
+
+# Testing
+/coverage
+
+# Build outputs
+build/
+dist/
+backups/
+.next/
+out/
+.output/
+.vercel/
+.netlify/
+
+
+# Logs (including subdirectories)
+logs/
+**/*.log
+**/logs/**
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*~
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+*.swp
+*.swo
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+
+# PM2
+.pm2/
+
+# Temporary files
+*.tmp
+*.temp
+*.cache
+.cache/
+.temp/
+.tmp/
+
+# Backup files
+*.backup
+*.backup.*
+*.bak
+*~
+
+# Astro specific
+.astro/
+
+# TypeScript
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn
+.yarn-integrity
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# Serverless directories
+.serverless/
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/
+
+# TernJS port file
+.tern-port
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+# yarn v2
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# Git worktrees
+.worktrees/
+.claude/worktrees/
+
+# Auto Claude data directory
+.auto-claude/
+
+**/.env
+**/.env.local
+**/.env.*.local
+**/digest.txt
+.secrets/
+# Added by code-review-graph
+.code-review-graph/
+
+# Lokale Agent-/Tool-Verzeichnisse
+.pi/
+.serena/
+.playwright-mcp/
+# Agent-/Tool-State, der nicht ins Repo gehoert (Cleanup 2026-06-30)
+.agents/
+.agent/
+.memory_bank/
+memory-bank/
+.history-memo/
+.codex/
+.gemini/
+jules-scratch/
+
+# Archivierte Altlasten (siehe plan: /Volumes/T7/Projekte/Homepage_altlasten)
+teacher-app-conversation/
+prompt-optimizer-pro/
+
+# === Archivierte Altlasten (Quelle: docs/plans/2026-06-10-homepage-grossputz.md) ===
+# Diese Verzeichnisse/Dateien wurden nach /Volumes/T7/Projekte/Homepage_altlasten/ verschoben
+# und aus dem Repo entfernt. Bei Re-Aktivierung: git revert + mv zurueck.
+# Kategorie A — sicher (kein Homepage-Bezug)
+teacher-app-conversation/
+aura-prototype/
+audit_report.md
+audit_solutions.md
+nginx-alexle135-secure-updated.conf
+docs/AURA_ARCHITEKTUR_2026.md
+deploy.sh
+src/pages/frontend-design-beispiel.astro
+src/pages/neues-frontend-beispiel.astro
+.agent/workflows/alexle135-nginx.md
+
+# Kategorie B — wahrscheinlich (Experimente/Nebenprojekte)
+prompt-optimizer-pro/
+demos/
+vendor/
+mcp-servers/
+ki-nachrichten-portal/
+SEO_Codex/
+seo-audit-2026-04-20/
+push/
+# Nur das root-level Nebenprojekt aus dem Großputz, NICHT src/pages/api/
+/api/
+public/api/
+
+# CI-Workflow der mit dem separaten Teacher-App-Projekt mitarchiviert wurde
+.github/workflows/teacher-app-ci.yml
+
+docs/plans/2026-06-10-homepage-grossputz.md
+
+# Claude-Skills werden zentral in ~/.claude/skills/ verwaltet, nicht im Repo
+.claude/skills/
+
+# Lokale generierte Artefakte (nicht ins Repo)
+.lighthouseci/
+output/
+*.zip
+
+# === Repo-Cleanup (2026-07-02) ===
+# Secrets & lokale Config nicht ins Repo
+*.secret
+.mcp.json
+.claude/settings.local.json
+*.ai-session
+scripts/replacements.txt
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Test-/CI-Artefakte (global, nicht nur Root)
+coverage/
+test-results/
+playwright-report/
+lighthouse-report/
+lhci_reports/
+*-report.md
+!docs/**/*-report.md
+
+# === Interne Security-/Rewrite-Runbooks (nicht ins Public-Repo) ===
+docs/HISTORY-REWRITE-RUNBOOK.md
+.claude/workflows/alexle-vsco-history-rewrite-verify.js
+
+# Internes Design-Plan-Doc (nicht ins Public-Repo)
+docs/plans/design030726.md

@@ -1,0 +1,120 @@
+---
+// V2Header.astro
+const navItems = [
+  { href: '/leistungen/', label: 'Was ich kann' },
+  { href: '/projekte/', label: 'Projekte' },
+  { href: '/ueber-mich/', label: 'Über mich' },
+  { href: '/blog/', label: 'Blog' },
+  { href: '/kontakt/', label: 'Kontakt' },
+];
+---
+
+<header class="sticky top-0 z-50 border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] bg-[color:var(--color-mono-950)]/90 backdrop-blur-xl transition-colors duration-300">
+  <div class="v2-shell !py-4 lg:!py-5 flex items-center justify-between">
+
+    <!-- Logo / Brand -->
+    <a href="/" class="group flex items-center gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-neon-orange)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-mono-950)]">
+      <img
+        src="/brand/alexle135-logo-primary.svg"
+        alt="alexle135 Logo"
+        width="180"
+        height="36"
+        class="h-8 w-auto max-w-[9.5rem] transition-transform duration-300 group-hover:scale-[0.98] group-active:scale-95 motion-reduce:transition-none motion-reduce:transform-none sm:h-9"
+        loading="eager"
+      />
+      <span class="hidden font-mono text-[0.72rem] uppercase tracking-[0.18em] text-[color:var(--color-mono-300)] transition-colors duration-300 group-hover:text-[color:var(--color-neon-orange)] lg:inline">
+        alexle135.de
+      </span>
+    </a>
+
+    <!-- Desktop Nav -->
+    <nav class="hidden md:block" aria-label="Hauptnavigation">
+      <ul class="flex items-center gap-8">
+        {navItems.map(item => (
+          <li>
+            <a
+              href={item.href}
+              class="font-mono text-[0.76rem] uppercase tracking-[0.16em] text-[color:var(--color-mono-300)] transition-colors hover:text-[color:var(--color-mono-50)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-neon-orange)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-mono-950)]"
+            >
+              {item.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <!-- Mobile actions: Details-based menu -->
+    <div class="flex items-center gap-2 md:hidden">
+      <details class="relative" id="mobile-menu">
+        <summary class="flex cursor-pointer list-none items-center gap-2 border border-[color:color-mix(in_srgb,var(--color-mono-50)_18%,transparent)] px-3 py-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-[color:var(--color-mono-100)] transition hover:border-[color:var(--color-neon-orange)] hover:text-[color:var(--color-neon-orange)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-neon-orange)]">
+          <span class="select-none">Menü</span>
+          <svg aria-hidden="true" class="h-3 w-3 transition-transform details-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          </svg>
+        </summary>
+
+        <nav
+          class="absolute right-0 top-[calc(100%+0.5rem)] w-56 border border-[color:color-mix(in_srgb,var(--color-mono-50)_16%,transparent)] bg-[color:var(--color-mono-950)] shadow-[0_24px_60px_rgba(0,0,0,0.5)]"
+          aria-label="Mobile Navigation"
+        >
+          <ul>
+            {navItems.map(item => (
+              <li>
+                <a
+                  href={item.href}
+                  class="block border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_8%,transparent)] px-4 py-3 font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--color-mono-200)] transition-colors hover:bg-[color:color-mix(in_srgb,var(--color-mono-50)_6%,transparent)] hover:text-[color:var(--color-neon-orange)]"
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </details>
+    </div>
+  </div>
+</header>
+
+<style>
+  details[open] .details-chevron {
+    transform: rotate(180deg);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .details-chevron {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  // Close mobile menu on outside click and on navigation.
+  function initMobileMenu() {
+    const details = document.getElementById('mobile-menu') as HTMLDetailsElement | null;
+    if (!details) return;
+    if (details.dataset.initialized === 'true') return;
+    details.dataset.initialized = 'true';
+
+    document.addEventListener('click', (e) => {
+      if (!details.open) return;
+      if (!details.contains(e.target as Node)) details.open = false;
+    });
+
+    // Listener am details-Element (nicht document): wird mit dem Element per
+    // View Transition entfernt → kein akkumulierendes Leak (Gemini #185).
+    details.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && details.open) {
+        details.open = false;
+        details.querySelector('summary')?.focus();
+      }
+    });
+
+    details.querySelectorAll('a').forEach((a) => {
+      a.addEventListener('click', () => {
+        details.open = false;
+      });
+    });
+  }
+
+  document.addEventListener('astro:page-load', initMobileMenu);
+</script>

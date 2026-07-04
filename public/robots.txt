@@ -1,0 +1,75 @@
+# robots.txt — alexle135.de
+# Policy: Search + AI-Search + AI-Training erlaubt.
+# Sensible/versteckte Bereiche bleiben gesperrt.
+
+# ------------------------------------------------------------------
+# Default-Regeln für alle Crawler
+# ------------------------------------------------------------------
+User-agent: *
+Allow: /
+
+Disallow: /admin/
+Disallow: /api/
+Disallow: /node_modules/
+Disallow: /.git/
+Disallow: /.vscode/
+
+# /_astro/ bewusst NICHT blockiert:
+# Suchmaschinen sollen CSS/JS laden können, damit Rendering,
+# Mobile-Friendly-Prüfung und Page-Qualität korrekt bewertet werden.
+
+# ------------------------------------------------------------------
+# Explizit erlaubte AI-/Search-Crawler
+# ------------------------------------------------------------------
+User-agent: GPTBot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: YouBot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+# ------------------------------------------------------------------
+# Optional weiterhin geblockte Bots
+# Nur behalten, wenn Du diese bewusst aussperren willst.
+# ------------------------------------------------------------------
+User-agent: Bytespider
+Disallow: /
+
+User-agent: Amazonbot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+# ------------------------------------------------------------------
+# Sitemap
+# ------------------------------------------------------------------
+Sitemap: https://alexle135.de/sitemap-0.xml

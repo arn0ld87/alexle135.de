@@ -1,0 +1,297 @@
+---
+import V2Layout from '../layouts/V2Layout.astro';
+import CTASection from '../components/site/CTASection.astro';
+
+const focusAreas = [
+  'Linux-Administration und Container-Betrieb, meistens auf Debian/Ubuntu',
+  'Traefik, Supabase und CI/CD mit GitHub Actions',
+  'Lokale KI: Ollama, Open WebUI, eigene Agent-Systeme',
+  'Runbooks und Doku, damit ein Setup übergebbar bleibt',
+] as const;
+
+const homelabItems = [
+  'Contabo-VPS mit rund 48 Docker-Containern hinter Traefik: Portfolio, Self-Hosted-Services, Supabase, eigene Tools',
+  'Tailscale-Tailnet, damit nichts unnötig im offenen Netz hängt',
+  'AdGuard Home als DNS-Filter für Werbung und Tracker im Heimnetz',
+  'CachyOS als Daily Driver, MacBook Air M3 für unterwegs, ein iMac 2017 mit OCLP für alles dazwischen',
+] as const;
+
+const principles = [
+  {
+    label: 'Robust schlägt beeindruckend',
+    text: 'Ein langweilig laufendes Setup ist mehr wert als eine Architektur, die auf Folien gut aussieht und sonst nirgends.',
+  },
+  {
+    label: 'Erst Problem, dann Tool',
+    text: 'Die meisten Projekte entstehen, weil ich selbst ein Problem hatte. Nicht, weil sie gut fürs Portfolio aussehen.',
+  },
+  {
+    label: 'Doku gehört dazu',
+    text: 'Wenn ich das Setup in drei Monaten selbst nicht mehr verstehe, ist es nicht fertig. Die Doku kommt nicht immer zuerst, aber sie kommt.',
+  },
+] as const;
+
+const kiProjekte = [
+  {
+    name: 'Hermes',
+    rolle: 'Self-hosted Agent-Framework',
+    text: 'Aktueller Versuch, ein Agent-Framework komplett auf eigener Infrastruktur laufen zu lassen. Kein OpenAI-Key im Hintergrund, keine externen Logs, keine Telemetrie. Gedacht für Aufgaben, bei denen mir Datenabfluss sauer aufstoßen würde. Ersetzt ein früheres Projekt, das ich inzwischen eingestellt habe.',
+    status: 'Aktiv in Entwicklung',
+    preview: null,
+    caption: null,
+  },
+  {
+    name: 'Agora',
+    rolle: 'Agentic Prediction Engine',
+    text: 'Ein Dokument rein, eine Welt raus. Agora baut aus Text einen Wissensgraphen, bevölkert ihn mit hunderten Agents, jeder mit eigener Biografie, Haltung und Blase, und lässt sie diskutieren, teilen, streiten. In Echtzeit sichtbar, wie sich Narrative ausbreiten und welche Stimmen den Diskurs kippen. Läuft lokal: mein Laptop, Neo4j, Ollama. Für Fälle, in denen lokale Inferenz zu langsam wird, kann Agora auf Cloud-Modelle ausweichen. Aktuell v0.2-Vorschau und die spannendste Baustelle auf dem Tisch.',
+    status: 'v0.2-Vorschau · Work in Progress',
+    preview: '/media/projekte/agora-teaser.mp4',
+    poster: '/media/projekte/agora-teaser-poster.jpg',
+    caption: 'Agora · Schwarm-Engine · Offline / Open Source',
+  },
+] as const;
+
+const searchFields = [
+  'Praktikumsplatz oder Junior-Stelle in Systemintegration oder DevOps',
+  'Teams, in denen lokale KI und Self-Hosting kein Nischenthema mehr sind',
+  'Kleinere Projektanfragen mit konkretem Problem und sauberer Übergabe',
+] as const;
+---
+
+<V2Layout
+  title="Über mich – Alexander Schneider, FISI Leipzig"
+  description="Alexander Schneider aus Leipzig, angehender Fachinformatiker Systemintegration. Hands-on mit Linux, Docker, CI/CD und KI-Integration. Portfolio, Projekte und Blog."
+  schema={{
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    "@id": "https://alexle135.de/ueber-mich/#page",
+    "url": "https://alexle135.de/ueber-mich/",
+    "name": "Über mich – Alexander Schneider",
+    "description": "Alexander Schneider aus Leipzig, angehender Fachinformatiker Systemintegration. Werdegang, Homelab und KI-Projekte (Hermes, Agora).",
+    "inLanguage": "de-DE",
+    "mainEntity": { "@id": "https://alexle135.de/#person" }
+  }}
+>
+  <main class="v2-shell py-20 md:py-28 lg:py-36">
+    <section class="grid gap-16 lg:grid-cols-[minmax(18rem,0.85fr)_minmax(0,2fr)] lg:items-start">
+      <aside class="space-y-8">
+        <figure class="border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] p-2">
+          <img
+            src="/media/alex-portrait.webp"
+            alt="Alexander Schneider – Portrait"
+            width="1334"
+            height="2000"
+            class="aspect-[2/3] w-full object-cover contrast-110"
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+          />
+        </figure>
+
+        <div class="space-y-3 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-[color:var(--color-mono-400)]">
+          <div class="flex justify-between border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pb-2">
+            <span>Status</span>
+            <span class="text-[color:var(--color-neon-orange)]">In Ausbildung</span>
+          </div>
+          <div class="flex justify-between border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pb-2">
+            <span>Fokus</span>
+            <span class="text-[color:var(--color-mono-200)]">Systemintegration</span>
+          </div>
+          <div class="flex justify-between border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pb-2">
+            <span>Standort</span>
+            <span class="text-[color:var(--color-mono-200)]">Leipzig, DE</span>
+          </div>
+          <div class="flex justify-between border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pb-2">
+            <span>Interesse</span>
+            <span class="text-[color:var(--color-mono-200)]">Praktikum / Projekte</span>
+          </div>
+        </div>
+      </aside>
+
+      <div class="space-y-12">
+        <header class="space-y-6 border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pb-12">
+          <p class="v2-kicker">Über mich</p>
+          <h1 class="max-w-5xl font-editorial text-[clamp(3.5rem,8vw,6.5rem)] leading-[0.9] tracking-[-0.06em] text-[color:var(--color-mono-50)]">
+            Ich komme nicht aus der klassischen IT-Laufbahn. Das zwingt mich, Sachen wirklich zu verstehen.
+          </h1>
+          <p class="max-w-[60ch] text-xl leading-relaxed text-[color:var(--color-mono-200)]">
+            Alexander Schneider, Leipzig. Aktuell mitten in der Umschulung zum Fachinformatiker Systemintegration. Nebenbei läuft ein Homelab, das eigentlich nie für Zuschauer gedacht war, und zwei, drei KI-Projekte, die mir selbst den Alltag interessanter machen.
+          </p>
+        </header>
+
+        <section class="space-y-6 border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pb-12">
+          <p class="v2-kicker">Werdegang</p>
+          <h2 class="max-w-4xl font-editorial text-[clamp(2.6rem,5vw,4.4rem)] leading-[0.94] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+            Ein paar Umwege, bevor es hier gelandet ist.
+          </h2>
+          <p class="max-w-[65ch] text-base leading-8 text-[color:var(--color-mono-200)]">
+            Ich bin nicht direkt von der Schule in die IT gestolpert. Erst Bundeswehr, dann ein paar Jahre bei der Post, später Handel und ein Stück Selbstständigkeit. Dass ich am Ende hier gelandet bin, war kein Masterplan, sondern das Ergebnis aus zu vielen Servern im Regal, kaputten Setups im Keller und dem Moment, an dem ich gemerkt habe: Das hier interessiert mich wirklich.
+          </p>
+          <p class="max-w-[65ch] text-sm leading-7 text-[color:var(--color-mono-300)]">
+            Seit 2025 läuft die Umschulung zum Fachinformatiker Systemintegration am BFW Leipzig. Abschluss ist für Juni 2027 geplant.
+          </p>
+        </section>
+
+        <section class="grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.75fr)] lg:items-start">
+          <div class="space-y-5">
+            <p class="v2-kicker">Warum IT</p>
+            <h2 class="font-editorial text-[clamp(2.6rem,5vw,4.4rem)] leading-[0.94] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+              Mich interessiert nicht die Folie, sondern das System dahinter.
+            </h2>
+            <p class="text-base leading-8 text-[color:var(--color-mono-200)]">
+              Mich treibt die Frage, warum ein System stabil läuft und wo genau es auseinanderfällt. Ich will verstehen, wie sich Infrastruktur so bauen lässt, dass sie nicht jede Woche Aufmerksamkeit braucht. Was als Fummelei mit ein paar Servern und einem alten Switch im Keller angefangen hat, ist heute mein Berufsweg.
+            </p>
+          </div>
+          <ul class="space-y-3 border-l border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pl-4 text-sm leading-7 text-[color:var(--color-mono-200)] lg:pl-6">
+            {focusAreas.map((item) => (
+              <li class="border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pb-3">{item}</li>
+            ))}
+          </ul>
+        </section>
+
+        <section class="grid gap-8 border-y border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] py-10 md:py-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.75fr)] lg:items-start">
+          <div class="space-y-5">
+            <p class="v2-kicker">Homelab</p>
+            <h2 class="font-editorial text-[clamp(2.6rem,5vw,4.4rem)] leading-[0.94] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+              Werkstatt, kein Showroom.
+            </h2>
+            <p class="text-base leading-8 text-[color:var(--color-mono-200)]">
+              Im Homelab teste ich, was auf dem VPS und später im Job stabil laufen soll. Hier darf auch mal was krachen, weil es genau dafür da ist.
+            </p>
+          </div>
+          <ul class="space-y-3 border-l border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pl-4 text-sm leading-7 text-[color:var(--color-mono-200)] lg:pl-6">
+            {homelabItems.map((item) => (
+              <li class="border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pb-3">{item}</li>
+            ))}
+          </ul>
+        </section>
+
+        <section class="space-y-8 pb-10 md:pb-12">
+          <div class="space-y-5">
+            <p class="v2-kicker">Wie ich arbeite</p>
+            <h2 class="font-editorial text-[clamp(2.8rem,5vw,4.5rem)] leading-[0.94] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+              Drei Sachen, die bei mir ziemlich konstant sind.
+            </h2>
+          </div>
+
+          <div class="space-y-10">
+            {principles.map((principle, index) => (
+              <article class="grid gap-6 border-t border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pt-8 first:border-t-0 first:pt-0 lg:grid-cols-[4.5rem_minmax(0,1fr)] lg:gap-10">
+                <p class="font-mono text-[0.82rem] leading-6 tracking-[0.18em] text-[color:var(--color-mono-400)]">{String(index + 1).padStart(2, '0')}</p>
+                <div class="space-y-3">
+                  <h3 class="font-editorial text-[clamp(2rem,4vw,3.25rem)] leading-[0.96] tracking-[-0.05em] text-[color:var(--color-mono-50)]">{principle.label}</h3>
+                  <p class="max-w-[65ch] text-base leading-8 text-[color:var(--color-mono-200)]">{principle.text}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section class="space-y-10 border-y border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] py-10 md:py-12">
+          <div class="space-y-5">
+            <p class="v2-kicker">KI-Projekte</p>
+            <h2 class="max-w-4xl font-editorial text-[clamp(2.8rem,5vw,4.5rem)] leading-[0.94] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+              Wo ich zurzeit am tiefsten drinstecke.
+            </h2>
+            <p class="max-w-[65ch] text-base leading-8 text-[color:var(--color-mono-200)]">
+              Für mich ist KI nicht das Marketing-Thema 2026, sondern Werkzeug. Am meisten lerne ich, wenn ich Systeme selbst baue statt nur APIs anzurufen. Zwei Projekte, an denen das gerade passiert:
+            </p>
+          </div>
+
+          <div class="space-y-8">
+            {kiProjekte.map((p, index) => (
+              <article class="grid gap-6 border-t border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pt-8 first:border-t-0 first:pt-0 lg:grid-cols-[4.5rem_minmax(0,1fr)] lg:gap-10">
+                <p class="font-mono text-[0.82rem] leading-6 tracking-[0.18em] text-[color:var(--color-mono-400)]">{String(index + 1).padStart(2, '0')}</p>
+                <div class="space-y-4">
+                  <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                    <h3 class="font-editorial text-[clamp(2rem,4vw,3.25rem)] leading-[0.96] tracking-[-0.05em] text-[color:var(--color-mono-50)]">{p.name}</h3>
+                    <span class="font-mono text-[0.72rem] uppercase tracking-[0.18em] text-[color:var(--color-neon-orange)]">{p.rolle}</span>
+                  </div>
+                  <p class="max-w-[68ch] text-base leading-8 text-[color:var(--color-mono-200)]">{p.text}</p>
+                  {p.preview && (
+                    <figure class="mt-6 space-y-3 border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] p-2">
+                      <video
+                        data-src={p.preview}
+                        poster={p.poster}
+                        class="block h-auto w-full [&[data-loaded]]:animate-none"
+                        muted
+                        loop
+                        playsinline
+                        preload="none"
+                        data-lazy-video
+                        aria-label={`Teaser: ${p.name}`}
+                      ></video>
+                      {p.caption && (
+                        <figcaption class="px-1 pb-1 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-[color:var(--color-mono-400)]">
+                          {p.caption}
+                        </figcaption>
+                      )}
+                    </figure>
+                  )}
+                  <p class="font-mono text-[0.72rem] uppercase tracking-[0.18em] text-[color:var(--color-mono-400)]">Status: {p.status}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section class="grid gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(18rem,0.75fr)] lg:items-start">
+          <div class="space-y-5">
+            <p class="v2-kicker">Wohin das gehen soll</p>
+            <h2 class="font-editorial text-[clamp(2.8rem,5vw,4.5rem)] leading-[0.94] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+              Praxis mit echter Reibung, am liebsten in Richtung KI und DevOps.
+            </h2>
+            <p class="text-base leading-8 text-[color:var(--color-mono-200)]">
+              Nach dem FISI-Abschluss will ich weiter in Richtung lokaler LLM-Inferenz, GraphRAG und Agent-Orchestrierung, am liebsten auf eigener Hardware. Bis dahin suche ich einen Platz, an dem ich an echter Infrastruktur mitarbeiten kann, ohne dass KI ein Fremdwort bleibt.
+            </p>
+          </div>
+          <ul class="space-y-4 border-l border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pl-4 font-mono text-[0.78rem] uppercase tracking-[0.12em] text-[color:var(--color-mono-300)] lg:pl-6">
+            {searchFields.map((field) => (
+              <li class="border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pb-4">
+                <span class="text-[color:var(--color-neon-orange)]">$</span> {field}
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <CTASection
+          kicker="Kontakt"
+          title="Klingt das nach deinem Team oder deinem Vorhaben? Dann schreib mir."
+          body="Praktikum, Junior-Stelle oder Projektanfrage: Eine kurze Nachricht reicht. Ich antworte werktags im Laufe des Tages und lieber konkret als geschniegelt."
+          primaryHref="/kontakt/"
+          primaryLabel="Kontakt aufnehmen"
+          secondaryHref="/projekte/"
+          secondaryLabel="Projekte ansehen"
+        />
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Lazy-load Agora-Teaser (und weitere data-lazy-video-Elemente) erst, wenn sie im Viewport sind.
+    // Spart Bandbreite und hält den Compositor-Thread auf der Startansicht frei.
+    const videos = document.querySelectorAll<HTMLVideoElement>('video[data-lazy-video]');
+    if (videos.length) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            const video = entry.target as HTMLVideoElement;
+            const src = video.dataset.src;
+            if (src && !video.src) {
+              video.src = src;
+              video.load();
+              video.play().catch(() => {
+                // Autoplay blockiert (z. B. iOS Low Power) – User kann manuell starten.
+              });
+              video.dataset.loaded = 'true';
+            }
+            observer.unobserve(video);
+          }
+        },
+        { rootMargin: '200px 0px', threshold: 0.1 },
+      );
+      videos.forEach((v) => observer.observe(v));
+    }
+  </script>
+</V2Layout>

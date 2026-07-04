@@ -1,0 +1,116 @@
+---
+import { getCollection } from 'astro:content';
+import V2Layout from '../../layouts/V2Layout.astro';
+import PageIntro from '../../components/site/PageIntro.astro';
+import BlogEntry from '../../components/site/BlogEntry.astro';
+import CTASection from '../../components/site/CTASection.astro';
+import { getReadingTime } from '../../utils/readingTime';
+import { isPublishedBlogPost, sortContentByDate } from '../../utils/content';
+
+export const prerender = true;
+
+const posts = (await getCollection('blog'))
+  .filter(isPublishedBlogPost)
+  .sort(sortContentByDate);
+
+const blogSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Blog',
+  name: 'Logbuch',
+  url: 'https://alexle135.de/blog/',
+  description:
+    'Notizen zu Linux, Infrastruktur, Automatisierung und technischen Entscheidungen aus echter Praxis.',
+  author: {
+    '@type': 'Person',
+    name: 'Alexander Schneider',
+    url: 'https://alexle135.de/ueber-mich/',
+  },
+  blogPost: posts.map((post) => ({
+    '@type': 'BlogPosting',
+    headline: post.data.title,
+    url: `https://alexle135.de/blog/${post.id}/`,
+    datePublished: post.data.publishedAt?.toISOString(),
+    dateModified: (post.data.updatedAt ?? post.data.publishedAt)?.toISOString(),
+    author: {
+      '@type': 'Person',
+      name: 'Alexander Schneider',
+    },
+  })),
+};
+---
+
+<V2Layout
+  title="Logbuch – Architektur, Betrieb und Automation"
+  description="Logbuch zu Linux, Docker, systemd, CI/CD und dem Weg zum Fachinformatiker Systemintegration. Tutorials, Feldnotizen und technische Entscheidungen aus der Praxis."
+  schema={blogSchema}
+>
+  <main class="v2-shell py-20 md:py-28">
+    <PageIntro
+      kicker="Logbuch"
+      title="Notizen zu Architektur, Betrieb und Automatisierung."
+      lead="Texte aus Projekten, Experimenten und echter Systempraxis. Nicht als Füllmaterial, sondern als dokumentierte Arbeit."
+      aside="Der Blog bleibt bewusst schlicht. Der Inhalt soll die Arbeit machen."
+    />
+
+    <section class="grid gap-8 border-y border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] py-10 md:py-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(18rem,0.7fr)] lg:items-start mt-12 md:mt-16">
+      <div class="space-y-5">
+        <p class="v2-kicker">Worum es hier geht</p>
+        <h2 class="font-editorial text-[clamp(2.6rem,5vw,4.4rem)] leading-[0.94] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+          Hier steht, wie ich arbeite. Nicht nur, was ich behaupte.
+        </h2>
+      </div>
+      <div class="space-y-4 border-l border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pl-4 lg:pl-6 text-sm leading-7 text-[color:var(--color-mono-200)]">
+        <p>Die Einträge zeigen, wie ich Probleme zerlege, Entscheidungen begründe und Technik dokumentiere. Wer hier liest, soll danach besser verstehen, wie ich arbeite.</p>
+        <p class="text-[color:var(--color-mono-300)]">Darum bleibt die Liste schlicht und direkt. Erst der Inhalt, dann der Rest.</p>
+      </div>
+    </section>
+
+    <div class="pt-10 md:pt-12">
+      <div class="hidden border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pb-4 md:grid md:grid-cols-[8.5rem_minmax(0,1fr)_7rem_6rem] md:gap-6">
+        <p class="font-mono text-[0.72rem] uppercase tracking-[0.2em] text-[color:var(--color-mono-400)]">Date</p>
+        <p class="font-mono text-[0.72rem] uppercase tracking-[0.2em] text-[color:var(--color-mono-400)]">Entry</p>
+        <p class="font-mono text-[0.72rem] uppercase tracking-[0.2em] text-[color:var(--color-mono-400)]">Format</p>
+        <p class="font-mono text-[0.72rem] uppercase tracking-[0.2em] text-[color:var(--color-mono-400)]">Read</p>
+      </div>
+
+      {posts.map((post) => {
+        const formattedDate = post.data.publishedAt
+          ? new Intl.DateTimeFormat('de-DE', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+            }).format(new Date(post.data.publishedAt))
+          : 'Draft';
+
+        return (
+          <BlogEntry
+            date={formattedDate}
+            dateTime={post.data.publishedAt?.toISOString()}
+            title={post.data.title}
+            href={`/blog/${post.id}/`}
+            summary={post.data.summary}
+            format={post.data.format || 'Article'}
+            readingTime={post.data.readingTime || getReadingTime(post.body || '')}
+            snippet={post.data.snippet || 'cat field-notes.md'}
+          />
+        );
+      })}
+
+      {posts.length === 0 && (
+        <p class="pt-8 font-mono text-sm text-[color:var(--color-mono-400)]">System: Keine Einträge gefunden.</p>
+      )}
+    </div>
+
+    <section class="pt-20 md:pt-28">
+      <CTASection
+        kicker="Mehr als Content"
+        title="Wenn dir die Art zu denken zusagt, passt die Zusammenarbeit oft auch."
+        body="Wer sich in der Dokumentation und Problemlogik wiederfindet, kann meistens auch mit der technischen Zusammenarbeit etwas anfangen. Dann lohnt sich eine kurze Nachricht."
+        primaryHref="/kontakt/"
+        primaryLabel="Kontakt aufnehmen"
+        secondaryHref="/projekte/"
+        secondaryLabel="Projekte ansehen"
+      />
+    </section>
+  </main>
+</V2Layout>

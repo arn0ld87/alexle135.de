@@ -1,0 +1,231 @@
+---
+// Search.astro - Clientseitige Echtzeit-Suche mit Fuse.js
+---
+
+<div class="search-container relative w-full max-w-2xl mx-auto">
+  <!-- Search Input -->
+  <div class="relative">
+    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+      <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+      </svg>
+    </div>
+    <input
+      type="text"
+      id="search-input"
+      placeholder="Suche nach Blog-Posts, Projekten oder Services..."
+      class="w-full pl-12 pr-4 py-3 bg-white border border-gray-300 rounded-lg text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+      autocomplete="off"
+    />
+  </div>
+
+  <!-- Search Results -->
+  <div id="search-results" class="mt-4 hidden">
+    <!-- Loading State -->
+    <div id="search-loading" class="hidden p-4 bg-white/5 border border-white/10 rounded-lg backdrop-blur-sm">
+      <p class="text-gray-400 text-sm">Suche läuft...</p>
+    </div>
+
+    <!-- No Results -->
+    <div id="search-no-results" class="hidden p-4 bg-white/5 border border-white/10 rounded-lg backdrop-blur-sm">
+      <p class="text-gray-400 text-sm">Keine Ergebnisse gefunden.</p>
+    </div>
+
+    <!-- Results List -->
+    <ul id="search-results-list" class="space-y-2 max-h-96 overflow-y-auto custom-scrollbar">
+      <!-- Results will be inserted here dynamically -->
+    </ul>
+  </div>
+</div>
+
+
+
+<script>
+  import Fuse, { type FuseResult } from 'fuse.js';
+
+  // Types for search index
+  interface SearchIndexItem {
+    title: string;
+    slug: string;
+    summary: string;
+    description: string;
+    url: string;
+    content: string;
+    type: 'blog' | 'project' | 'service';
+    tags: string[];
+    publishedAt: string | null;
+  }
+
+  // DOM Elements
+  const searchInput = document.getElementById('search-input') as HTMLInputElement;
+  const searchResults = document.getElementById('search-results') as HTMLDivElement;
+  const searchResultsList = document.getElementById('search-results-list') as HTMLUListElement;
+  const searchNoResults = document.getElementById('search-no-results') as HTMLDivElement;
+  const searchLoading = document.getElementById('search-loading') as HTMLDivElement;
+
+  let fuse: Fuse<SearchIndexItem> | null = null;
+  let searchIndex: SearchIndexItem[] = [];
+
+  // Fuse.js Configuration
+  const fuseOptions = {
+    keys: [
+      { name: 'title', weight: 0.5 },        // Highest weight for title
+      { name: 'summary', weight: 0.3 },      // Stable API alias for description
+      { name: 'description', weight: 0.3 },  // Medium weight for description
+      { name: 'content', weight: 0.2 },      // Lower weight for content
+      { name: 'tags', weight: 0.15 },        // Additional weight for tags
+    ],
+    threshold: 0.4,           // Lower = more strict matching
+    minMatchCharLength: 2,    // Minimum characters to match
+    includeScore: true,       // Include match score in results
+    useExtendedSearch: false, // Simple fuzzy search
+  };
+
+  // Fetch search index on load
+  async function loadSearchIndex() {
+    try {
+      const response = await fetch('/api/search.json');
+      if (!response.ok) {
+        throw new Error('Failed to load search index');
+      }
+      searchIndex = await response.json();
+      fuse = new Fuse(searchIndex, fuseOptions);
+    } catch (error) {
+      console.error('Error loading search index:', error);
+    }
+  }
+
+  // Perform search with Fuse.js
+  function performSearch(query: string) {
+    if (!fuse || query.trim().length < 2) {
+      hideResults();
+      return;
+    }
+
+    // Show loading state
+    showLoading();
+
+    // Perform fuzzy search
+    const results = fuse.search(query);
+
+    // Hide loading
+    hideLoading();
+
+    // Display results
+    if (results.length === 0) {
+      showNoResults();
+    } else {
+      displayResults(results);
+    }
+  }
+
+  // HTML Escaping Helper
+  function escapeHtml(unsafe: string): string {
+    return unsafe
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  // Display search results
+  function displayResults(results: FuseResult<SearchIndexItem>[]) {
+    searchResultsList.innerHTML = '';
+    searchNoResults.classList.add('hidden');
+    searchResults.classList.remove('hidden');
+
+    results.slice(0, 8).forEach((result) => {
+      const item = result.item;
+
+      const li = document.createElement('li');
+      li.className = 'animate-fade-in-up-fast';
+
+      // Type badge color
+      const typeBadgeColors: Record<string, string> = {
+        blog: 'bg-blue-500/20 text-blue-400',
+        project: 'bg-purple-500/20 text-purple-400',
+        service: 'bg-green-500/20 text-green-400',
+      };
+
+      li.innerHTML = `
+        <a
+          href="${escapeHtml(item.url)}"
+          class="block p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg backdrop-blur-sm transition-all duration-300 group"
+        >
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="px-2 py-0.5 text-xs font-medium rounded ${typeBadgeColors[item.type] || 'bg-gray-500/20 text-gray-400'}">
+                  ${escapeHtml(item.type)}
+                </span>
+                ${item.tags.length > 0 ? `
+                  <span class="text-xs text-gray-500">
+                    ${item.tags.slice(0, 2).map((tag: string) => escapeHtml(tag)).join(', ')}
+                  </span>
+                ` : ''}
+              </div>
+              <h3 class="font-semibold text-white group-hover:text-blue-400 transition-colors line-clamp-1">
+                ${escapeHtml(item.title)}
+              </h3>
+              <p class="mt-1 text-sm text-gray-400 line-clamp-2">
+                ${escapeHtml(item.description)}
+              </p>
+            </div>
+            <svg class="w-5 h-5 text-gray-500 group-hover:text-blue-400 transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </div>
+        </a>
+      `;
+
+      searchResultsList.appendChild(li);
+    });
+  }
+
+  // Show loading state
+  function showLoading() {
+    searchLoading.classList.remove('hidden');
+    searchResultsList.innerHTML = '';
+    searchNoResults.classList.add('hidden');
+    searchResults.classList.remove('hidden');
+  }
+
+  // Hide loading state
+  function hideLoading() {
+    searchLoading.classList.add('hidden');
+  }
+
+  // Show no results message
+  function showNoResults() {
+    searchNoResults.classList.remove('hidden');
+    searchResultsList.innerHTML = '';
+    searchResults.classList.remove('hidden');
+  }
+
+  // Hide all results
+  function hideResults() {
+    searchResults.classList.add('hidden');
+    searchResultsList.innerHTML = '';
+    searchNoResults.classList.add('hidden');
+    searchLoading.classList.add('hidden');
+  }
+
+  // Event Listeners
+  searchInput.addEventListener('input', (e) => {
+    const query = (e.target as HTMLInputElement).value;
+    performSearch(query);
+  });
+
+  // Close results when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!searchResults.contains(e.target as Node) && !searchInput.contains(e.target as Node)) {
+      hideResults();
+    }
+  });
+
+  // Load search index on page load
+  document.addEventListener('DOMContentLoaded', () => {
+    loadSearchIndex();
+  });
+</script>

@@ -1,0 +1,278 @@
+# .github/dependabot.yml
+# Repo: arn0ld87/alexle-vsco
+# Fokus: Astro/React-Website + Datepull API + Docker-Deployment + GitHub Actions.
+
+version: 2
+
+updates:
+  # Produktive Node/npm-Teile:
+  # - /: Astro-Website alexle135.de
+  # - /projekte/datepull-api: kleine Express/AI-API mit package-lock.json
+  - package-ecosystem: 'npm'
+    directories:
+      - '/'
+      - '/projekte/datepull-api'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '07:00'
+      timezone: 'Europe/Berlin'
+    open-pull-requests-limit: 6
+    versioning-strategy: 'increase-if-necessary'
+    rebase-strategy: 'auto'
+    labels:
+      - 'dependencies'
+    commit-message:
+      prefix: 'deps'
+      prefix-development: 'deps-dev'
+      include: 'scope'
+    cooldown:
+      semver-major-days: 14
+      semver-minor-days: 3
+      semver-patch-days: 1
+      exclude:
+        - 'sanitize-html'
+        - 'simple-oauth2'
+        - '@supabase/supabase-js'
+        - '@google/generative-ai'
+        - 'express'
+        - 'jsonwebtoken'
+        - 'bcrypt'
+        - 'multer'
+    groups:
+      astro-stack:
+        applies-to: 'version-updates'
+        patterns:
+          - 'astro'
+          - '@astrojs/*'
+        update-types:
+          - 'minor'
+          - 'patch'
+
+      react-ui-stack:
+        applies-to: 'version-updates'
+        patterns:
+          - 'react'
+          - 'react-dom'
+          - '@types/react'
+          - '@types/react-dom'
+          - '@radix-ui/*'
+          - 'lucide-*'
+          - 'tailwind-merge'
+          - 'class-variance-authority'
+          - 'clsx'
+        update-types:
+          - 'minor'
+          - 'patch'
+
+      security-runtime:
+        applies-to: 'version-updates'
+        patterns:
+          - 'sanitize-html'
+          - 'simple-oauth2'
+          - '@supabase/supabase-js'
+          - '@google/generative-ai'
+          - 'express'
+          - 'jsonwebtoken'
+          - 'bcrypt'
+          - 'multer'
+          - 'cors'
+        update-types:
+          - 'minor'
+          - 'patch'
+
+      build-test-tooling:
+        applies-to: 'version-updates'
+        dependency-type: 'development'
+        patterns:
+          - '@eslint/*'
+          - 'eslint*'
+          - 'prettier'
+          - 'vitest'
+          - '@vitest/*'
+          - '@testing-library/*'
+          - 'typescript'
+          - 'typescript-eslint'
+          - '@typescript-eslint/*'
+          - '@vitejs/*'
+          - 'tailwindcss'
+          - '@tailwindcss/*'
+          - 'jsdom'
+          - 'globals'
+        update-types:
+          - 'minor'
+          - 'patch'
+
+      transitive-security:
+        applies-to: 'version-updates'
+        patterns:
+          - 'minimatch'
+          - 'fast-xml-parser'
+          - 'fast-xml-builder'
+          - 'picomatch'
+          - 'devalue'
+          - 'flatted'
+          - 'brace-expansion'
+          - 'smol-toml'
+          - 'yaml'
+          - 'defu'
+          - 'svgo'
+          - 'h3'
+          - 'rollup'
+        update-types:
+          - 'minor'
+          - 'patch'
+
+  # Neben-/Laborprojekte im Repo: bewusst seltener, sonst produziert Dependabot PR-Konfetti.
+  - package-ecosystem: 'npm'
+    directories:
+      - '/prompt-optimizer-pro'
+      - '/teacher-app-conversation'
+    schedule:
+      interval: 'monthly'
+      day: 'monday'
+      time: '07:30'
+      timezone: 'Europe/Berlin'
+    open-pull-requests-limit: 4
+    versioning-strategy: 'increase-if-necessary'
+    rebase-strategy: 'auto'
+    labels:
+      - 'dependencies'
+    commit-message:
+      prefix: 'deps'
+      prefix-development: 'deps-dev'
+      include: 'scope'
+    cooldown:
+      semver-major-days: 21
+      semver-minor-days: 7
+      semver-patch-days: 2
+      exclude:
+        - 'next'
+        - 'react'
+        - 'react-dom'
+        - 'axios'
+        - 'next-auth'
+        - '@auth/*'
+        - '@prisma/*'
+        - 'prisma'
+    groups:
+      lab-react-next-stack:
+        applies-to: 'version-updates'
+        patterns:
+          - 'next'
+          - 'react'
+          - 'react-dom'
+          - 'react-router-dom'
+          - 'next-auth'
+          - '@auth/*'
+          - '@types/react'
+          - '@types/react-dom'
+          - 'eslint-config-next'
+        update-types:
+          - 'minor'
+          - 'patch'
+
+      lab-ui-stack:
+        applies-to: 'version-updates'
+        patterns:
+          - '@radix-ui/*'
+          - '@dnd-kit/*'
+          - '@headlessui/*'
+          - '@heroicons/*'
+          - '@floating-ui/*'
+          - 'motion'
+          - 'pixi*'
+          - 'react-*'
+        exclude-patterns:
+          - 'react'
+          - 'react-dom'
+          - 'react-router-dom'
+        update-types:
+          - 'minor'
+          - 'patch'
+
+      lab-tooling:
+        applies-to: 'version-updates'
+        dependency-type: 'development'
+        patterns:
+          - '@eslint/*'
+          - '@antfu/*'
+          - '@eslint-react/*'
+          - 'eslint*'
+          - 'typescript'
+          - 'typescript-eslint'
+          - '@vitejs/*'
+          - 'vite'
+          - 'tailwindcss'
+          - 'postcss'
+          - 'autoprefixer'
+          - 'gh-pages'
+        update-types:
+          - 'minor'
+          - 'patch'
+
+      lab-runtime-security:
+        applies-to: 'version-updates'
+        patterns:
+          - 'axios'
+          - 'bcryptjs'
+          - 'nodemailer'
+          - 'zod'
+          - '@prisma/*'
+          - 'prisma'
+          - '@upstash/*'
+          - 'dify-client'
+        update-types:
+          - 'minor'
+          - 'patch'
+
+  # Docker-Basisimage für das produktive Deployment.
+  - package-ecosystem: 'docker'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'tuesday'
+      time: '07:00'
+      timezone: 'Europe/Berlin'
+    open-pull-requests-limit: 2
+    rebase-strategy: 'auto'
+    labels:
+      - 'dependencies'
+    commit-message:
+      prefix: 'deps(docker)'
+      include: 'scope'
+    cooldown:
+      default-days: 7
+    ignore:
+      # Node 22 bleibt hier bewusst stabil. Major-Wechsel auf Node 24 erst manuell testen,
+      # weil Dockerfile + Production-Build direkt alexle135.de betreffen.
+      - dependency-name: 'node'
+        update-types:
+          - 'version-update:semver-major'
+
+  # Actions im Deploy-Workflow: checkout, Tailscale usw.
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'wednesday'
+      time: '07:00'
+      timezone: 'Europe/Berlin'
+    open-pull-requests-limit: 3
+    rebase-strategy: 'auto'
+    labels:
+      - 'dependencies'
+    commit-message:
+      prefix: 'ci'
+      include: 'scope'
+    cooldown:
+      default-days: 3
+    groups:
+      actions-minor-patch:
+        applies-to: 'version-updates'
+        patterns:
+          - 'actions/*'
+          - 'tailscale/*'
+        update-types:
+          - 'minor'
+          - 'patch'

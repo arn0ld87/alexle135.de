@@ -1,0 +1,57 @@
+---
+// src/components/apps/ai-tutor/AITutorSidebar.astro
+export const prerender = false; // Server Island Logic
+
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import sanitizeHtml from 'sanitize-html';
+
+const { prompt } = Astro.props;
+let responseHtml = '';
+let error = '';
+
+if (prompt) {
+  try {
+    const apiKey = import.meta.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error('API Key missing on server');
+    }
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+
+    // Convert basic markdown to HTML, then sanitize to prevent XSS
+    const rawHtml = text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br />');
+
+    responseHtml = sanitizeHtml(rawHtml, {
+      allowedTags: ['strong', 'em', 'br', 'p', 'ul', 'ol', 'li', 'code', 'pre'],
+      allowedAttributes: {},
+    });
+
+  } catch (e: unknown) {
+    error = e instanceof Error ? e.message : 'AI Error';
+    console.error('AI Tutor Error:', e);
+  }
+}
+---
+
+<div class="ai-tutor-content text-sm text-gray-300 leading-relaxed">
+  {error && (
+    <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
+      Error: {error}
+    </div>
+  )}
+
+  {responseHtml ? (
+    <div class="prose prose-invert prose-sm max-w-none" set:html={responseHtml} />
+  ) : (
+    <div class="flex items-center justify-center p-8 text-gray-500">
+      <p>Warte auf Eingabe...</p>
+    </div>
+  )}
+</div>

@@ -1,0 +1,268 @@
+---
+import V2Layout from '../../layouts/V2Layout.astro';
+import PageIntro from '../../components/site/PageIntro.astro';
+
+const stacks = [
+  {
+    id: 'nginx',
+    name: 'Nginx',
+    category: 'Webserver',
+    description: 'Schneller Webserver für statische Seiten',
+    config: `  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./html:/usr/share/nginx/html:ro
+    restart: unless-stopped`
+  },
+  {
+    id: 'php',
+    name: 'PHP-FPM',
+    category: 'Backend',
+    description: 'PHP für dynamische Webseiten',
+    config: `  php:
+    image: php:8.3-fpm
+    volumes:
+      - ./html:/var/www/html
+    restart: unless-stopped`
+  },
+  {
+    id: 'mysql',
+    name: 'MySQL',
+    category: 'Datenbank',
+    description: 'Relationale Datenbank',
+    config: `  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: \${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: \${MYSQL_DATABASE:-app}
+      MYSQL_USER: \${MYSQL_USER:-user}
+      MYSQL_PASSWORD: \${MYSQL_PASSWORD:-password}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: unless-stopped`
+  },
+  {
+    id: 'postgres',
+    name: 'PostgreSQL',
+    category: 'Datenbank',
+    description: 'Fortgeschrittene relationale Datenbank',
+    config: `  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: \${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: \${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: \${POSTGRES_DB:-app}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped`
+  },
+  {
+    id: 'redis',
+    name: 'Redis',
+    category: 'Cache',
+    description: 'In-Memory Cache und Message Broker',
+    config: `  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped`
+  },
+  {
+    id: 'adminer',
+    name: 'Adminer',
+    category: 'Tools',
+    description: 'Datenbank-Verwaltung im Browser',
+    config: `  adminer:
+    image: adminer
+    ports:
+      - "8080:8080"
+    restart: unless-stopped`
+  },
+  {
+    id: 'traefik',
+    name: 'Traefik',
+    category: 'Proxy',
+    description: 'Reverse Proxy mit Auto-SSL',
+    config: `  traefik:
+    image: traefik:v3.0
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped`
+  },
+  {
+    id: 'prometheus',
+    name: 'Prometheus',
+    category: 'Monitoring',
+    description: 'Metriken sammeln',
+    config: `  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - prometheus_data:/prometheus
+    restart: unless-stopped`
+  },
+  {
+    id: 'grafana',
+    name: 'Grafana',
+    category: 'Monitoring',
+    description: 'Dashboards und Visualisierung',
+    config: `  grafana:
+    image: grafana/grafana:latest
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: \${GRAFANA_PASSWORD:-admin}
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped`
+  }
+];
+
+const categories = [...new Set(stacks.map(s => s.category))];
+---
+
+<V2Layout
+  title="Docker Compose Builder App"
+  description="Klick dir deinen Docker-Stack zusammen. Fertige docker-compose.yml zum Kopieren."
+  canonical="/projekte/compose-builder/"
+  robots="noindex, follow"
+>
+  <main class="v2-shell py-20 md:py-28">
+    <PageIntro
+      kicker="DevOps Tool"
+      title="Docker Compose Builder"
+      lead="Wähl die Services aus, die du brauchst. Ich generier dir die docker-compose.yml."
+    />
+
+    <div class="mt-16 grid gap-10 lg:grid-cols-2">
+      <!-- Service Selector -->
+      <div class="space-y-6">
+        <h2 class="font-editorial text-2xl tracking-[-0.03em] text-[color:var(--color-mono-50)]">Services auswählen</h2>
+
+        {categories.map(category => (
+          <div class="v2-panel rounded-sm p-5">
+            <h3 class="v2-kicker mb-4">{category}</h3>
+            <div class="space-y-1">
+              {stacks.filter(s => s.category === category).map(stack => (
+                <label class="flex items-start gap-3 rounded-sm p-3 cursor-pointer transition-colors hover:bg-[color:color-mix(in_srgb,var(--color-mono-50)_4%,transparent)]">
+                  <input
+                    type="checkbox"
+                    id={stack.id}
+                    data-config={stack.config}
+                    data-name={stack.name}
+                    class="service-checkbox mt-1 h-4 w-4 accent-[color:var(--color-neon-orange)] bg-transparent border-[color:var(--color-mono-500)] rounded-sm"
+                  />
+                  <div>
+                    <span class="text-sm font-medium text-[color:var(--color-mono-50)]">{stack.name}</span>
+                    <p class="text-xs text-[color:var(--color-mono-400)]">{stack.description}</p>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <!-- Output -->
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="font-editorial text-2xl tracking-[-0.03em] text-[color:var(--color-mono-50)]">docker-compose.yml</h2>
+          <button
+            id="copy-btn"
+            class="v2-cta px-5! py-2!"
+          >
+            Kopieren
+          </button>
+        </div>
+
+        <div class="v2-panel rounded-sm overflow-hidden">
+          <pre id="output" class="p-5 font-mono text-sm leading-relaxed text-[color:var(--color-mono-200)] overflow-x-auto max-h-[600px]"><code>services:
+  # Wähle links die Services aus</code></pre>
+        </div>
+
+        <p id="status" class="text-xs font-mono text-[color:var(--color-mono-400)]"></p>
+      </div>
+    </div>
+
+    <!-- Tips -->
+    <div class="mt-16 v2-panel rounded-sm p-6">
+      <h3 class="font-editorial text-lg text-[color:var(--color-mono-50)] mb-3">Tipps</h3>
+      <ul class="text-sm text-[color:var(--color-mono-300)] space-y-2">
+        <li class="flex items-start gap-2"><span class="text-[color:var(--color-neon-orange)]" aria-hidden="true">&bull;</span> Erstell eine <code class="text-[color:var(--color-neon-orange)] bg-[color:color-mix(in_srgb,var(--color-neon-orange)_10%,transparent)] px-1">.env</code> Datei für die Passwörter</li>
+        <li class="flex items-start gap-2"><span class="text-[color:var(--color-neon-orange)]" aria-hidden="true">&bull;</span> Starte mit <code class="text-[color:var(--color-neon-orange)] bg-[color:color-mix(in_srgb,var(--color-neon-orange)_10%,transparent)] px-1">docker compose up -d</code></li>
+        <li class="flex items-start gap-2"><span class="text-[color:var(--color-neon-orange)]" aria-hidden="true">&bull;</span> Logs anschauen: <code class="text-[color:var(--color-neon-orange)] bg-[color:color-mix(in_srgb,var(--color-neon-orange)_10%,transparent)] px-1">docker compose logs -f</code></li>
+      </ul>
+    </div>
+  </main>
+
+  <script>
+    const checkboxes = document.querySelectorAll('.service-checkbox');
+    const output = document.getElementById('output');
+    const copyBtn = document.getElementById('copy-btn');
+    const status = document.getElementById('status');
+
+    function generateCompose() {
+      const selected = Array.from(checkboxes).filter(cb => (cb as HTMLInputElement).checked);
+
+      if (selected.length === 0) {
+        output!.innerHTML = `<code>services:\n  # Wähle links die Services aus</code>`;
+        return;
+      }
+
+      let yaml = 'services:\n';
+      const volumes = new Set<string>();
+
+      selected.forEach(cb => {
+        const el = cb as HTMLInputElement;
+        yaml += el.dataset.config + '\n\n';
+
+        const matches = el.dataset.config!.match(/(\w+_data):/g);
+        if (matches) {
+          matches.forEach(m => volumes.add(m.replace(':', '')));
+        }
+      });
+
+      if (volumes.size > 0) {
+        yaml += 'volumes:\n';
+        volumes.forEach(v => {
+          yaml += `  ${v}:\n`;
+        });
+      }
+
+      output!.innerHTML = `<code>${yaml}</code>`;
+    }
+
+    checkboxes.forEach(cb => {
+      cb.addEventListener('change', generateCompose);
+    });
+
+    copyBtn!.addEventListener('click', async () => {
+      const text = output!.textContent;
+      try {
+        await navigator.clipboard.writeText(text!);
+        status!.textContent = 'Kopiert';
+        status!.className = 'text-xs font-mono text-[color:var(--color-neon-orange)]';
+        setTimeout(() => {
+          status!.textContent = '';
+        }, 2000);
+      } catch {
+        status!.textContent = 'Fehler beim Kopieren';
+        status!.className = 'text-xs font-mono text-red-400';
+      }
+    });
+  </script>
+</V2Layout>

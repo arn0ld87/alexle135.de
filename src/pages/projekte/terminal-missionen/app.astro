@@ -1,0 +1,63 @@
+---
+import V2Layout from '../../../layouts/V2Layout.astro';
+import MissionTerminal from '../../../components/interactive/MissionTerminal.tsx';
+---
+
+<V2Layout
+  title="Terminal Missionen – Interaktive Linux & DevOps Tutorials"
+  description="Lerne Linux, Docker und Git spielerisch mit interaktiven Terminal-Simulationen. Geführte Missionen mit Echtzeit-Feedback."
+>
+  <main class="v2-shell py-20 md:py-28">
+    <header class="mb-16 space-y-6 border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pb-12">
+      <p class="v2-kicker flex items-center gap-3">
+        <span class="v2-accent-dot" aria-hidden="true"></span>
+        <span>Interactive Learning Platform</span>
+      </p>
+
+      <h1 class="font-editorial text-[clamp(2.5rem,6vw,4.5rem)] leading-[0.92] tracking-[-0.04em] text-[color:var(--color-mono-50)] max-w-4xl">
+        Terminal Missionen
+      </h1>
+
+      <p class="text-xl leading-relaxed text-[color:var(--color-mono-300)] max-w-2xl">
+        Lerne Linux, Docker und Git durch praktische Übungen im simulierten Terminal.
+      </p>
+    </header>
+
+    <div class="mb-20">
+      <MissionTerminal client:visible />
+    </div>
+
+    <section class="border-t border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pt-16">
+      <div class="grid md:grid-cols-3 gap-12">
+        <div class="space-y-3">
+          <span class="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-[color:var(--color-mono-500)]">01</span>
+          <h3 class="font-editorial text-xl text-[color:var(--color-mono-50)]">Learning by Doing</h3>
+          <p class="text-sm leading-relaxed text-[color:var(--color-mono-400)]">
+            Tippe echte Befehle und lerne praktisch — keine Installation nötig.
+          </p>
+        </div>
+        <div class="space-y-3">
+          <span class="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-[color:var(--color-mono-500)]">02</span>
+          <h3 class="font-editorial text-xl text-[color:var(--color-mono-50)]">Geführte Tutorials</h3>
+          <p class="text-sm leading-relaxed text-[color:var(--color-mono-400)]">
+            Schritt-für-Schritt Anleitungen mit Hints und Echtzeit-Validierung.
+          </p>
+        </div>
+        <div class="space-y-3">
+          <span class="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-[color:var(--color-mono-500)]">03</span>
+          <h3 class="font-editorial text-xl text-[color:var(--color-mono-50)]">6 Tutorial-Tracks</h3>
+          <p class="text-sm leading-relaxed text-[color:var(--color-mono-400)]">
+            Von Linux-Basics bis Docker Compose — für Beginner bis Advanced.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="mt-20 border-t border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pt-12">
+      <a href="/projekte/terminal-missionen/" class="group inline-flex items-center gap-3 font-mono text-sm uppercase tracking-[0.2em] text-[color:var(--color-mono-300)] hover:text-[color:var(--color-neon-orange)] transition-colors">
+        <span class="text-[color:var(--color-neon-orange)] group-hover:-translate-x-1 transition-transform">&larr;</span>
+        Projekt-Übersicht
+      </a>
+    </footer>
+  </main>
+</V2Layout>

@@ -1,0 +1,28 @@
+{
+  "items": [
+    {
+      "title": "Systemintegration",
+      "description": "Netzwerke, Server, Container-Technologien",
+      "icon": "fas fa-network-wired",
+      "color": "blue"
+    },
+    {
+      "title": "KI-Workflows",
+      "description": "Automatisierung & intelligente Systeme",
+      "icon": "fas fa-robot",
+      "color": "purple"
+    },
+    {
+      "title": "IT-Administration",
+      "description": "Windows & Linux Server-Administration",
+      "icon": "fas fa-server",
+      "color": "green"
+    },
+    {
+      "title": "DevOps",
+      "description": "CI/CD, Deployment & Monitoring",
+      "icon": "fas fa-code-branch",
+      "color": "orange"
+    }
+  ]
+}

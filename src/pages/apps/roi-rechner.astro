@@ -1,0 +1,178 @@
+---
+import V2Layout from '../../layouts/V2Layout.astro';
+import PageIntro from '../../components/site/PageIntro.astro';
+import CTASection from '../../components/site/CTASection.astro';
+---
+
+<V2Layout
+  title="Automatisierungs-ROI-Rechner"
+  description="Berechne, wie viel Zeit und Geld du mit Automatisierung sparst."
+>
+  <main class="v2-shell py-20 md:py-28">
+    <PageIntro
+      kicker="Kalkulator"
+      title="Automatisierungs-ROI-Rechner"
+      lead="Finde raus, ob sich Automatisierung für dich lohnt."
+    />
+
+    <!-- Calculator -->
+    <div class="mt-16 max-w-3xl">
+      <div class="v2-panel rounded-sm p-6 md:p-8 space-y-6">
+        <div>
+          <label class="block v2-kicker mb-2" for="task-name">Was willst du automatisieren?</label>
+          <input
+            type="text"
+            id="task-name"
+            placeholder="z.B. Server-Backups, Deployments, Reports..."
+            class="w-full px-4 py-3 bg-transparent border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] rounded-sm text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-500)] focus:outline-none focus:border-[color:var(--color-neon-orange)] transition-colors font-ui text-sm"
+          />
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <label class="block v2-kicker mb-2" for="manual-time">Zeit pro Durchführung (manuell)</label>
+            <div class="flex gap-2">
+              <input
+                type="number"
+                id="manual-time"
+                min="1"
+                value="30"
+                class="flex-1 px-4 py-3 bg-transparent border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] rounded-sm text-[color:var(--color-mono-50)] focus:outline-none focus:border-[color:var(--color-neon-orange)] transition-colors font-mono text-sm"
+              />
+              <select
+                id="time-unit"
+                class="px-4 py-3 bg-[color:var(--color-mono-950)] border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] rounded-sm text-[color:var(--color-mono-50)] focus:outline-none focus:border-[color:var(--color-neon-orange)] transition-colors font-ui text-sm"
+              >
+                <option value="1">Minuten</option>
+                <option value="60">Stunden</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block v2-kicker mb-2" for="frequency">Wie oft pro Monat?</label>
+            <input
+              type="number"
+              id="frequency"
+              min="1"
+              value="20"
+              class="w-full px-4 py-3 bg-transparent border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] rounded-sm text-[color:var(--color-mono-50)] focus:outline-none focus:border-[color:var(--color-neon-orange)] transition-colors font-mono text-sm"
+            />
+          </div>
+
+          <div>
+            <label class="block v2-kicker mb-2" for="hourly-rate">Stundensatz</label>
+            <input
+              type="number"
+              id="hourly-rate"
+              min="1"
+              value="50"
+              class="w-full px-4 py-3 bg-transparent border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] rounded-sm text-[color:var(--color-mono-50)] focus:outline-none focus:border-[color:var(--color-neon-orange)] transition-colors font-mono text-sm"
+            />
+          </div>
+
+          <div>
+            <label class="block v2-kicker mb-2" for="setup-time">Einmaliger Setup-Aufwand (Stunden)</label>
+            <input
+              type="number"
+              id="setup-time"
+              min="0"
+              value="4"
+              class="w-full px-4 py-3 bg-transparent border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] rounded-sm text-[color:var(--color-mono-50)] focus:outline-none focus:border-[color:var(--color-neon-orange)] transition-colors font-mono text-sm"
+            />
+          </div>
+        </div>
+
+        <button
+          id="calculate-btn"
+          class="v2-cta w-full"
+        >
+          Berechnen
+        </button>
+      </div>
+
+      <!-- Results -->
+      <div id="results" class="mt-10 hidden">
+        <h2 class="font-editorial text-2xl tracking-[-0.03em] text-[color:var(--color-mono-50)] mb-6">Ergebnis</h2>
+
+        <div class="grid md:grid-cols-3 gap-4 mb-8">
+          <div class="v2-panel rounded-sm p-6 text-center">
+            <p class="v2-kicker mb-2">Zeitersparnis / Jahr</p>
+            <p id="time-saved" class="font-editorial text-3xl text-[color:var(--color-neon-orange)]">0h</p>
+          </div>
+
+          <div class="v2-panel rounded-sm p-6 text-center">
+            <p class="v2-kicker mb-2">Ersparnis / Jahr</p>
+            <p id="money-saved" class="font-editorial text-3xl text-[color:var(--color-mono-50)]">0 &euro;</p>
+          </div>
+
+          <div class="v2-panel rounded-sm p-6 text-center">
+            <p class="v2-kicker mb-2">ROI nach</p>
+            <p id="roi-time" class="font-editorial text-3xl text-[color:var(--color-mono-50)]">0 Tage</p>
+          </div>
+        </div>
+
+        <div id="recommendation" class="v2-panel rounded-sm p-6">
+          <h3 class="font-editorial text-lg text-[color:var(--color-mono-50)] mb-2">Empfehlung</h3>
+          <p id="recommendation-text" class="text-sm leading-7 text-[color:var(--color-mono-300)]"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="mt-20">
+      <CTASection
+        kicker="Next step"
+        title="Automatisierung ist kein Projekt. Es ist eine Haltung."
+        body="Brauchst du Hilfe bei der Umsetzung? Lass uns klären, was bei dir den größten Hebel hat."
+        primaryHref="/kontakt/"
+        primaryLabel="Kontakt aufnehmen"
+        secondaryHref="/projekte/"
+        secondaryLabel="Projekte ansehen"
+      />
+    </div>
+  </main>
+
+  <script>
+    const calculateBtn = document.getElementById('calculate-btn')!;
+    const results = document.getElementById('results')!;
+
+    calculateBtn.addEventListener('click', () => {
+      const manualTime = parseFloat((document.getElementById('manual-time') as HTMLInputElement).value) || 0;
+      const timeUnit = parseFloat((document.getElementById('time-unit') as HTMLSelectElement).value) || 1;
+      const frequency = parseFloat((document.getElementById('frequency') as HTMLInputElement).value) || 0;
+      const hourlyRate = parseFloat((document.getElementById('hourly-rate') as HTMLInputElement).value) || 0;
+      const setupTime = parseFloat((document.getElementById('setup-time') as HTMLInputElement).value) || 0;
+
+      const timePerTaskMinutes = manualTime * timeUnit;
+      const monthlyMinutes = timePerTaskMinutes * frequency;
+      const yearlyMinutes = monthlyMinutes * 12;
+      const yearlyHours = yearlyMinutes / 60;
+
+      const yearlySavings = yearlyHours * hourlyRate;
+      const setupCost = setupTime * hourlyRate;
+
+      const dailySavings = yearlySavings / 365;
+      const roiDays = dailySavings > 0 ? Math.ceil(setupCost / dailySavings) : 0;
+
+      document.getElementById('time-saved')!.textContent = `${Math.round(yearlyHours)}h`;
+      document.getElementById('money-saved')!.textContent = `${Math.round(yearlySavings).toLocaleString('de-DE')} \u20AC`;
+      document.getElementById('roi-time')!.textContent = roiDays < 30 ? `${roiDays} Tage` : `${Math.round(roiDays / 30)} Monate`;
+
+      let recommendation;
+      if (roiDays <= 7) {
+        recommendation = `Klare Sache: Die Automatisierung lohnt sich sofort. Nach nur ${roiDays} Tagen hast du den Setup-Aufwand wieder raus.`;
+      } else if (roiDays <= 30) {
+        recommendation = `Gute Investition. Nach ${roiDays} Tagen bist du im Plus. Ab dann sparst du ${Math.round(yearlySavings / 12)} \u20AC pro Monat.`;
+      } else if (roiDays <= 90) {
+        recommendation = `Lohnt sich mittelfristig. In ${Math.round(roiDays / 30)} Monaten ist der Setup bezahlt. Danach ${Math.round(yearlySavings).toLocaleString('de-DE')} \u20AC Ersparnis pro Jahr.`;
+      } else {
+        recommendation = `Die Automatisierung braucht ${Math.round(roiDays / 30)} Monate, bis sie sich rechnet. Überleg, ob du den manuellen Aufwand reduzieren kannst oder ob die Aufgabe wirklich so oft anfällt.`;
+      }
+
+      document.getElementById('recommendation-text')!.textContent = recommendation;
+      results.classList.remove('hidden');
+      results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  </script>
+</V2Layout>

@@ -1,0 +1,15 @@
+node_modules
+dist
+.astro
+.pnpm-store
+.git
+.github
+.env
+.DS_Store
+*.log
+coverage
+.claude
+.codex
+.agents
+.vscode
+docs

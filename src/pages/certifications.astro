@@ -1,0 +1,213 @@
+---
+import V2Layout from '../layouts/V2Layout.astro';
+import PageIntro from '../components/site/PageIntro.astro';
+import {
+  certifications,
+  sortCertifications,
+  statusMeta,
+  type Certification,
+} from '../data/certifications';
+
+export const prerender = true;
+
+const entries = sortCertifications(certifications);
+const verified = entries.filter((c) => c.status === 'verified');
+
+/* Lernreise: zeitlich aufsteigend — abgeschlossene Nachweise zuerst,
+   dann laufende, zuletzt geplante. */
+const journey = [...entries].sort((a, b) => {
+  const rankDiff = statusMeta[a.status].rank - statusMeta[b.status].rank;
+  if (rankDiff !== 0) return rankDiff;
+  return (a.issuedAt ?? '').localeCompare(b.issuedAt ?? '');
+});
+
+const statusDotClass: Record<Certification['status'], string> = {
+  verified: 'bg-[color:var(--color-neon-orange)]',
+  'in-progress': 'border border-[color:var(--color-neon-orange)] bg-transparent',
+  planned: 'bg-[color:var(--color-mono-600)]',
+};
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'CollectionPage',
+      '@id': 'https://alexle135.de/certifications/#page',
+      url: 'https://alexle135.de/certifications/',
+      name: 'Zertifikate & Weiterbildung',
+      description:
+        'Nachvollziehbare Übersicht über absolvierte Kurse, erworbene Nachweise und laufende Weiterbildung von Alexander Schneider.',
+      inLanguage: 'de-DE',
+      about: { '@id': 'https://alexle135.de/#person' },
+    },
+    {
+      '@type': 'Person',
+      '@id': 'https://alexle135.de/#person',
+      name: 'Alexander Schneider',
+      hasCredential: verified.map((c) => ({
+        '@type': 'EducationalOccupationalCredential',
+        name: c.title,
+        credentialCategory: 'certificate',
+        recognizedBy: { '@type': 'Organization', name: c.issuer },
+        ...(c.issuedAt ? { dateCreated: c.issuedAt } : {}),
+        ...(c.verificationUrl ? { url: c.verificationUrl } : {}),
+      })),
+    },
+  ],
+};
+---
+
+<V2Layout
+  title="Zertifikate & Weiterbildung"
+  description="Nachvollziehbare Übersicht über absolvierte Kurse, erworbene Nachweise und laufende Weiterbildung — mit Verifizierungslinks zu Cisco, Google und LinkedIn Learning."
+  schema={schema}
+>
+  <main class="v2-shell py-20 md:py-28">
+    <PageIntro
+        kicker="Weiterbildung"
+        title="Zertifikate & Weiterbildung"
+        lead="Eine nachvollziehbare Übersicht über absolvierte Kurse, erworbene Nachweise und laufende Weiterbildung."
+        aside="Jeder verifizierte Eintrag verlinkt direkt auf den Original-Nachweis beim Anbieter — prüfbar, ohne Screenshots."
+      />
+
+      <!-- Nachweise -->
+      <section aria-labelledby="nachweise-heading" class="mt-16 md:mt-20">
+        <h2 id="nachweise-heading" class="v2-kicker mb-6 flex items-center gap-3">
+          <span class="v2-accent-dot" aria-hidden="true"></span>
+          Verifizierte Nachweise
+        </h2>
+
+        <div
+          class="hidden gap-x-8 border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pb-3 font-mono text-[0.65rem] uppercase tracking-[0.2em] text-[color:var(--color-mono-500)] md:grid md:grid-cols-[7rem_minmax(0,1fr)_11rem]"
+          aria-hidden="true"
+        >
+          <span>Datum</span>
+          <span>Nachweis</span>
+          <span class="text-right">Status</span>
+        </div>
+
+        <ul class="list-none">
+          {
+            entries.map((cert) => (
+              <li class="grid gap-x-8 gap-y-4 border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] py-8 md:grid-cols-[7rem_minmax(0,1fr)_11rem] md:py-10">
+                <p class="font-mono text-[0.78rem] leading-6 text-[color:var(--color-mono-400)]">
+                  {cert.issuedAt ?? '—'}
+                </p>
+
+                <div class="space-y-3">
+                  <h3 class="font-editorial text-[clamp(1.5rem,1.1rem_+_1.2vw,2.1rem)] leading-tight tracking-[-0.02em] text-[color:var(--color-mono-50)]">
+                    {cert.title}
+                  </h3>
+                  <p class="font-mono text-[0.72rem] uppercase tracking-[0.15em] text-[color:var(--color-mono-400)]">
+                    {cert.issuer}
+                  </p>
+                  {cert.description && (
+                    <p class="max-w-2xl text-sm leading-7 text-[color:var(--color-mono-300)]">
+                      {cert.description}
+                    </p>
+                  )}
+                  {cert.skills && cert.skills.length > 0 && (
+                    <ul class="flex flex-wrap gap-x-4 gap-y-1 font-mono text-[0.7rem] uppercase tracking-[0.12em] text-[color:var(--color-mono-500)]">
+                      {cert.skills.map((skill) => (
+                        <li>{skill}</li>
+                      ))}
+                    </ul>
+                  )}
+                  {cert.verificationUrl && (
+                    <p class="pt-1">
+                      <a
+                        href={cert.verificationUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="cert-verify-link inline-flex items-center gap-2 border-b border-[color:var(--color-mono-300)] pb-0.5 font-mono text-[0.72rem] uppercase tracking-[0.15em] text-[color:var(--color-mono-100)] transition-colors hover:border-[color:var(--color-neon-orange)] hover:text-[color:var(--color-neon-orange)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-neon-orange)]"
+                      >
+                        Nachweis prüfen
+                        <span aria-hidden="true">↗</span>
+                      </a>
+                    </p>
+                  )}
+                </div>
+
+                <p class="flex items-start gap-2 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-[color:var(--color-mono-300)] md:justify-end">
+                  <span
+                    class={`cert-status-dot mt-[0.2rem] h-2 w-2 shrink-0 ${statusDotClass[cert.status]}`}
+                    aria-hidden="true"
+                  />
+                  {statusMeta[cert.status].label}
+                </p>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <!-- Lernreise -->
+      <section aria-labelledby="lernreise-heading" class="mt-20 md:mt-28">
+        <div class="grid gap-10 lg:grid-cols-[minmax(0,0.65fr)_minmax(0,1.35fr)]">
+          <div class="space-y-5">
+            <h2 id="lernreise-heading" class="v2-kicker flex items-center gap-3">
+              <span class="v2-accent-dot" aria-hidden="true"></span>
+              Lernreise
+            </h2>
+            <p class="max-w-[38ch] text-sm leading-7 text-[color:var(--color-mono-300)]">
+              Weiterbildung ist hier kein Sammelalbum, sondern ein Pfad: abgeschlossene Nachweise,
+              die laufende Ausbildung und die nächsten geplanten Schritte in einer Linie.
+            </p>
+          </div>
+
+          <ol class="relative list-none space-y-10 border-l border-[color:color-mix(in_srgb,var(--color-mono-50)_14%,transparent)] pl-8">
+            {
+              journey.map((cert) => (
+                <li class="relative">
+                  <span
+                    class={`cert-status-dot absolute -left-[2.28rem] top-1.5 h-2.5 w-2.5 ${statusDotClass[cert.status]}`}
+                    aria-hidden="true"
+                  />
+                  <p class="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-[color:var(--color-mono-500)]">
+                    {cert.status === 'verified'
+                      ? (cert.issuedAt ?? 'Abgeschlossen')
+                      : statusMeta[cert.status].label}
+                  </p>
+                  <h3 class="mt-1 font-editorial text-xl leading-snug tracking-[-0.02em] text-[color:var(--color-mono-50)]">
+                    {cert.title}
+                  </h3>
+                  <p class="mt-1 font-mono text-[0.7rem] uppercase tracking-[0.15em] text-[color:var(--color-mono-400)]">
+                    {cert.issuer}
+                  </p>
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+      </section>
+  </main>
+</V2Layout>
+
+<style is:global>
+  /* Druckansicht: dunkles Theme fällt beim Druck weg (Browser lassen
+     Hintergründe standardmäßig aus), daher Text explizit dunkel setzen
+     und Chrome ausblenden. Verifizierungslinks drucken ihre URL mit. */
+  @media print {
+    body > header,
+    body > footer,
+    #main-content ~ * {
+      display: none !important;
+    }
+    body,
+    #main-content,
+    #main-content * {
+      background: transparent !important;
+      color: #1a1a1a !important;
+    }
+    .cert-verify-link::after {
+      content: ' (' attr(href) ')';
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    /* Marker bleiben ohne Hintergrunddruck als Kontur erkennbar. */
+    .cert-status-dot {
+      outline: 1px solid #1a1a1a;
+      outline-offset: -1px;
+    }
+  }
+</style>

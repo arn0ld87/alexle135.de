@@ -1,0 +1,169 @@
+---
+import V2Layout from '../../../layouts/V2Layout.astro';
+import MarkdownEditor from '../../../components/admin/MarkdownEditor.tsx';
+import { getPost } from '../../../lib/db/repositories';
+
+const { id } = Astro.params;
+
+let post = {
+  title: '',
+  slug: '',
+  summary: '',
+  content: '',
+  published: false,
+  tags: [] as string[],
+};
+
+if (id && id !== 'new') {
+  try {
+    const data = await getPost(id);
+    if (data) {
+      post = {
+        title: typeof data.title === 'string' ? data.title : '',
+        slug: typeof data.slug === 'string' ? data.slug : '',
+        summary: typeof data.summary === 'string' ? data.summary : '',
+        content: typeof data.content === 'string' ? data.content : '',
+        published: data.published === true,
+        tags: Array.isArray(data.tags) ? data.tags.filter((tag): tag is string => typeof tag === 'string') : [],
+      };
+    }
+  } catch {
+    // ungültige UUID oder DB-Fehler → leere Editor-Form statt 500
+  }
+}
+
+const pageTitle = id === 'new' ? 'Neuer Beitrag' : 'Beitrag bearbeiten';
+---
+
+<V2Layout title={pageTitle} description="Post Editor" noindex>
+  <main class="mx-auto max-w-4xl px-6 py-16">
+    <form id="post-form" class="space-y-8" method="POST">
+
+      <!-- Header -->
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p class="v2-kicker mb-2">Blog</p>
+          <h1 class="font-[family-name:var(--font-editorial)] text-3xl tracking-tight text-[color:var(--color-mono-50)]">{pageTitle}</h1>
+        </div>
+        <div class="flex items-center gap-3">
+          <button
+            type="button"
+            onclick="history.back()"
+            class="border border-[color:color-mix(in_srgb,var(--color-mono-50)_16%,transparent)] px-4 py-2 font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--color-mono-400)] transition-all hover:border-[color:var(--color-mono-50)] hover:text-[color:var(--color-mono-50)]"
+          >
+            Abbrechen
+          </button>
+          <button
+            type="submit"
+            class="border border-[color:var(--color-neon-orange)] bg-[color:var(--color-neon-orange)] px-4 py-2 font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--color-neon-orange-ink)] transition-all hover:bg-transparent hover:text-[color:var(--color-neon-orange)]"
+          >
+            Speichern
+          </button>
+        </div>
+      </div>
+
+      <div class="v2-rule"></div>
+
+      <!-- Form Fields -->
+      <div class="v2-panel p-6 sm:p-8 space-y-6">
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div>
+            <label class="v2-kicker mb-2 block">Titel</label>
+            <input
+              type="text"
+              name="title"
+              value={post.title}
+              required
+              class="w-full border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] bg-[color:color-mix(in_srgb,var(--color-mono-50)_4%,transparent)] px-4 py-3 font-[family-name:var(--font-ui)] text-sm text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-500)] outline-none transition-all focus:border-[color:var(--color-neon-orange)] focus:ring-1 focus:ring-[color:var(--color-neon-orange)]"
+            />
+          </div>
+          <div>
+            <label class="v2-kicker mb-2 block">Slug</label>
+            <input
+              type="text"
+              name="slug"
+              value={post.slug}
+              required
+              class="w-full border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] bg-[color:color-mix(in_srgb,var(--color-mono-50)_4%,transparent)] px-4 py-3 font-[family-name:var(--font-ui)] text-sm text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-500)] outline-none transition-all focus:border-[color:var(--color-neon-orange)] focus:ring-1 focus:ring-[color:var(--color-neon-orange)]"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label class="v2-kicker mb-2 block">Zusammenfassung</label>
+          <textarea
+            name="summary"
+            rows="3"
+            class="w-full border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] bg-[color:color-mix(in_srgb,var(--color-mono-50)_4%,transparent)] px-4 py-3 font-[family-name:var(--font-ui)] text-sm text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-500)] outline-none transition-all focus:border-[color:var(--color-neon-orange)] focus:ring-1 focus:ring-[color:var(--color-neon-orange)]"
+          >{post.summary}</textarea>
+        </div>
+
+        <div>
+          <MarkdownEditor client:load initialValue={post.content} />
+          <input type="hidden" name="content" id="content-hidden" value={post.content} />
+        </div>
+
+        <div class="flex items-center gap-3">
+          <input
+            type="checkbox"
+            id="published"
+            name="published"
+            checked={post.published}
+            class="h-4 w-4 border-[color:var(--color-mono-600)] bg-[color:var(--color-mono-900)] text-[color:var(--color-neon-orange)] focus:ring-[color:var(--color-neon-orange)]"
+          />
+          <label for="published" class="font-[family-name:var(--font-ui)] text-sm text-[color:var(--color-mono-300)]">Veroeffentlicht</label>
+        </div>
+      </div>
+    </form>
+  </main>
+</V2Layout>
+
+<script define:vars={{ id }}>
+  // Make id available in module scope
+  window.__postId = id;
+</script>
+
+<script>
+  import { adminFetch } from '../../../lib/adminClient';
+
+  function initPostEditor() {
+    const form = document.getElementById('post-form') as HTMLFormElement | null;
+    if (!form) return;
+    if (form.dataset.initialized === 'true') return;
+    form.dataset.initialized = 'true';
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const postId = (window as unknown as { __postId: string }).__postId;
+      const formData = new FormData(form);
+      const payload: Record<string, unknown> = {
+        title: String(formData.get('title') ?? ''),
+        slug: String(formData.get('slug') ?? ''),
+        summary: String(formData.get('summary') ?? ''),
+        published: formData.get('published') === 'on',
+        tags: [],
+      };
+
+      const editorField = document.querySelector<HTMLTextAreaElement>(
+        'textarea[name="content"], .markdown-editor textarea'
+      );
+      const hidden = document.getElementById('content-hidden') as HTMLInputElement | null;
+      payload.content = editorField?.value ?? hidden?.value ?? '';
+
+      const isNew = postId === 'new';
+      const result = await adminFetch('/api/admin/posts', {
+        method: isNew ? 'POST' : 'PUT',
+        json: isNew ? payload : { id: postId, ...payload },
+      });
+
+      if (!result.ok) {
+        alert('Fehler: ' + (result.error ?? 'unbekannt'));
+        return;
+      }
+      window.location.href = '/admin/posts';
+    });
+  }
+
+  document.addEventListener('astro:page-load', initPostEditor);
+</script>

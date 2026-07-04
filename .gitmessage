@@ -1,0 +1,10 @@
+# <typ>(<scope>): <kurze Zusammenfassung>
+#
+# Body (optional): erkläre WARUM, nicht nur WAS.
+#
+# --- Regel ---
+# Keine privaten Tool-Session-URLs, Tokens, Debug- oder temporären
+# Artefakt-Links in dieser Nachricht (siehe AGENTS.md, Issue #292).
+# Stattdessen stabile Referenzen nutzen: "Closes #123", PR-/ADR-Link.
+#
+# Erlaubt: "Co-Authored-By: ..."-Trailer.

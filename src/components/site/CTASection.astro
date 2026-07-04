@@ -1,0 +1,30 @@
+---
+interface Props {
+  kicker?: string;
+  title: string;
+  body: string;
+  primaryHref: string;
+  primaryLabel: string;
+  secondaryHref?: string;
+  secondaryLabel?: string;
+}
+
+const { kicker = 'Next step', title, body, primaryHref, primaryLabel, secondaryHref, secondaryLabel } = Astro.props;
+---
+
+<section class="grid gap-8 border-y border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] py-10 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.65fr)] lg:items-end">
+  <div class="space-y-5">
+    <p class="v2-kicker">{kicker}</p>
+    <h2 class="max-w-4xl font-editorial text-[clamp(2.8rem,6vw,5rem)] leading-[0.92] tracking-[-0.06em] text-[color:var(--color-mono-50)]">{title}</h2>
+  </div>
+
+  <div class="space-y-6 lg:justify-self-end">
+    <p class="max-w-[34ch] text-sm leading-7 text-[color:var(--color-mono-300)]">{body}</p>
+    <div class="flex flex-wrap gap-4">
+      <a href={primaryHref} class="v2-cta">{primaryLabel}</a>
+      {secondaryHref && secondaryLabel && (
+        <a href={secondaryHref} class="v2-cta-ghost">{secondaryLabel}</a>
+      )}
+    </div>
+  </div>
+</section>

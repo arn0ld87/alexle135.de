@@ -1,0 +1,41 @@
+<svg width="1280" height="720" viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad-ssh" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1280" height="720" fill="#0f172a" />
+
+  <!-- Abstract Shapes -->
+  <circle cx="100" cy="100" r="400" fill="url(#grad-ssh)" opacity="0.15" />
+  <circle cx="1180" cy="620" r="500" fill="url(#grad-ssh)" opacity="0.1" />
+
+  <!-- Glass Card -->
+  <rect x="240" y="160" width="800" height="400" rx="24" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+
+  <!-- Key Icon -->
+  <g transform="translate(640, 280)" fill="none" stroke="url(#grad-ssh)" stroke-width="3">
+    <!-- Key shape -->
+    <circle cx="0" cy="-40" r="25" />
+    <path d="M0 -15 L0 60" />
+    <path d="M0 30 L15 30" />
+    <path d="M0 50 L20 50" />
+  </g>
+
+  <!-- Content -->
+  <g text-anchor="middle" font-family="system-ui, -apple-system, sans-serif">
+    <!-- Title -->
+    <text x="640" y="400" fill="white" font-size="64" font-weight="800" style="text-shadow: 0 4px 12px rgba(0,0,0,0.5)">SSH-Keys</text>
+
+    <!-- Subtitle -->
+    <text x="640" y="460" fill="rgba(255,255,255,0.8)" font-size="32" font-weight="400" letter-spacing="1">Sicher verbinden ohne Passwort</text>
+  </g>
+
+  <!-- Decorative Elements -->
+  <path d="M240 160 L1040 160" stroke="url(#grad-ssh)" stroke-width="2" opacity="0.5" />
+  <path d="M240 560 L1040 560" stroke="url(#grad-ssh)" stroke-width="2" opacity="0.5" />
+
+</svg>

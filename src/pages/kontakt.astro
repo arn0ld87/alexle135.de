@@ -1,0 +1,221 @@
+---
+import V2Layout from '../layouts/V2Layout.astro';
+
+// Fehler-Feedback für Nutzer ohne JavaScript: der API-Endpunkt leitet bei
+// Validierungs-/Serverfehlern auf /kontakt/?fehler=… um (Gemini #183).
+const fehler = Astro.url.searchParams.get('fehler');
+const fehlerText =
+  fehler === 'eingabe'
+    ? 'Deine Eingabe war unvollständig oder ungültig. Bitte prüfe Name, E-Mail und Nachricht und sende erneut.'
+    : fehler === 'server'
+      ? 'Die Nachricht konnte gerade nicht gespeichert werden. Bitte versuche es später erneut oder schreib direkt an schneider@alexle135.de.'
+      : null;
+---
+
+<V2Layout
+  title="Kontakt – Portfolio & Kooperationen, Leipzig"
+  description="Schreib mir — für Ausbildungsplätze, Kooperationen oder Projektideen rund um Linux, Docker, Automatisierung und KI-Integration. Antwort werktags innerhalb 24 h."
+  schema={{
+    '@context': 'https://schema.org',
+    '@type': 'ContactPage',
+    '@id': 'https://alexle135.de/kontakt/#page',
+    name: 'Kontakt — Alexander Schneider',
+    url: 'https://alexle135.de/kontakt/',
+    description: 'Kontaktseite von Alexander Schneider. E-Mail, Telefon und Kontaktformular für Infrastruktur-, Automations- und KI-Projekte.',
+    inLanguage: 'de-DE',
+    mainEntity: {
+      '@id': 'https://alexle135.de/#person',
+      email: 'schneider@alexle135.de',
+      telephone: '+49 1556 8920209',
+    },
+  }}
+>
+  <main id="main-content" class="v2-shell py-20 md:py-28 lg:py-36">
+    <header class="mb-20 space-y-6 border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pb-12">
+      <p class="font-mono text-[0.7rem] uppercase tracking-[0.3em] text-[color:var(--color-neon-orange)]">Kontakt</p>
+      <h1 class="font-editorial text-[clamp(3.5rem,8vw,6.5rem)] leading-[0.9] tracking-[-0.06em] text-[color:var(--color-mono-50)] max-w-4xl">
+        Schreib mir – für Ausbildungsplätze, Kooperationen oder Projektideen.
+      </h1>
+      <p class="text-xl leading-relaxed text-[color:var(--color-mono-300)] max-w-2xl">
+        Ob offene FISI-Ausbildungsstelle, gemeinsames Side-Project, technischer Austausch oder ein konkretes Infrastruktur-Thema – schreib mir kurz, was der Kontext ist. Werktags antworte ich innerhalb von 24 Stunden.
+      </p>
+    </header>
+
+    <div class="grid gap-16 lg:grid-cols-[1.5fr_1fr]">
+      <section class="max-w-xl">
+        {fehlerText && (
+          <div
+            class="warm-noir mb-8 border border-[color:color-mix(in_srgb,var(--signal-danger)_50%,transparent)] bg-[color:color-mix(in_srgb,var(--signal-danger)_8%,transparent)] p-4 font-mono text-[0.8rem] text-[color:var(--signal-danger)]"
+            role="alert"
+          >
+            {fehlerText}
+          </div>
+        )}
+        <form
+          id="contact-form"
+          action="/api/contact"
+          method="POST"
+          name="contact"
+          class="space-y-8"
+          novalidate
+        >
+          <div class="space-y-3">
+            <label for="name" class="block font-mono text-[0.7rem] uppercase tracking-[0.2em] text-[color:var(--color-mono-400)]">Name</label>
+            <input
+              type="text"
+              name="name"
+              id="name"
+              required
+              minlength="1"
+              maxlength="120"
+              autocomplete="name"
+              class="w-full bg-[color:var(--color-mono-950)] p-4 text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-600)] ring-1 ring-inset ring-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] focus:ring-[color:var(--color-neon-orange)] focus:outline-none transition-shadow"
+              placeholder="John Doe"
+            />
+          </div>
+
+          <div class="space-y-3">
+            <label for="email" class="block font-mono text-[0.7rem] uppercase tracking-[0.2em] text-[color:var(--color-mono-400)]">E-Mail</label>
+            <input
+              type="email"
+              name="email"
+              id="email"
+              required
+              maxlength="254"
+              autocomplete="email"
+              class="w-full bg-[color:var(--color-mono-950)] p-4 text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-600)] ring-1 ring-inset ring-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] focus:ring-[color:var(--color-neon-orange)] focus:outline-none transition-shadow"
+              placeholder="mail@example.com"
+            />
+          </div>
+
+          <div class="space-y-3">
+            <label for="message" class="block font-mono text-[0.7rem] uppercase tracking-[0.2em] text-[color:var(--color-mono-400)]">Nachricht</label>
+            <textarea
+              name="message"
+              id="message"
+              rows="5"
+              required
+              minlength="10"
+              maxlength="5000"
+              class="w-full bg-[color:var(--color-mono-950)] p-4 text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-600)] ring-1 ring-inset ring-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] focus:ring-[color:var(--color-neon-orange)] focus:outline-none transition-shadow resize-y"
+              placeholder="Worum geht es in dem Projekt?"
+            ></textarea>
+          </div>
+
+          <!-- Honeypot: humans do not see or tab into this. Bots fill everything. -->
+          <div class="sr-only" aria-hidden="true">
+            <label for="website">Website (leer lassen)</label>
+            <input type="text" name="website" id="website" tabindex="-1" autocomplete="off" />
+          </div>
+
+          <div
+            id="contact-status"
+            class="hidden border border-[color:color-mix(in_srgb,var(--color-mono-50)_16%,transparent)] bg-[color:color-mix(in_srgb,var(--color-mono-50)_4%,transparent)] p-4 font-mono text-[0.8rem] text-[color:var(--color-mono-200)]"
+            role="status"
+            aria-live="polite"
+          >
+          </div>
+
+          <button
+            type="submit"
+            id="contact-submit"
+            class="v2-cta disabled:opacity-50 disabled:cursor-not-allowed motion-reduce:transition-none"
+          >
+            <span id="contact-submit-label">Nachricht senden</span>
+          </button>
+        </form>
+      </section>
+
+      <aside class="space-y-12">
+        <div class="space-y-4">
+          <h2 class="font-mono text-[0.7rem] uppercase tracking-[0.2em] text-[color:var(--color-mono-400)]">Direktkontakt</h2>
+          <ul class="space-y-2 text-[color:var(--color-mono-200)]">
+            <li><a href="mailto:schneider@alexle135.de" class="hover:text-[color:var(--color-neon-orange)] transition-colors">schneider@alexle135.de</a></li>
+            <li><a href="tel:+4915568920209" class="hover:text-[color:var(--color-neon-orange)] transition-colors">+49 1556 8920209</a></li>
+            <li class="pt-2 text-[color:var(--color-mono-400)]">Leipzig, Deutschland</li>
+          </ul>
+        </div>
+
+        <div class="space-y-4">
+          <h2 class="font-mono text-[0.7rem] uppercase tracking-[0.2em] text-[color:var(--color-mono-400)]">Netzwerke</h2>
+          <ul class="space-y-2 text-[color:var(--color-mono-200)]">
+            <li><a href="https://www.linkedin.com/in/alexander-schneider-9a8b38379" target="_blank" rel="noopener" class="hover:text-[color:var(--color-neon-orange)] transition-colors">LinkedIn ↗</a></li>
+            <li><a href="https://github.com/arn0ld87" target="_blank" rel="noopener" class="hover:text-[color:var(--color-neon-orange)] transition-colors">GitHub ↗</a></li>
+            <li><a href="https://www.xing.com/profile/Alexander_Schneider010923/web_profiles" target="_blank" rel="noopener" class="hover:text-[color:var(--color-neon-orange)] transition-colors">Xing ↗</a></li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </main>
+</V2Layout>
+
+<script>
+  type StatusKind = 'info' | 'error' | 'success';
+
+  function setStatus(el: HTMLElement | null, kind: StatusKind, text: string) {
+    if (!el) return;
+    el.textContent = text;
+    el.classList.remove('hidden');
+    el.dataset.kind = kind;
+    el.style.color =
+      kind === 'error'
+        ? '#f87171'
+        : kind === 'success'
+          ? 'var(--color-neon-orange)'
+          : '';
+  }
+
+  function initContactForm() {
+    const form = document.getElementById('contact-form') as HTMLFormElement | null;
+    if (!form) return;
+    if (form.dataset.initialized === 'true') return;
+    form.dataset.initialized = 'true';
+
+    const submitBtn = document.getElementById('contact-submit') as HTMLButtonElement | null;
+    const submitLabel = document.getElementById('contact-submit-label');
+    const status = document.getElementById('contact-status');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!submitBtn || !submitLabel) return;
+
+      submitBtn.disabled = true;
+      submitLabel.textContent = 'Wird gesendet …';
+      setStatus(status, 'info', 'Nachricht wird gesendet …');
+
+      try {
+        const formData = new FormData(form);
+        const response = await fetch('/api/contact', {
+          method: 'POST',
+          headers: { Accept: 'application/json' },
+          body: formData,
+        });
+
+        if (response.ok) {
+          window.location.href = '/kontakt/danke/';
+          return;
+        }
+
+        if (response.status === 429) {
+          setStatus(status, 'error', 'Zu viele Anfragen. Bitte in ein paar Minuten erneut versuchen.');
+        } else {
+          let message = 'Nachricht konnte nicht gesendet werden.';
+          try {
+            const data = await response.json();
+            if (data?.error && typeof data.error === 'string') message = data.error;
+          } catch {
+            // ignore JSON parse failure
+          }
+          setStatus(status, 'error', message);
+        }
+      } catch {
+        setStatus(status, 'error', 'Netzwerkfehler. Bitte später erneut versuchen.');
+      } finally {
+        submitBtn.disabled = false;
+        submitLabel.textContent = 'Nachricht senden';
+      }
+    });
+  }
+
+  document.addEventListener('astro:page-load', initContactForm);
+</script>

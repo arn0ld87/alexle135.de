@@ -1,0 +1,196 @@
+---
+import V2Layout from '../../../layouts/V2Layout.astro';
+import {
+  listContactMessages,
+  type ContactMessageRow,
+  type ContactMessageStatus,
+} from '../../../lib/db/repositories';
+
+const url = new URL(Astro.request.url);
+const statusLabels = {
+  open: 'offen',
+  answered: 'beantwortet',
+  spam: 'Spam',
+  follow_up: 'Follow-up',
+} as const;
+type MessageFilter = ContactMessageStatus | 'all';
+const rawFilter = url.searchParams.get('filter');
+const filter: MessageFilter =
+  rawFilter && rawFilter in statusLabels ? (rawFilter as ContactMessageStatus) : 'all';
+
+let error: Error | null = null;
+let items: ContactMessageRow[] = [];
+try {
+  items = await listContactMessages({
+    status: filter === 'all' ? undefined : filter,
+  });
+} catch (err) {
+  error = err instanceof Error ? err : new Error('Datenbankfehler.');
+}
+
+const formatDate = (iso: string) =>
+  new Intl.DateTimeFormat('de-DE', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(iso));
+---
+
+<V2Layout title="Kontaktnachrichten" description="Eingang der Kontaktformular-Nachrichten." noindex>
+  <main class="mx-auto max-w-5xl px-6 py-16">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <p class="v2-kicker mb-2">Admin</p>
+        <h1 class="font-[family-name:var(--font-editorial)] text-3xl tracking-tight text-[color:var(--color-mono-50)]">Kontaktnachrichten</h1>
+        <p class="mt-1 font-mono text-xs text-[color:var(--color-mono-500)]">{items.length} Eintr&auml;ge</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <a
+          href="/admin/messages/"
+          class={`border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] transition-all ${filter === 'all' ? 'border-[color:var(--color-neon-orange)] text-[color:var(--color-neon-orange)]' : 'border-[color:color-mix(in_srgb,var(--color-mono-50)_16%,transparent)] text-[color:var(--color-mono-400)] hover:text-[color:var(--color-mono-50)]'}`}
+        >Alle</a>
+        <a
+          href="/admin/messages/?filter=open"
+          class={`border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] transition-all ${filter === 'open' ? 'border-[color:var(--color-neon-orange)] text-[color:var(--color-neon-orange)]' : 'border-[color:color-mix(in_srgb,var(--color-mono-50)_16%,transparent)] text-[color:var(--color-mono-400)] hover:text-[color:var(--color-mono-50)]'}`}
+        >Offen</a>
+        <a
+          href="/admin/messages/?filter=answered"
+          class={`border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] transition-all ${filter === 'answered' ? 'border-[color:var(--color-neon-orange)] text-[color:var(--color-neon-orange)]' : 'border-[color:color-mix(in_srgb,var(--color-mono-50)_16%,transparent)] text-[color:var(--color-mono-400)] hover:text-[color:var(--color-mono-50)]'}`}
+        >Beantwortet</a>
+        <a
+          href="/admin/messages/?filter=follow_up"
+          class={`border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] transition-all ${filter === 'follow_up' ? 'border-[color:var(--color-neon-orange)] text-[color:var(--color-neon-orange)]' : 'border-[color:color-mix(in_srgb,var(--color-mono-50)_16%,transparent)] text-[color:var(--color-mono-400)] hover:text-[color:var(--color-mono-50)]'}`}
+        >Follow-up</a>
+        <a
+          href="/admin/messages/?filter=spam"
+          class={`border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] transition-all ${filter === 'spam' ? 'border-[color:var(--color-neon-orange)] text-[color:var(--color-neon-orange)]' : 'border-[color:color-mix(in_srgb,var(--color-mono-50)_16%,transparent)] text-[color:var(--color-mono-400)] hover:text-[color:var(--color-mono-50)]'}`}
+        >Spam</a>
+      </div>
+    </div>
+
+    <div class="v2-rule my-8"></div>
+
+    {error && (
+      <div class="v2-panel p-6 text-red-400 font-mono text-sm">Fehler: {error.message}</div>
+    )}
+
+    <div id="messages-list" class="space-y-3">
+      {items.length === 0 && !error && (
+        <div class="v2-panel p-12 text-center font-mono text-sm text-[color:var(--color-mono-500)]">
+          Keine Nachrichten {filter === 'all' ? 'vorhanden' : statusLabels[filter]}.
+        </div>
+      )}
+      {items.map((m) => (
+        <article class="v2-panel p-6 space-y-4" data-id={m.id}>
+          <header class="flex flex-wrap items-start justify-between gap-3">
+            <div class="space-y-1">
+              <h2 class="font-[family-name:var(--font-editorial)] text-xl text-[color:var(--color-mono-50)]">
+                {m.name}
+                <span class="ml-3 inline-block border border-[color:color-mix(in_srgb,var(--color-mono-50)_16%,transparent)] px-2 py-0.5 align-middle font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-mono-300)]">
+                  {statusLabels[m.status] ?? (m.handled ? 'erledigt' : 'offen')}
+                </span>
+                {m.handled && m.status === 'answered' && (
+                  <span class="ml-3 inline-block border border-green-500/30 bg-green-500/10 px-2 py-0.5 align-middle font-mono text-[10px] uppercase tracking-[0.18em] text-green-400">
+                    erledigt
+                  </span>
+                )}
+              </h2>
+              <p class="font-mono text-xs text-[color:var(--color-mono-400)]">
+                <a href={`mailto:${m.email}`} class="hover:text-[color:var(--color-neon-orange)] transition-colors">{m.email}</a>
+                &nbsp;&middot;&nbsp;{formatDate(m.created_at)}
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              {m.status !== 'answered' && (
+                <button
+                  type="button"
+                  data-status="answered"
+                  class="status-msg-btn border border-[color:color-mix(in_srgb,var(--color-mono-50)_16%,transparent)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-mono-200)] transition-all hover:border-[color:var(--color-neon-orange)] hover:text-[color:var(--color-neon-orange)]"
+                >
+                  Beantwortet
+                </button>
+              )}
+              <button
+                type="button"
+                data-status="follow_up"
+                class="status-msg-btn border border-[color:color-mix(in_srgb,var(--color-mono-50)_16%,transparent)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-mono-200)] transition-all hover:border-[color:var(--color-neon-orange)] hover:text-[color:var(--color-neon-orange)]"
+              >
+                Follow-up
+              </button>
+              <button
+                type="button"
+                data-status="spam"
+                class="status-msg-btn border border-red-500/30 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-red-400 transition-all hover:bg-red-500/10"
+              >
+                Spam
+              </button>
+              <button
+                type="button"
+                class="delete-msg-btn border border-red-500/30 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-red-400 transition-all hover:bg-red-500/10"
+              >
+                Löschen
+              </button>
+            </div>
+          </header>
+          <p class="whitespace-pre-wrap text-sm leading-7 text-[color:var(--color-mono-200)]">{m.message}</p>
+          {m.user_agent && (
+            <p class="font-mono text-[10px] text-[color:var(--color-mono-600)] break-all">{m.user_agent}</p>
+          )}
+        </article>
+      ))}
+    </div>
+
+    <div class="mt-8">
+      <a href="/admin/dashboard" class="font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--color-mono-500)] transition-colors hover:text-[color:var(--color-neon-orange)]">
+        &larr; Dashboard
+      </a>
+    </div>
+  </main>
+</V2Layout>
+
+<script>
+  import { adminFetch } from '../../../lib/adminClient';
+
+  function init() {
+    const list = document.getElementById('messages-list');
+    if (!list) return;
+    if (list.dataset.initialized === 'true') return;
+    list.dataset.initialized = 'true';
+
+    list.addEventListener('click', async (e) => {
+      const target = e.target as HTMLElement;
+      const article = target.closest('article[data-id]') as HTMLElement | null;
+      if (!article) return;
+      const id = article.dataset.id;
+      if (!id) return;
+
+      if (target.classList.contains('status-msg-btn')) {
+        const status = target.dataset.status;
+        if (!status) return;
+        const result = await adminFetch('/api/admin/messages', {
+          method: 'PATCH',
+          json: { id, status },
+        });
+        if (!result.ok) {
+          alert(result.error ?? 'Fehler.');
+          return;
+        }
+        window.location.reload();
+      } else if (target.classList.contains('delete-msg-btn')) {
+        if (!confirm('Nachricht wirklich löschen?')) return;
+        const result = await adminFetch(`/api/admin/messages?id=${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+        });
+        if (!result.ok) {
+          alert(result.error ?? 'Fehler.');
+          return;
+        }
+        article.remove();
+      }
+    });
+  }
+
+  document.addEventListener('astro:page-load', init);
+</script>
