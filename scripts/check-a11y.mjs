@@ -32,7 +32,7 @@ function collectHtmlFiles(dir) {
 
 async function runAxe(file) {
   const html = readFileSync(file, 'utf8');
-  const dom = new JSDOM(html, { url: 'https://alexle135.de/', runScripts: 'outside-only' });
+  const dom = new JSDOM(html, { url: 'https://alex-schneider.dev/', runScripts: 'outside-only' });
 
   const { window } = dom;
   // axe-core erwartet ein globales window/document im Ausführungskontext.

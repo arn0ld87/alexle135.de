@@ -15,10 +15,12 @@ Projektregeln für KI-Agenten. Bei Widersprüchen gilt diese Datei als aktuelle 
   - `docfork` für aktuelle Library-, Framework- und SDK-Dokumentation.
   - `sequential-thinking` für mehrstufige, ambige oder architektonische Entscheidungen.
 - Skills werden vor Rückfragen und Code-Lesen geladen, sobald sie zur Aufgabe passen.
+- Vier Prozess-Skills unter `.claude/skills/` (`explore-codebase`, `debug-issue`, `refactor-safely`, `review-changes`) steuern den Ablauf unabhängig vom gewählten Agenten.
+- Modell-/Agenten-Wahl für Subagenten: siehe `docs/agents/subagent-routing.md`.
 
 ## Stack
 
-- Astro 6.4 SSR (`output: 'server'`) mit `@astrojs/node` standalone und Node 22.
+- Astro 7.3 SSR (`output: 'server'`) mit `@astrojs/node` standalone und Node 22.
 - React 19, Tailwind CSS 4 via `@tailwindcss/vite`, Astro Content Collections mit Zod.
 - Eigene PostgreSQL-Datenbank, Better Auth, Vitest 4, Testing Library, ESLint und Prettier.
 - Produktion: Docker-Container `alexle135-v2` hinter Traefik; Deploy über `.github/workflows/deploy.yml`.
@@ -35,14 +37,18 @@ pnpm format:all
 pnpm start
 ```
 
-Quality-Gates (CI-Parität, vor Merge lokal ausführen): `pnpm check` (astro check), `pnpm test:integration` (Admin-Login gegen echte Postgres), `pnpm check:dist` (html-validate + Link-Check + axe-core), `pnpm check:bundle` (Client-JS-Budget), `pnpm db:migrate` und `pnpm db:verify` (Postgres-Migrationen).
+Quality-Gates (CI-Parität, vor Merge lokal ausführen): `pnpm check` (astro check), `pnpm test:integration` (Admin-Login gegen echte Postgres), `pnpm check:dist` (html-validate + Link-Check + axe-core), `pnpm check:bundle` (Client-JS- und Bildbudget), `pnpm db:migrate` und `pnpm db:verify` (Postgres-Migrationen).
 
 Für einzelne Tests: `pnpm exec vitest run path/to/test`. Content-Helper: `pnpm new:blog`, `pnpm new:projekt`.
 
 ## Architektur
 
 - `src/layouts/V2Layout.astro` ist das öffentliche Standardlayout; `src/components/v2/` enthält den aktiven UI-Stack.
+- Der Hero der Startseite (`src/components/home/Hero.astro`) zeigt die Bildmarke als ASCII-Zeichenbild (`AsciiMark.astro`): das Standbild steht als Text im HTML, und `project.ts` rechnet es als Körper mit Tiefe (Tiefenpuffer über `DEPTH` Schichten, Fläche und Seitenwand verdecken sich) — das Modul bleibt rein (kein DOM, kein Zufall, keine Uhr), Text gelangt nur über Textknoten ins DOM. Das Ziehen mit Maus und Finger bindet `bind.ts`, auf allen Breiten; es lädt `rotate.ts` nur per dynamischem `import()` nach dem Laden und im Leerlauf nach, erst beim Anfassen oder auf Klick — nie statisch, und bei reduzierter Bewegung bleibt allein die selbsttätige Drehung aus (Mobile-Performance, PERF-01). Die Matrix `src/lib/ascii-mark/mark.ts` erzeugt `node scripts/generate-ascii-mark.mjs --write` aus `public/brand/as-mark.svg` und wird nie von Hand geändert.
+- Der Abschnitt „Arbeiten“ (`src/components/home/Works.astro`, `AgoraCard.astro`) ist progressive Erweiterung über echten Links: Auswahl und Reihenfolge der Projekte in `src/lib/home/works.ts`, Chip-Filter in `listFilter.ts`, Schema in `schemaSteps.ts`, Vorschau in `previewDialog.ts` (alle ohne React, idempotent über `dataset.initialized`). Collection-Text gelangt nur über serverseitiges Markup, `template`-Klonen oder `textContent` ins DOM, nie über eine Markup-Zeichenfolge. `PreviewDialog.astro` steht einmal pro Seite in `index.astro` und dient Arbeiten und Logbuch. Die Agora-Karte bezieht Format, Datum und Link aus dem Blogpost `agora-mirofish-fork-local-first`; das Schema ist eine Illustration und zeigt keine Zähler, Laufzeiten oder Betriebszustände.
+- Die Abschnitte „Ansatz“ (`Approach.astro`) und „Logbuch“ (`Logbook.astro`) folgen demselben Muster: Jede Zeile ist ein Link. Auswahl, Tag-Chips, Statuszeile und Textvergleich des Logbuchs stehen in `src/lib/home/logbook.ts`, der Filter mit Suchfeld in `listFilter.ts`. Der Suchtext bleibt im Browser (kein Formular, kein Netzwerkaufruf, kein Speicher, nie ein Muster); die seitenweite Suche ist Phase 3. Die Startseite bleibt serverseitig gerendert (kein Vorab-Bauen). Die Tokens für Abstände, Maße, Radien, Motion und Terminalfarben stehen auf `:root`; die Scope-Klasse `warm-noir` ist wirkungslos und entfällt mit dem Design-System-Umbau.
 - `src/content.config.ts` definiert alle Content-Collection-Schemas (Content Layer API, glob-Loader); Schema vor Frontmatter erweitern.
+- Bildquellen liegen einmal unter `src/assets/`; Varianten erzeugt der Build über `astro:assets` nur auf vorab gebauten Seiten. Feste Bildadressen bleiben in `public/`.
 - `src/middleware.ts` schützt `/admin/*` und `/api/admin/*`; Admin-Mutationen laufen über `src/lib/adminClient.ts`.
 - `src/pages/api/contact.ts` schreibt nach `contact_messages`; Origin-Check, Rate-Limit und Honeypot nicht abschwächen.
 - `src/lib/og.ts` und `/og/{slug}.png` erzeugen dynamische Blog-OG-Bilder.
@@ -58,7 +64,7 @@ Für einzelne Tests: `pnpm exec vitest run path/to/test`. Content-Helper: `pnpm 
 - **NIE** `--no-verify`, `--force` oder `--no-gpg-sign` ohne explizite Anweisung.
 - **NIE** private Tool-Session-URLs, Tokens, Debug- oder temporäre Artefakt-Links in Commits oder dauerhafter Doku — stattdessen Issues/PRs/ADRs referenzieren. Durchgesetzt via `.githooks/commit-msg` (Aktivierung: `git config core.hooksPath .githooks`).
 - Neue öffentliche Seiten verwenden `V2Layout`.
-- `PUBLIC_GA_MEASUREMENT_ID` ist ein optionaler Docker-Build-Arg; `DATABASE_URL`, `BETTER_AUTH_SECRET` und andere Server-Secrets kommen nur über Runtime-Env.
+- `PUBLIC_GA_MEASUREMENT_ID` und `PUBLIC_BUILD_SHA` (Kurz-SHA des Deploys für die Footer-Betriebszeile, kein Geheimnis) sind optionale Docker-Build-Args; `DATABASE_URL`, `BETTER_AUTH_SECRET` und andere Server-Secrets kommen nur über Runtime-Env.
 - Kleine Fixes bleiben klein; keine ungefragten Refactors oder Änderungen an fremden Worktree-Modifikationen.
 
 ## Workflow

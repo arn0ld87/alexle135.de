@@ -9,7 +9,7 @@ tags:
   - Terminal
   - SSH
   - Produktivität
-heroImage: /images/blog/tmux-terminal-multiplexing.webp
+heroImage: ../../assets/blog/tmux-terminal-multiplexing.webp
 author: Alexander Schneider
 ---
 
@@ -688,7 +688,7 @@ tmux hat meine Arbeit mit Servern komplett verändert.
 **Mein Tipp:**
 Fang mit einer einfachen Session an. Wenn du das Konzept verstanden hast, lerne Windows. Dann Panes.
 
-Bei Fragen: [schneider@alexle135.de](mailto:schneider@alexle135.de)
+Bei Fragen: [schneider@alex-schneider.dev](mailto:schneider@alex-schneider.dev)
 
 ---
 

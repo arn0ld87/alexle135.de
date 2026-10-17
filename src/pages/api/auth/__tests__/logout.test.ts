@@ -27,9 +27,9 @@ describe('POST /api/auth/logout', () => {
 
   it('signs out through Better Auth and clears csrf-token', async () => {
     const res = await POST({
-      request: new Request('https://alexle135.de/api/auth/logout', {
+      request: new Request('https://alex-schneider.dev/api/auth/logout', {
         method: 'POST',
-        headers: { origin: 'https://alexle135.de' },
+        headers: { origin: 'https://alex-schneider.dev' },
       }),
     } as never);
 

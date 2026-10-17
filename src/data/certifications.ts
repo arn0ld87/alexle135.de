@@ -50,6 +50,18 @@ export const certifications: Certification[] = [
     featured: true,
   },
   {
+    id: 'windows-server-2022-az801-monitoring-troubleshooting',
+    title: 'Windows Server 2022: Überwachung und Troubleshooting (AZ-801 Teil 5)',
+    issuer: 'LinkedIn Learning',
+    issuedAt: '2026-07-04',
+    status: 'verified',
+    description:
+      'Monitoring und Fehlerbehebung hybrider Windows-Server-Umgebungen: Leistungsoptimierung, Troubleshooting von Netzwerkverbindungen und Reparatur der Active-Directory-Domänendienste. Teil der AZ-801-Prüfungsvorbereitung.',
+    skills: ['Windows Server', 'System Monitoring', 'Network Troubleshooting', 'Active Directory'],
+    verificationUrl:
+      'https://www.linkedin.com/learning/certificates/44b23432a3fe840cc2df59ca0d5299840c366b2dc9347c3b08d10543f9a2edf7',
+  },
+  {
     id: 'windows-server-2025-administration',
     title: 'Windows Server 2025 Administration Grundkurs',
     issuer: 'LinkedIn Learning',

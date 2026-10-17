@@ -1,83 +1,46 @@
 # Information Architecture & Navigation
 
-## 1. Sitemap Structure
+Stand 2026-10-15 (abgeglichen mit src/pages/ und src/components/v2/).
 
-- **Home** (`/`)
-  - Hero (Value Prop)
-  - Featured Projects (Cards)
-  - Services Teaser (List)
-  - About Teaser (Bio)
-  - Blog Latest (Grid)
-  - Contact CTA
-- **Über mich** (`/ueber-mich`)
-  - Extended Bio
-  - Career Timeline
-  - Tech Stack / Skills
-  - CV Download
-- **Leistungen** (`/leistungen`)
-  - Detailed Service Offerings
-  - Process / Workflow
-  - Pricing / Packages (optional)
-  - FAQ
-- **Projekte** (`/projekte`)
-  - Project Archive (Filterable?)
-  - **Single Project** (`/projekte/[slug]`)
-    - Overview
-    - Tech Stack
-    - Solution
-    - Gallery
-- **Blog** (`/blog`)
-  - Article List
-  - **Single Post** (`/blog/[slug]`)
-    - Content
-    - TOC
-    - Related Posts
-- **Kontakt** (`/kontakt`)
-  - Contact Form
-  - Social Links
-  - Availability Status
-- **Legal**
-  - Impressum (`/legal/impressum`)
-  - Datenschutz (`/legal/datenschutz`)
+## 1. Sitemap (öffentlich)
 
-## 2. Navigation Menus
+```
+/                       Startseite (Hero mit Bildmarke als Zeichenbild, Arbeiten, Ansatz, Logbuch, Kontakt)
+/leistungen/            „Was ich kann" — Kompetenzprofil
+/projekte/              Projektliste (Case-Einträge)
+/projekte/[slug]/       Projekt-Detail (Content Collection)
+/projekte/terminal-missionen/app/          Linux-Terminal-Lernapp (WebContainer)
+/projekte/windows-terminal-missionen/app/  Windows-Terminal-Lernapp (WebContainer)
+/blog/                  Logbuch (Liste)
+/blog/[slug]/           Artikel (MDX, OG-Bild via /og/{slug}.png)
+/ueber-mich/            Person, Werdegang, Arbeitsweise
+/fisi/                  FISI-Umschulung: Lernpfad + Status
+/ai/ · /ki-agenten-lab/ KI-/Agenten-Seiten (beide noindex, nicht in der Sitemap)
+/kompetenzen/           Skill-Matrix
+/certifications/        Zertifikate (Wikidata-verknüpft)
+/apps/                  App-Übersicht
+/kontakt/ (+/danke/)    Kontaktformular → contact_messages
+/status/                Betriebsstatus (noindex, nicht in der Sitemap, im Footer verlinkt)
+/changelog/             Changelog (öffentlich, in der Sitemap, derzeit ohne eingehenden Link)
+/design-system/         Design-System-Referenz (internes Werkzeug, noindex, nicht in der Sitemap)
+/legal/impressum/ · /legal/datenschutz/ · /404
+```
 
-### Main Header (Desktop)
+Admin unter `/admin/*` (Better Auth, Middleware-geschützt) — nicht Teil der öffentlichen IA.
 
-1.  **Logo** (Home)
-2.  **Links:**
-    - Über mich
-    - Leistungen
-    - Projekte
-    - Blog
-3.  **Actions:**
-    - Theme Toggle (Icon)
-    - "Kontakt" (Button, Primary)
+## 2. Navigation
 
-### Mobile Menu (Hamburger)
+- **Header (Desktop + Mobile):** Was ich kann · Projekte · Über mich · Blog · Zertifikate · Kontakt. Logo → `/`.
+- **Nicht im Header** (bewusst, Zweitebene über Footer/interne Links): fisi, ai, ki-agenten-lab, kompetenzen, apps, status, changelog, design-system.
+- **Footer:** Spalten Navigation (/, leistungen, projekte, blog, certifications), Socials (GitHub ×2, LinkedIn, Facebook, Instagram, Threads, Mail), Rechtliches (Impressum, Datenschutz, Status). Kein Twitter/X.
 
-- Fullscreen Overlay (Glass)
-- Large Links
-- Social Icons at bottom
+## 3. URL-Regeln
 
-### Footer
+- Trailing Slash, sprechende deutsche Slugs, Collections steuern Projekt-/Blog-Slugs.
+- Canonical + Sitemap via `@astrojs/sitemap`; 404 mit Navigationsangebot.
 
-- **Column 1:** Brand + Short mission statement.
-- **Column 2:** Navigation (Sitemap).
-- **Column 3:** Socials (GitHub, LinkedIn, Twitter/X).
-- **Column 4:** Legal (Impressum, Datenschutz).
-- **Bottom Bar:** Copyright © 2026 Alexander Schneider.
+## 4. Interne Verlinkung
 
-## 3. URL Structure
-
-- Keep standard: `/category/slug`.
-- Projects: `/projekte/projekt-name`.
-- Blog: `/blog/article-name` (or `/blog/2026/article-name`).
-
-## 4. Internal Linking Strategy
-
-- **Home -> Projects:** "Mehr Projekte ansehen".
-- **Home -> Services:** "Alle Leistungen".
-- **Service -> Contact:** "Jetzt anfragen".
-- **Project -> Contact:** "Projekt anfragen".
-- **Blog -> Project:** "Siehe Fallstudie XYZ".
+- Blog-Artikel → RelatedPosts (thematisch) + CTA-Abschluss.
+- Projekt-Detail → verwandte Projekte + Kontakt-CTA.
+- Startseite verlinkt alle Kernbereiche oberhalb des Footers.

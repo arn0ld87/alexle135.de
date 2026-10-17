@@ -15,17 +15,17 @@ const { index, eyebrow, title, when, action, result, deliverables, link, links }
 const resolvedLinks = links?.length ? links : link ? [link] : [];
 ---
 
-<article class="grid gap-6 border-t border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] py-10 first:border-t-0 first:pt-0 lg:grid-cols-[4.5rem_minmax(0,1.15fr)_minmax(16rem,0.95fr)] lg:gap-10">
-  <p class="font-mono text-[0.82rem] leading-6 tracking-[0.18em] text-[color:var(--color-mono-400)]">{index}</p>
+<article class="ds-row grid gap-6 lg:grid-cols-[4.5rem_minmax(0,1.15fr)_minmax(16rem,0.95fr)] lg:gap-10">
+  <p class="ds-meta">{index}</p>
 
   <div class="space-y-4">
-    <p class="font-mono text-[0.76rem] uppercase tracking-[0.22em] text-[color:var(--color-neon-orange)]">{eyebrow}</p>
-    <h2 class="max-w-4xl font-editorial text-[clamp(2.4rem,5vw,4.4rem)] leading-[0.92] tracking-[-0.06em] text-[color:var(--color-mono-50)]">{title}</h2>
+    <p class="ds-kicker">{eyebrow}</p>
+    <h2 class="max-w-4xl ds-display-l text-[color:var(--ink)]">{title}</h2>
     {deliverables && deliverables.length > 0 && (
-      <ul class="space-y-1.5 pt-2">
+      <ul class="space-y-2 pt-2">
         {deliverables.map((item) => (
-          <li class="flex items-start gap-2 font-mono text-[0.72rem] leading-5 tracking-[0.08em] text-[color:var(--color-mono-300)]">
-            <span class="mt-1.5 h-1 w-1 shrink-0 bg-[color:var(--color-neon-orange)]" aria-hidden="true"></span>
+          <li class="flex items-start gap-2 font-mono text-[length:var(--ds-text-label)] leading-5 tracking-[0.08em] text-[color:var(--muted)]">
+            <span class="mt-1.5 h-1 w-1 shrink-0 bg-[color:var(--accent)]" aria-hidden="true"></span>
             {item}
           </li>
         ))}
@@ -34,20 +34,20 @@ const resolvedLinks = links?.length ? links : link ? [link] : [];
     {resolvedLinks.length > 0 && (
       <div class="flex flex-wrap gap-4 pt-1">
         {resolvedLinks.map((item) => (
-          <a href={item.href} class="inline-flex items-center gap-2 font-mono text-[0.72rem] uppercase tracking-[0.18em] text-[color:var(--color-mono-200)] transition hover:text-[color:var(--color-neon-orange)]">
-            {item.label} <span class="text-[color:var(--color-neon-orange)]">→</span>
+          <a href={item.href} class="ds-meta ds-meta--ink inline-flex items-center gap-2 underline decoration-[color:var(--accent)] decoration-1 underline-offset-4 hover:decoration-2">
+            {item.label} <span class="text-[color:var(--accent-strong)]" aria-hidden="true">→</span>
           </a>
         ))}
       </div>
     )}
   </div>
 
-  <div class="space-y-4 border-l border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pl-4 lg:pl-6">
-    <p class="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-[color:var(--color-mono-400)]">Wann sinnvoll</p>
-    <p class="text-sm leading-7 text-[color:var(--color-mono-200)]">{when}</p>
-    <p class="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-[color:var(--color-mono-400)]">Was ich mache</p>
-    <p class="text-sm leading-7 text-[color:var(--color-mono-200)]">{action}</p>
-    <p class="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-[color:var(--color-mono-400)]">Was besser wird</p>
-    <p class="text-sm leading-7 text-[color:var(--color-mono-300)]">{result}</p>
+  <div class="space-y-4 border-l border-[color:var(--line)] pl-4 lg:pl-6">
+    <p class="ds-meta">Wann sinnvoll</p>
+    <p class="text-[length:var(--ds-text-sm)] leading-[1.55] text-[color:var(--ink)]">{when}</p>
+    <p class="ds-meta">Was ich mache</p>
+    <p class="text-[length:var(--ds-text-sm)] leading-[1.55] text-[color:var(--ink)]">{action}</p>
+    <p class="ds-meta">Was besser wird</p>
+    <p class="text-[length:var(--ds-text-sm)] leading-[1.55] text-[color:var(--muted)]">{result}</p>
   </div>
 </article>

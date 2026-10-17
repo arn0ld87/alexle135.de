@@ -1,5 +1,6 @@
 ---
-title: 'Honcho als Langzeitgedächtnis für Claude Code — wie ich meinem Agenten ein Profil gegeben habe'
+title: 'Honcho: Langzeitgedächtnis für Claude Code'
+metaDescription: 'Honcho als Langzeitgedächtnis für Claude Code: Mein Setup hält Kontext zu mir und meiner Infrastruktur über Sessions hinweg, ohne eigene RAG-Pipeline.'
 summary: 'Mein Agent vergisst jede Session, wer ich bin, wo ich wohne und auf welchem Server welcher Stack läuft. Honcho löst das ohne RAG-Pipeline und ohne Vektor-DB im Eigenbau. Hier ist mein Setup.'
 publishedAt: 2026-05-04
 tags:
@@ -8,7 +9,7 @@ tags:
   - Memory
   - MCP
   - AI Agents
-heroImage: /images/blog/honcho-langzeitgedaechtnis-claude-code.webp
+heroImage: ../../assets/blog/honcho-langzeitgedaechtnis-claude-code.webp
 author: Alexander Schneider
 ---
 

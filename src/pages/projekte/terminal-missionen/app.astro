@@ -5,20 +5,19 @@ import MissionTerminal from '../../../components/interactive/MissionTerminal.tsx
 
 <V2Layout
   title="Terminal Missionen – Interaktive Linux & DevOps Tutorials"
+  canonical="/projekte/terminal-missionen/"
+  robots="noindex, follow"
   description="Lerne Linux, Docker und Git spielerisch mit interaktiven Terminal-Simulationen. Geführte Missionen mit Echtzeit-Feedback."
 >
   <main class="v2-shell py-20 md:py-28">
-    <header class="mb-16 space-y-6 border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pb-12">
-      <p class="v2-kicker flex items-center gap-3">
-        <span class="v2-accent-dot" aria-hidden="true"></span>
-        <span>Interactive Learning Platform</span>
-      </p>
+    <header class="ds-pagehead ds-linegrid space-y-6 mb-12">
+      <p class="ds-kicker">Interactive Learning Platform</p>
 
-      <h1 class="font-editorial text-[clamp(2.5rem,6vw,4.5rem)] leading-[0.92] tracking-[-0.04em] text-[color:var(--color-mono-50)] max-w-4xl">
+      <h1 class="ds-pagehead__title ds-display-xl">
         Terminal Missionen
       </h1>
 
-      <p class="text-xl leading-relaxed text-[color:var(--color-mono-300)] max-w-2xl">
+      <p class="ds-pagehead__lead">
         Lerne Linux, Docker und Git durch praktische Übungen im simulierten Terminal.
       </p>
     </header>
@@ -27,35 +26,35 @@ import MissionTerminal from '../../../components/interactive/MissionTerminal.tsx
       <MissionTerminal client:visible />
     </div>
 
-    <section class="border-t border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pt-16">
+    <section class="border-t border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] pt-16">
       <div class="grid md:grid-cols-3 gap-12">
         <div class="space-y-3">
-          <span class="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-[color:var(--color-mono-500)]">01</span>
-          <h3 class="font-editorial text-xl text-[color:var(--color-mono-50)]">Learning by Doing</h3>
-          <p class="text-sm leading-relaxed text-[color:var(--color-mono-400)]">
+          <span class="ds-meta">01</span>
+          <h3 class="ds-display-s text-[color:var(--ink)]">Learning by Doing</h3>
+          <p class="text-sm leading-relaxed text-[color:var(--muted)]">
             Tippe echte Befehle und lerne praktisch — keine Installation nötig.
           </p>
         </div>
         <div class="space-y-3">
-          <span class="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-[color:var(--color-mono-500)]">02</span>
-          <h3 class="font-editorial text-xl text-[color:var(--color-mono-50)]">Geführte Tutorials</h3>
-          <p class="text-sm leading-relaxed text-[color:var(--color-mono-400)]">
+          <span class="ds-meta">02</span>
+          <h3 class="ds-display-s text-[color:var(--ink)]">Geführte Tutorials</h3>
+          <p class="text-sm leading-relaxed text-[color:var(--muted)]">
             Schritt-für-Schritt Anleitungen mit Hints und Echtzeit-Validierung.
           </p>
         </div>
         <div class="space-y-3">
-          <span class="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-[color:var(--color-mono-500)]">03</span>
-          <h3 class="font-editorial text-xl text-[color:var(--color-mono-50)]">6 Tutorial-Tracks</h3>
-          <p class="text-sm leading-relaxed text-[color:var(--color-mono-400)]">
+          <span class="ds-meta">03</span>
+          <h3 class="ds-display-s text-[color:var(--ink)]">6 Tutorial-Tracks</h3>
+          <p class="text-sm leading-relaxed text-[color:var(--muted)]">
             Von Linux-Basics bis Docker Compose — für Beginner bis Advanced.
           </p>
         </div>
       </div>
     </section>
 
-    <footer class="mt-20 border-t border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pt-12">
-      <a href="/projekte/terminal-missionen/" class="group inline-flex items-center gap-3 font-mono text-sm uppercase tracking-[0.2em] text-[color:var(--color-mono-300)] hover:text-[color:var(--color-neon-orange)] transition-colors">
-        <span class="text-[color:var(--color-neon-orange)] group-hover:-translate-x-1 transition-transform">&larr;</span>
+    <footer class="mt-20 border-t border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] pt-12">
+      <a href="/projekte/terminal-missionen/" class="group inline-flex items-center gap-3 font-mono text-sm uppercase tracking-[0.2em] text-[color:var(--muted)] hover:text-[color:var(--accent-strong)] transition-colors">
+        <span class="text-[color:var(--accent-strong)] group-hover:-translate-x-1 transition-transform">&larr;</span>
         Projekt-Übersicht
       </a>
     </footer>

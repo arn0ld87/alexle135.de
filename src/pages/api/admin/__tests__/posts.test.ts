@@ -46,7 +46,7 @@ describe('/api/admin/posts', () => {
 
   it('creates posts through the Postgres repository', async () => {
     const res = await POST({
-      request: makeRequest('POST', 'https://alexle135.de/api/admin/posts', validPostBody),
+      request: makeRequest('POST', 'https://alex-schneider.dev/api/admin/posts', validPostBody),
       locals,
     } as never);
 
@@ -57,7 +57,7 @@ describe('/api/admin/posts', () => {
 
   it('requires title and slug for posts', async () => {
     const res = await POST({
-      request: makeRequest('POST', 'https://alexle135.de/api/admin/posts', {
+      request: makeRequest('POST', 'https://alex-schneider.dev/api/admin/posts', {
         slug: 'missing-title',
       }),
       locals,
@@ -69,7 +69,7 @@ describe('/api/admin/posts', () => {
 
   it('updates posts through the Postgres repository', async () => {
     const res = await PUT({
-      request: makeRequest('PUT', 'https://alexle135.de/api/admin/posts', {
+      request: makeRequest('PUT', 'https://alex-schneider.dev/api/admin/posts', {
         id: POST_ID,
         title: 'Updated',
       }),
@@ -82,7 +82,7 @@ describe('/api/admin/posts', () => {
 
   it('rejects updates with a malformed id', async () => {
     const res = await PUT({
-      request: makeRequest('PUT', 'https://alexle135.de/api/admin/posts', {
+      request: makeRequest('PUT', 'https://alex-schneider.dev/api/admin/posts', {
         id: 'post-1',
         title: 'Updated',
       }),
@@ -95,7 +95,7 @@ describe('/api/admin/posts', () => {
 
   it('deletes posts through the Postgres repository', async () => {
     const res = await DELETE({
-      request: makeRequest('DELETE', `https://alexle135.de/api/admin/posts?id=${POST_ID}`),
+      request: makeRequest('DELETE', `https://alex-schneider.dev/api/admin/posts?id=${POST_ID}`),
       locals,
     } as never);
 
@@ -107,7 +107,7 @@ describe('/api/admin/posts', () => {
     createPostMock.mockRejectedValue(new Error('db down: connection refused at 10.0.0.5'));
 
     const res = await POST({
-      request: makeRequest('POST', 'https://alexle135.de/api/admin/posts', validPostBody),
+      request: makeRequest('POST', 'https://alex-schneider.dev/api/admin/posts', validPostBody),
       locals,
     } as never);
 
@@ -130,7 +130,7 @@ describe('/api/admin/posts', () => {
     );
 
     const res = await POST({
-      request: makeRequest('POST', 'https://alexle135.de/api/admin/posts', validPostBody),
+      request: makeRequest('POST', 'https://alex-schneider.dev/api/admin/posts', validPostBody),
       locals,
     } as never);
 
@@ -142,7 +142,7 @@ describe('/api/admin/posts', () => {
 
   it('rejects post creation without an authenticated admin user', async () => {
     const res = await POST({
-      request: makeRequest('POST', 'https://alexle135.de/api/admin/posts', validPostBody),
+      request: makeRequest('POST', 'https://alex-schneider.dev/api/admin/posts', validPostBody),
       locals: {},
     } as never);
 

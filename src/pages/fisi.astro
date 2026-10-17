@@ -4,6 +4,7 @@ import V2Layout from '../layouts/V2Layout.astro';
 import PageIntro from '../components/site/PageIntro.astro';
 import CTASection from '../components/site/CTASection.astro';
 import { getReadingTime } from '../utils/readingTime';
+import { hydrateSections, pickCuratedPosts, type FisiSection } from '../lib/fisi/curated';
 
 // Alle FISI-relevanten Blog-Artikel. Explizit kuratiert, damit klar ist, was
 // zum Lernpfad gehört und was nicht. Reihenfolge = Lesereihenfolge.
@@ -25,10 +26,13 @@ const curatedSlugs = [
   'ollama-openwebui-docker-tutorial',
 ] as const;
 
+// Der Publish-Guard greift in `pickCuratedPosts` VOR der Kuratierung. Ein kuratierter
+// Beitrag, der auf `draft: true` steht oder vordatiert ist, fällt damit aus der
+// JSON-LD-ItemList unten (dieselbe `curated`-Liste) und aus den Lesezeit-Zeilen der
+// Seite (`sectionsHydrated`). Ohne den Guard zeigt /fisi/ Titel, Summary und Lesezeit
+// eines unveröffentlichten Beitrags und verlinkt auf eine 404.
 const allPosts = await getCollection('blog');
-const curated = curatedSlugs
-  .map((slug) => allPosts.find((p) => p.id === slug))
-  .filter((p): p is NonNullable<typeof p> => Boolean(p));
+const curated = pickCuratedPosts(curatedSlugs, allPosts);
 
 // Thematische Blöcke für den Lernpfad
 const sections = [
@@ -70,14 +74,9 @@ const sections = [
       'ollama-openwebui-docker-tutorial',
     ],
   },
-] as const;
+] as const satisfies readonly FisiSection[];
 
-const sectionsHydrated = sections.map((section) => ({
-  ...section,
-  posts: section.slugs
-    .map((slug) => allPosts.find((p) => p.id === slug))
-    .filter((p): p is NonNullable<typeof p> => Boolean(p)),
-}));
+const sectionsHydrated = hydrateSections(sections, allPosts);
 
 const resources = [
   {
@@ -105,20 +104,20 @@ const resources = [
 const fisiSchema = {
   '@context': 'https://schema.org',
   '@type': 'CollectionPage',
-  '@id': 'https://alexle135.de/fisi/#page',
+  '@id': 'https://alex-schneider.dev/fisi/#page',
   name: 'FISI-Lernpfad — Fachinformatiker Systemintegration',
   description:
     'Kuratierter Einstieg in die Umschulung zum Fachinformatiker Systemintegration. Tutorials, Tools und Projekte aus der Praxis eines Umschülers am BFW Leipzig.',
-  url: 'https://alexle135.de/fisi/',
+  url: 'https://alex-schneider.dev/fisi/',
   inLanguage: 'de-DE',
-  isPartOf: { '@id': 'https://alexle135.de/#website' },
-  about: { '@id': 'https://alexle135.de/#person' },
+  isPartOf: { '@id': 'https://alex-schneider.dev/#website' },
+  about: { '@id': 'https://alex-schneider.dev/#person' },
   mainEntity: {
     '@type': 'ItemList',
     itemListElement: curated.map((post, index) => ({
       '@type': 'ListItem',
       position: index + 1,
-      url: `https://alexle135.de/blog/${post.id}/`,
+      url: `https://alex-schneider.dev/blog/${post.id}/`,
       name: post.data.title,
     })),
   },
@@ -127,7 +126,7 @@ const fisiSchema = {
 
 <V2Layout
   title="FISI-Lernpfad – Fachinformatiker Systemintegration"
-  description="Kuratierte Tutorials, Tools und Projekte für die Umschulung zum Fachinformatiker Systemintegration. Von Linux-Grundlagen bis KI im Alltag, geschrieben aus der Umschüler-Perspektive."
+  description="Mein FISI-Lernpfad: Tutorials, Tools und Projekte von Linux-Grundlagen bis KI im Alltag, aus meiner Umschulung zum Fachinformatiker Systemintegration."
   schema={fisiSchema}
 >
   <main class="v2-shell py-20 md:py-28 lg:py-36" id="main-content">
@@ -138,32 +137,32 @@ const fisiSchema = {
       aside="Abschluss geplant für Juni 2027. Bis dahin landet hier, was im Kurs FI-S 25/02 und im Homelab ansteht."
     />
 
-    <section class="mt-16 grid gap-6 border-y border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] py-8 font-mono text-[0.78rem] uppercase tracking-[0.18em] text-[color:var(--color-mono-300)] md:grid-cols-4">
+    <section class="mt-16 grid gap-6 border-y border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] py-8 font-mono text-[0.78rem] uppercase tracking-[0.18em] text-[color:var(--muted)] md:grid-cols-4">
       <div>
-        <p class="v2-kicker">Status</p>
-        <p class="mt-2 text-[color:var(--color-neon-orange)]">In Umschulung</p>
+        <p class="ds-kicker">Status</p>
+        <p class="mt-2 text-[color:var(--accent-strong)]">In Umschulung</p>
       </div>
       <div>
-        <p class="v2-kicker">Ort</p>
-        <p class="mt-2 text-[color:var(--color-mono-100)]">BFW Leipzig</p>
+        <p class="ds-kicker">Ort</p>
+        <p class="mt-2 text-[color:var(--ink)]">BFW Leipzig</p>
       </div>
       <div>
-        <p class="v2-kicker">Kurs</p>
-        <p class="mt-2 text-[color:var(--color-mono-100)]">FI-S 25/02</p>
+        <p class="ds-kicker">Kurs</p>
+        <p class="mt-2 text-[color:var(--ink)]">FI-S 25/02</p>
       </div>
       <div>
-        <p class="v2-kicker">Abschluss</p>
-        <p class="mt-2 text-[color:var(--color-mono-100)]">Juni 2027 (IHK)</p>
+        <p class="ds-kicker">Abschluss</p>
+        <p class="mt-2 text-[color:var(--ink)]">Juni 2027 (IHK)</p>
       </div>
     </section>
 
     {sectionsHydrated.map((section) => (
       <section class="mt-20 md:mt-28">
-        <div class="grid gap-8 border-y border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] py-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(18rem,0.7fr)] lg:items-end">
-          <h2 class="max-w-3xl font-editorial text-[clamp(2.6rem,6vw,4.6rem)] leading-[0.92] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+        <div class="grid gap-8 border-y border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] py-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(18rem,0.7fr)] lg:items-end">
+          <h2 class="max-w-3xl ds-display-l text-[color:var(--ink)]">
             {section.title}
           </h2>
-          <p class="max-w-[38ch] text-sm leading-7 text-[color:var(--color-mono-300)] lg:justify-self-end">
+          <p class="max-w-[38ch] text-sm leading-7 text-[color:var(--muted)] lg:justify-self-end">
             {section.intro}
           </p>
         </div>
@@ -173,18 +172,18 @@ const fisiSchema = {
             const date = post.data.publishedAt?.toISOString().split('T')[0] ?? '';
             const reading = post.data.readingTime || getReadingTime(post.body || '');
             return (
-              <li class="grid gap-3 border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pb-6 md:grid-cols-[8rem_minmax(0,1fr)_6rem] md:items-baseline md:gap-6">
-                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[color:var(--color-mono-400)]">{date}</p>
+              <li class="grid gap-3 border-b border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pb-6 md:grid-cols-[8rem_minmax(0,1fr)_6rem] md:items-baseline md:gap-6">
+                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]">{date}</p>
                 <div>
                   <a
                     href={`/blog/${post.id}/`}
-                    class="font-editorial text-xl leading-tight text-[color:var(--color-mono-50)] transition-colors hover:text-[color:var(--color-neon-orange)]"
+                    class="ds-display-s text-[color:var(--ink)] transition-colors hover:text-[color:var(--accent-strong)]"
                   >
                     {post.data.title}
                   </a>
-                  <p class="mt-1 max-w-[60ch] text-sm leading-7 text-[color:var(--color-mono-300)]">{post.data.summary}</p>
+                  <p class="mt-1 max-w-[60ch] text-sm leading-7 text-[color:var(--muted)]">{post.data.summary}</p>
                 </div>
-                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[color:var(--color-mono-400)] md:text-right">{reading}</p>
+                <p class="font-mono text-xs uppercase tracking-[0.2em] text-[color:var(--muted)] md:text-right">{reading}</p>
               </li>
             );
           })}
@@ -192,25 +191,25 @@ const fisiSchema = {
       </section>
     ))}
 
-    <section class="mt-24 border-y border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] py-10 md:py-14">
+    <section class="mt-24 border-y border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] py-10 md:py-14">
       <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.8fr)] lg:items-end">
-        <h2 class="max-w-3xl font-editorial text-[clamp(2.4rem,5vw,4rem)] leading-[0.92] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+        <h2 class="max-w-3xl ds-display-l text-[color:var(--ink)]">
           Eigene Tools, die mir durch die Umschulung geholfen haben
         </h2>
-        <p class="max-w-[40ch] text-sm leading-7 text-[color:var(--color-mono-300)] lg:justify-self-end">
+        <p class="max-w-[40ch] text-sm leading-7 text-[color:var(--muted)] lg:justify-self-end">
           Nebenbei gebaut, weil ich sie selbst brauchte. Wenn sie dir auch helfen, umso besser.
         </p>
       </div>
 
       <ul class="mt-10 grid gap-4 md:grid-cols-2">
         {resources.map((res) => (
-          <li class="group border border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] p-6 transition-colors hover:border-[color:color-mix(in_srgb,var(--color-neon-orange)_30%,transparent)]">
+          <li class="ds-card group">
             <a href={res.href} class="block">
-              <p class="font-mono text-[0.72rem] uppercase tracking-[0.22em] text-[color:var(--color-neon-orange)]">
+              <p class="font-mono text-[0.72rem] uppercase tracking-[0.22em] text-[color:var(--accent-strong)]">
                 {res.label}
               </p>
-              <p class="mt-3 text-sm leading-7 text-[color:var(--color-mono-200)]">{res.description}</p>
-              <p class="mt-4 font-mono text-[0.72rem] uppercase tracking-[0.18em] text-[color:var(--color-mono-400)] group-hover:text-[color:var(--color-neon-orange)]">
+              <p class="mt-3 text-sm leading-7 text-[color:var(--ink)]">{res.description}</p>
+              <p class="mt-4 font-mono text-[0.72rem] uppercase tracking-[0.18em] text-[color:var(--muted)] group-hover:text-[color:var(--accent-strong)]">
                 Öffnen →
               </p>
             </a>
@@ -219,25 +218,25 @@ const fisiSchema = {
       </ul>
     </section>
 
-    <section class="mt-24 grid gap-8 border-y border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] py-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(18rem,0.7fr)]">
+    <section class="mt-24 grid gap-8 border-y border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] py-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(18rem,0.7fr)]">
       <div class="space-y-5">
-        <p class="v2-kicker">Prüfung</p>
-        <h2 class="max-w-2xl font-editorial text-[clamp(2.4rem,5vw,4rem)] leading-[0.92] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+        <p class="ds-kicker">Prüfung</p>
+        <h2 class="max-w-2xl ds-display-l text-[color:var(--ink)]">
           Was gerade ansteht
         </h2>
-        <p class="max-w-[65ch] text-base leading-8 text-[color:var(--color-mono-200)]">
+        <p class="max-w-[65ch] text-base leading-8 text-[color:var(--ink)]">
           AP Teil 1 ist grundlegende IT-Wissen und schriftlich. AP Teil 2 kommt am Ende mit einem realen Projekt aus dem Betrieb, Projektantrag bei der IHK und einer mündlichen Verteidigung. Auf dieser Seite sammele ich laufend, was mir beim Vorbereiten geholfen hat.
         </p>
       </div>
-      <aside class="space-y-3 border-l border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pl-4 font-mono text-[0.76rem] uppercase tracking-[0.16em] text-[color:var(--color-mono-300)] lg:pl-6">
-        <p class="border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pb-3">
-          <span class="text-[color:var(--color-neon-orange)]">$</span> IHK Sachsen
+      <aside class="space-y-3 border-l border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pl-4 font-mono text-[0.76rem] uppercase tracking-[0.16em] text-[color:var(--muted)] lg:pl-6">
+        <p class="border-b border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pb-3">
+          <span class="text-[color:var(--accent-strong)]">$</span> IHK Sachsen
         </p>
-        <p class="border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pb-3">
-          <span class="text-[color:var(--color-neon-orange)]">$</span> AP1: Sommer 2026
+        <p class="border-b border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pb-3">
+          <span class="text-[color:var(--accent-strong)]">$</span> AP1: Sommer 2026
         </p>
-        <p class="border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pb-3">
-          <span class="text-[color:var(--color-neon-orange)]">$</span> AP2: Sommer 2027
+        <p class="border-b border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pb-3">
+          <span class="text-[color:var(--accent-strong)]">$</span> AP2: Sommer 2027
         </p>
       </aside>
     </section>

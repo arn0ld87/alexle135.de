@@ -1,5 +1,6 @@
 ---
 title: 'NEU: Terminal Missionen – Linux lernen direkt im Browser'
+metaDescription: 'Linux-Befehle direkt im Browser üben: Meine Terminal-Missionen brauchen weder VM noch Installation und richten sich an FISI-Azubis und IT-Umschüler.'
 summary: 'Ab sofort kannst du auf alexle135.de echte Linux-Befehle im Browser üben. Keine VM, keine Installation – einfach loslegen. Perfekt für FISI-Azubis und IT-Umschüler.'
 publishedAt: 2025-12-04
 tags:
@@ -9,7 +10,7 @@ tags:
   - Neuigkeiten
   - FISI
   - WebContainer
-heroImage: /images/blog/terminal-missionen-launch-dezember-2025.webp
+heroImage: ../../assets/blog/terminal-missionen-launch-dezember-2025.webp
 author: Alexander Schneider
 ---
 
@@ -103,7 +104,7 @@ Falls du wissen willst, wie das funktioniert:
 - **Runtime:** WebContainer API (WebAssembly-basiert)
 - **Design:** Tailwind CSS + Glassmorphism
 
-Der Code ist öffentlich auf [GitHub](https://github.com/arn0ld87/alexle-vsco).
+Der Code ist öffentlich auf [GitHub](https://github.com/arn0ld87/alexle135.de).
 
 ## Was kommt als Nächstes?
 

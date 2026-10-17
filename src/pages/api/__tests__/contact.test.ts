@@ -25,7 +25,7 @@ function makeRequest(
   body: Record<string, unknown>,
   opts: { origin?: string | null; accept?: string; userAgent?: string } = {}
 ): Request {
-  const origin = opts.origin === undefined ? 'https://alexle135.de' : opts.origin;
+  const origin = opts.origin === undefined ? 'https://alex-schneider.dev' : opts.origin;
   const headers: Record<string, string> = {
     'content-type': 'application/json',
   };
@@ -33,7 +33,7 @@ function makeRequest(
   if (opts.accept) headers.accept = opts.accept;
   if (opts.userAgent) headers['user-agent'] = opts.userAgent;
 
-  return new Request('https://alexle135.de/api/contact', {
+  return new Request('https://alex-schneider.dev/api/contact', {
     method: 'POST',
     headers,
     body: JSON.stringify(body),

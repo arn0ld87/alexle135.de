@@ -1,0 +1,291 @@
+---
+/**
+ * Abschnitt „Ansatz“ der Startseite (Systemwerk, D-13, D-43).
+ *
+ * Löst den bisherigen Abschnitt „Schwerpunkte“ ab: Titel, Beschreibungen und Ziele der vier
+ * Zeilen stammen unverändert aus dem Bestand. Die drei Prinzipien der Skizze stehen nicht auf der
+ * Seite, weil sie im Repo keinen Beleg haben. Reines Markup ohne Skript: jede Zeile ist ein Link.
+ */
+import { ArrowUpRight } from 'lucide-astro';
+
+const AREAS = [
+  {
+    number: '01',
+    title: 'Linux & Server',
+    text: 'Härtung, Netzwerk und Betrieb auf eigenem VPS — reproduzierbar dokumentiert.',
+    href: '/kompetenzen/',
+  },
+  {
+    number: '02',
+    title: 'Container & DevOps',
+    text: 'Docker, Compose und Traefik. CI/CD-Pipelines, die ohne Überraschungen deployen.',
+    href: '/leistungen/',
+  },
+  {
+    number: '03',
+    title: 'Automatisierung',
+    text: 'Ansible-Rollen und Skripte — wiederkehrende Arbeit einmal sauber lösen.',
+    href: '/blog/',
+  },
+  {
+    number: '04',
+    title: 'KI & Tooling',
+    text: 'Gemini-gestützte Werkzeuge und Agenten, praxisnah in echte Workflows gebracht.',
+    href: '/ki-agenten-lab/',
+  },
+] as const;
+---
+
+<section id="ansatz" class="approach" aria-labelledby="approach-title">
+  <div class="ds-shell">
+    <div class="approach__rule"></div>
+
+    <div class="approach__grid">
+      <div class="approach__intro">
+        <p class="approach__kicker">
+          <span class="approach__marker" aria-hidden="true"></span>
+          02 / MEIN ANSATZ
+        </p>
+        <h2 id="approach-title" class="ds-display-l approach__title">
+          Womit ich mich <span class="approach__accent">beschäftige</span>
+        </h2>
+        <p class="approach__text">
+          Mich interessiert, was unter der Oberfläche passiert: wie Komponenten zusammenspielen und
+          ob ein System im Alltag trägt.
+        </p>
+        <a class="approach__github" href="https://github.com/arn0ld87" rel="noopener noreferrer">
+          <span>Auf GitHub ansehen</span>
+          <ArrowUpRight
+            size={20}
+            class="ds-icon approach__github-icon"
+            aria-hidden="true"
+            focusable="false"
+          />
+        </a>
+      </div>
+
+      <ol class="approach__rows">
+        {
+          AREAS.map((area) => (
+            <li class="approach__row">
+              <a class="approach__link" href={area.href}>
+                <span class="approach__num">[{area.number}]</span>
+                <span class="approach__main">
+                  <span class="ds-display-s approach__name">{area.title}</span>
+                  <span class="approach__desc">{area.text}</span>
+                </span>
+                <ArrowUpRight
+                  size={24}
+                  class="ds-icon approach__arrow"
+                  aria-hidden="true"
+                  focusable="false"
+                />
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </div>
+</section>
+
+<style>
+  .approach {
+    padding-block: var(--section-gap);
+    color: var(--ink);
+  }
+
+  .approach__rule {
+    margin-bottom: var(--space-6);
+    border-top: 1px solid var(--line);
+  }
+
+  .approach__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-8);
+  }
+
+  @media (min-width: 1024px) {
+    .approach__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      column-gap: var(--space-9);
+      align-items: start;
+    }
+  }
+
+  /* ---------- Einleitung ---------- */
+  .approach__intro {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-4);
+  }
+
+  .approach__kicker {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    line-height: 1.5;
+  }
+
+  .approach__marker {
+    display: block;
+    width: 8px;
+    height: 8px;
+    flex: none;
+    background: var(--accent);
+  }
+
+  .approach__title {
+    margin: 0;
+    color: var(--ink);
+  }
+
+  .approach__accent {
+    color: var(--accent);
+  }
+
+  .approach__text {
+    max-width: 40ch;
+    margin: 0;
+    color: var(--muted);
+    font-size: var(--ds-text-body);
+    line-height: 1.55;
+  }
+
+  /* Textlink: Text in Tinte, Unterstrich in Akzent (1 px, Hover 2 px). */
+  .approach__github {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--ink);
+    font-size: var(--ds-text-sm);
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 6px;
+  }
+
+  .approach :global(.approach__github-icon) {
+    width: 20px;
+    height: 20px;
+    flex: none;
+  }
+
+  @media (hover: hover) {
+    .approach__github:hover {
+      text-decoration-thickness: 2px;
+    }
+  }
+
+  .approach__github:focus-visible,
+  .approach__link:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+
+  /* ---------- Zeilen ---------- */
+  .approach__rows {
+    margin: 0;
+    padding: 0;
+    border-bottom: 1px solid var(--line);
+    list-style: none;
+  }
+
+  .approach__row {
+    border-top: 1px solid var(--line);
+  }
+
+  .approach__link {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: 2.5rem minmax(0, 1fr) 24px;
+    align-items: start;
+    column-gap: var(--space-2);
+    padding-block: var(--space-5);
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .approach__num {
+    padding-top: var(--space-1);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    line-height: 1.5;
+  }
+
+  .approach__main {
+    display: grid;
+    min-width: 0;
+    gap: var(--space-1);
+    padding-right: var(--space-2);
+  }
+
+  .approach__name {
+    color: var(--ink);
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  .approach__desc {
+    color: var(--muted);
+    font-size: var(--ds-text-sm);
+    line-height: 1.4;
+  }
+
+  .approach :global(.approach__arrow) {
+    width: 24px;
+    height: 24px;
+    color: var(--ink);
+  }
+
+  .approach__link:focus-visible .approach__name {
+    color: var(--accent-strong);
+  }
+
+  @media (hover: hover) {
+    .approach__link:hover .approach__name {
+      color: var(--accent-strong);
+    }
+  }
+
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .approach__num,
+    .approach__main {
+      transition: transform var(--dur-base) var(--ease-out);
+    }
+
+    .approach :global(.approach__arrow) {
+      transition: transform var(--dur-base) var(--ease-out);
+    }
+
+    .approach__link:hover .approach__num,
+    .approach__link:hover .approach__main {
+      transform: translateX(8px);
+    }
+
+    .approach__link:hover :global(.approach__arrow) {
+      transform: translate(4px, -4px);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .approach__link {
+      grid-template-columns: 3rem minmax(0, 1fr) 32px;
+      column-gap: var(--space-4);
+    }
+
+    .approach :global(.approach__arrow) {
+      width: 32px;
+      height: 32px;
+    }
+  }
+</style>

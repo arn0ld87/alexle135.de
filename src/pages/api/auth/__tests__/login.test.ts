@@ -20,9 +20,9 @@ vi.mock('../../../../lib/adminSession', () => ({
 import { POST } from '../login';
 
 function makeRequest(body: unknown): Request {
-  return new Request('https://alexle135.de/api/auth/login', {
+  return new Request('https://alex-schneider.dev/api/auth/login', {
     method: 'POST',
-    headers: { 'content-type': 'application/json', origin: 'https://alexle135.de' },
+    headers: { 'content-type': 'application/json', origin: 'https://alex-schneider.dev' },
     body: JSON.stringify(body),
   });
 }

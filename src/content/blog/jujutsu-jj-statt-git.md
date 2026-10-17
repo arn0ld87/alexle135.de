@@ -1,5 +1,6 @@
 ---
 title: 'Jujutsu (jj): das Git-kompatible VCS, zu dem Leute wirklich wechseln'
+metaDescription: 'Jujutsu im bestehenden Git-Repo nutzen: Ein praktischer Einstieg ohne separaten Index und Stash, mit den Befehlen, die du am ersten Tag brauchst.'
 summary: 'Jujutsu legt sich über dein bestehendes Git-Repo und wirft Index und Stash raus. Alles ist ein Commit, nichts geht verloren. Ein praktischer Einstieg mit den Befehlen, die du am ersten Tag brauchst.'
 tags:
   - Git
@@ -8,7 +9,7 @@ tags:
   - CLI
   - Tooling
   - FISI
-heroImage: /images/blog/jujutsu-jj-statt-git.webp
+heroImage: ../../assets/blog/jujutsu-jj-statt-git.webp
 heroImageAlt: 'Terminal mit jj-Befehlen über einem bestehenden Git-Repository'
 publishedAt: 2026-06-03
 draft: false

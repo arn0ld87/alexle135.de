@@ -1,0 +1,121 @@
+---
+/**
+ * Bauplan-Schalter (D-07, UI-SPEC "Bauplan-Schalter"). Genau eine Instanz im Header.
+ * Der Zustand steckt in aria-pressed, der zugängliche Name ändert sich nie.
+ * Ohne JavaScript bleibt der Schalter unsichtbar (kein Platzverlust, kein Layoutsprung);
+ * das gebündelte Skript markiert ihn mit data-ready, sobald er gebunden ist.
+ */
+import { DraftingCompass } from 'lucide-astro';
+---
+
+<button
+  type="button"
+  class="bauplan-toggle"
+  aria-pressed="false"
+  aria-label="Bauplan-Ansicht"
+  data-variant-toggle
+>
+  <span class="bauplan-toggle__marker" aria-hidden="true"></span>
+  <DraftingCompass size={20} class="ds-icon" aria-hidden="true" focusable="false" />
+  <span class="bauplan-toggle__label" aria-hidden="true">Bauplan</span>
+</button>
+
+<style>
+  .bauplan-toggle {
+    position: relative;
+    display: inline-flex;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0 0.625rem;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    line-height: 1;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Ohne JavaScript nicht sichtbar, aber Platz behalten (kein Sprung beim Binden). */
+  .bauplan-toggle:not([data-ready]) {
+    visibility: hidden;
+  }
+
+  .bauplan-toggle__marker {
+    display: block;
+    width: 8px;
+    height: 8px;
+    flex: none;
+    border: 1px solid var(--ink);
+    background: transparent;
+  }
+
+  .bauplan-toggle[aria-pressed='true'] .bauplan-toggle__marker {
+    border-color: var(--accent);
+    background: var(--accent);
+  }
+
+  /* Active: Marker invertiert. */
+  .bauplan-toggle:active .bauplan-toggle__marker {
+    background: var(--ink);
+  }
+
+  .bauplan-toggle[aria-pressed='true']:active .bauplan-toggle__marker {
+    border-color: var(--accent);
+    background: transparent;
+  }
+
+  /* Gedrückt: 2 px Balken in --accent unter dem Schalter. */
+  .bauplan-toggle[aria-pressed='true']::after {
+    content: '';
+    position: absolute;
+    right: 0.625rem;
+    bottom: 0;
+    left: 0.625rem;
+    height: 2px;
+    background: var(--accent);
+  }
+
+  .bauplan-toggle__label {
+    display: none;
+    text-decoration: underline transparent 1px;
+    text-underline-offset: 6px;
+  }
+
+  @media (min-width: 1024px) {
+    .bauplan-toggle__label {
+      display: inline;
+    }
+  }
+
+  @media (hover: hover) {
+    .bauplan-toggle:hover .bauplan-toggle__label {
+      text-decoration-color: var(--accent);
+    }
+  }
+
+  .bauplan-toggle:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+</style>
+
+<script>
+  import { bindVariantToggle } from '../../lib/variantToggle';
+
+  // Header wird je Seite neu gerendert (kein transition:persist): pro astro:page-load
+  // binden, die Idempotenz liegt am Button (dataset.initialized).
+  function bindVariantToggles() {
+    document.querySelectorAll<HTMLButtonElement>('button[data-variant-toggle]').forEach((button) => {
+      bindVariantToggle(button);
+      button.dataset.ready = 'true';
+    });
+  }
+
+  document.addEventListener('astro:page-load', bindVariantToggles);
+</script>

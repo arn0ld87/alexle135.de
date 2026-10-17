@@ -22,9 +22,9 @@ const journey = [...entries].sort((a, b) => {
 });
 
 const statusDotClass: Record<Certification['status'], string> = {
-  verified: 'bg-[color:var(--color-neon-orange)]',
-  'in-progress': 'border border-[color:var(--color-neon-orange)] bg-transparent',
-  planned: 'bg-[color:var(--color-mono-600)]',
+  verified: 'bg-[color:var(--accent)]',
+  'in-progress': 'border border-[color:var(--accent)] bg-transparent',
+  planned: 'bg-[color:var(--line)]',
 };
 
 const schema = {
@@ -32,17 +32,17 @@ const schema = {
   '@graph': [
     {
       '@type': 'CollectionPage',
-      '@id': 'https://alexle135.de/certifications/#page',
-      url: 'https://alexle135.de/certifications/',
+      '@id': 'https://alex-schneider.dev/certifications/#page',
+      url: 'https://alex-schneider.dev/certifications/',
       name: 'Zertifikate & Weiterbildung',
       description:
         'Nachvollziehbare Übersicht über absolvierte Kurse, erworbene Nachweise und laufende Weiterbildung von Alexander Schneider.',
       inLanguage: 'de-DE',
-      about: { '@id': 'https://alexle135.de/#person' },
+      about: { '@id': 'https://alex-schneider.dev/#person' },
     },
     {
       '@type': 'Person',
-      '@id': 'https://alexle135.de/#person',
+      '@id': 'https://alex-schneider.dev/#person',
       name: 'Alexander Schneider',
       hasCredential: verified.map((c) => ({
         '@type': 'EducationalOccupationalCredential',
@@ -59,7 +59,7 @@ const schema = {
 
 <V2Layout
   title="Zertifikate & Weiterbildung"
-  description="Nachvollziehbare Übersicht über absolvierte Kurse, erworbene Nachweise und laufende Weiterbildung — mit Verifizierungslinks zu Cisco, Google und LinkedIn Learning."
+  description="Meine Kurse und Weiterbildungsnachweise mit Verifizierungslinks zu Cisco, Google und LinkedIn Learning sowie einem Überblick über laufendes Lernen."
   schema={schema}
 >
   <main class="v2-shell py-20 md:py-28">
@@ -72,13 +72,10 @@ const schema = {
 
       <!-- Nachweise -->
       <section aria-labelledby="nachweise-heading" class="mt-16 md:mt-20">
-        <h2 id="nachweise-heading" class="v2-kicker mb-6 flex items-center gap-3">
-          <span class="v2-accent-dot" aria-hidden="true"></span>
-          Verifizierte Nachweise
-        </h2>
+        <h2 id="nachweise-heading" class="ds-kicker mb-6">Verifizierte Nachweise</h2>
 
         <div
-          class="hidden gap-x-8 border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pb-3 font-mono text-[0.65rem] uppercase tracking-[0.2em] text-[color:var(--color-mono-500)] md:grid md:grid-cols-[7rem_minmax(0,1fr)_11rem]"
+          class="hidden gap-x-8 border-b border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] pb-3 font-mono text-[0.65rem] uppercase tracking-[0.2em] text-[color:var(--muted)] md:grid md:grid-cols-[7rem_minmax(0,1fr)_11rem]"
           aria-hidden="true"
         >
           <span>Datum</span>
@@ -89,25 +86,25 @@ const schema = {
         <ul class="list-none">
           {
             entries.map((cert) => (
-              <li class="grid gap-x-8 gap-y-4 border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] py-8 md:grid-cols-[7rem_minmax(0,1fr)_11rem] md:py-10">
-                <p class="font-mono text-[0.78rem] leading-6 text-[color:var(--color-mono-400)]">
+              <li class="ds-row grid gap-x-8 gap-y-4 md:grid-cols-[7rem_minmax(0,1fr)_11rem] md:py-10">
+                <p class="ds-meta">
                   {cert.issuedAt ?? '—'}
                 </p>
 
                 <div class="space-y-3">
-                  <h3 class="font-editorial text-[clamp(1.5rem,1.1rem_+_1.2vw,2.1rem)] leading-tight tracking-[-0.02em] text-[color:var(--color-mono-50)]">
+                  <h3 class="ds-display-s text-[color:var(--ink)]">
                     {cert.title}
                   </h3>
-                  <p class="font-mono text-[0.72rem] uppercase tracking-[0.15em] text-[color:var(--color-mono-400)]">
+                  <p class="ds-meta">
                     {cert.issuer}
                   </p>
                   {cert.description && (
-                    <p class="max-w-2xl text-sm leading-7 text-[color:var(--color-mono-300)]">
+                    <p class="max-w-2xl text-sm leading-7 text-[color:var(--muted)]">
                       {cert.description}
                     </p>
                   )}
                   {cert.skills && cert.skills.length > 0 && (
-                    <ul class="flex flex-wrap gap-x-4 gap-y-1 font-mono text-[0.7rem] uppercase tracking-[0.12em] text-[color:var(--color-mono-500)]">
+                    <ul class="ds-meta flex flex-wrap gap-x-4 gap-y-1">
                       {cert.skills.map((skill) => (
                         <li>{skill}</li>
                       ))}
@@ -119,7 +116,7 @@ const schema = {
                         href={cert.verificationUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="cert-verify-link inline-flex items-center gap-2 border-b border-[color:var(--color-mono-300)] pb-0.5 font-mono text-[0.72rem] uppercase tracking-[0.15em] text-[color:var(--color-mono-100)] transition-colors hover:border-[color:var(--color-neon-orange)] hover:text-[color:var(--color-neon-orange)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-neon-orange)]"
+                        class="cert-verify-link inline-flex items-center gap-2 border-b border-[color:var(--muted)] pb-0.5 font-mono text-[0.72rem] uppercase tracking-[0.15em] text-[color:var(--ink)] transition-colors hover:border-[color:var(--accent)] hover:text-[color:var(--accent-strong)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--accent)]"
                       >
                         Nachweis prüfen
                         <span aria-hidden="true">↗</span>
@@ -128,7 +125,7 @@ const schema = {
                   )}
                 </div>
 
-                <p class="flex items-start gap-2 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-[color:var(--color-mono-300)] md:justify-end">
+                <p class="ds-meta flex items-start gap-2 md:justify-end">
                   <span
                     class={`cert-status-dot mt-[0.2rem] h-2 w-2 shrink-0 ${statusDotClass[cert.status]}`}
                     aria-hidden="true"
@@ -145,17 +142,14 @@ const schema = {
       <section aria-labelledby="lernreise-heading" class="mt-20 md:mt-28">
         <div class="grid gap-10 lg:grid-cols-[minmax(0,0.65fr)_minmax(0,1.35fr)]">
           <div class="space-y-5">
-            <h2 id="lernreise-heading" class="v2-kicker flex items-center gap-3">
-              <span class="v2-accent-dot" aria-hidden="true"></span>
-              Lernreise
-            </h2>
-            <p class="max-w-[38ch] text-sm leading-7 text-[color:var(--color-mono-300)]">
+            <h2 id="lernreise-heading" class="ds-kicker">Lernreise</h2>
+            <p class="max-w-[38ch] text-sm leading-7 text-[color:var(--muted)]">
               Weiterbildung ist hier kein Sammelalbum, sondern ein Pfad: abgeschlossene Nachweise,
               die laufende Ausbildung und die nächsten geplanten Schritte in einer Linie.
             </p>
           </div>
 
-          <ol class="relative list-none space-y-10 border-l border-[color:color-mix(in_srgb,var(--color-mono-50)_14%,transparent)] pl-8">
+          <ol class="relative list-none space-y-10 border-l border-[color:color-mix(in_srgb,var(--ink)_14%,transparent)] pl-8">
             {
               journey.map((cert) => (
                 <li class="relative">
@@ -163,15 +157,15 @@ const schema = {
                     class={`cert-status-dot absolute -left-[2.28rem] top-1.5 h-2.5 w-2.5 ${statusDotClass[cert.status]}`}
                     aria-hidden="true"
                   />
-                  <p class="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-[color:var(--color-mono-500)]">
+                  <p class="ds-meta">
                     {cert.status === 'verified'
                       ? (cert.issuedAt ?? 'Abgeschlossen')
                       : statusMeta[cert.status].label}
                   </p>
-                  <h3 class="mt-1 font-editorial text-xl leading-snug tracking-[-0.02em] text-[color:var(--color-mono-50)]">
+                  <h3 class="ds-display-s mt-1 text-[color:var(--ink)]">
                     {cert.title}
                   </h3>
-                  <p class="mt-1 font-mono text-[0.7rem] uppercase tracking-[0.15em] text-[color:var(--color-mono-400)]">
+                  <p class="ds-meta mt-1">
                     {cert.issuer}
                   </p>
                 </li>

@@ -6,9 +6,11 @@ import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import react from '@astrojs/react';
 import node from '@astrojs/node';
+import { unified } from '@astrojs/markdown-remark';
 import tailwindcss from '@tailwindcss/vite';
 import rehypeTaskListLabels from './src/lib/rehypeTaskListLabels.mjs';
 import { getSecurityHeaders } from './src/lib/security-headers.ts';
+import { sitemapFilter } from './src/lib/sitemapFilter.ts';
 
 // --- Security headers (CSP / COEP / COOP) ---------------------------------
 // Werte kommen aus src/lib/security-headers.ts (Single Source of Truth).
@@ -49,23 +51,13 @@ const lastmodMap = buildLastmodMap();
 // https://astro.build/config
 // Force reload for React components
 export default defineConfig({
-  site: 'https://alexle135.de',
+  site: 'https://alex-schneider.dev',
   integrations: [
     mdx(),
     sitemap({
-      // Exclude:
-      //   /admin, /api         — protected/internal
-      //   /design-system       — developer preview
-      //   /kontakt/danke       — post-submit thank-you page
-      //   /status              — ops status, thin content
-      //   /blog/terminal-demo  — interne Demo, kein Produktiv-Content
-      //   /projekte/(windows-)terminal-missionen/app — WebContainer-Entrypoints, kein Index-Content
-      //   duplicate utility/app surfaces, handled via stronger parent page
-      filter: (page) => {
-        const blocked =
-          /^\/(admin|api|design-system|kontakt\/danke|status)(\/|$)|^\/apps\/compose-builder\/?$|^\/projekte\/(windows-terminal-missionen|terminal-missionen)\/app\/?$|^\/blog\/terminal-demo\/?$/;
-        return !blocked.test(new URL(page).pathname);
-      },
+      // Ausschlussregel (inkl. Begründungen) und Regressionstest:
+      // src/lib/sitemapFilter.ts, src/lib/__tests__/sitemapFilter.test.ts
+      filter: sitemapFilter,
       serialize: (item) => {
         try {
           const { pathname } = new URL(item.url);
@@ -82,13 +74,16 @@ export default defineConfig({
 
   markdown: {
     shikiConfig: {
-      theme: 'github-dark',
+      theme: 'css-variables',
       wrap: true,
     },
-    rehypePlugins: [rehypeTaskListLabels],
+    processor: unified({ rehypePlugins: [rehypeTaskListLabels] }),
   },
 
   output: 'server',
+  // Astro 7 komprimiert standardmäßig mit JSX-Semantik und entfernt Whitespace zwischen
+  // Inline-Elementen. `true` behält das Astro-6-Verhalten, auf das die Templates gebaut sind.
+  compressHTML: true,
 
   build: {
     assets: '_astro',
@@ -121,6 +116,9 @@ export default defineConfig({
     ],
     define: {
       // Removed GEMINI_API_KEY define to prevent client-side exposure
+      // Build-Datum für die Betriebszeile im Footer (JJJJ-MM-TT, UTC). Die Konfiguration
+      // läuft zur Build-Zeit, das Datum ist also das des Builds und nicht das des Requests.
+      'import.meta.env.PUBLIC_BUILD_DATE': JSON.stringify(new Date().toISOString().slice(0, 10)),
     },
     plugins: [
       tailwindcss(),

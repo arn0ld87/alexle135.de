@@ -5,6 +5,8 @@ import V2Header from '../components/v2/V2Header.astro';
 import V2Footer from '../components/v2/V2Footer.astro';
 import { buildBreadcrumbSchema } from '../lib/breadcrumbs';
 import { safeJsonLd } from '../lib/jsonLd';
+import { OG_IMAGE_VERSION } from '../lib/ogVersion';
+import { THEME_COLORS, THEME_INIT_SCRIPT } from '../lib/themeInit';
 import GoogleAnalytics from '../components/v2/GoogleAnalytics.astro';
 import CookieBanner from '../components/v2/CookieBanner.astro';
 
@@ -56,9 +58,9 @@ const {
 const canonicalURL = canonical ? new URL(canonical, Astro.site) : new URL(Astro.url.pathname, Astro.site);
 const robotsContent = robots ?? (noindex ? 'noindex, nofollow' : undefined);
 
-const brandSuffix = ' · alexle135';
+const brandSuffix = ' · alex-schneider.dev';
 const htmlTitle =
-  title.includes('alexle135') ||
+  title.includes('alex-schneider.dev') ||
   title.includes('Alexander Schneider') ||
   title.length + brandSuffix.length > 60
     ? title
@@ -70,9 +72,16 @@ let pageTitle = htmlTitle;
 while (htmlEscapedLength(pageTitle) > 70) {
   pageTitle = `${pageTitle.slice(0, -4).trimEnd()}...`;
 }
+// Versionsparameter (D-47): dynamische Bilder und das Standard-Banner; ein eigenes Bild bleibt unverändert.
+const withOgVersion = (url: URL) => {
+  url.searchParams.set('v', OG_IMAGE_VERSION);
+  return url;
+};
 const ogImage = ogSlug
-  ? new URL(`${ogBasePath}/${ogSlug}.png`, Astro.site)
-  : new URL(image ?? '/media/alexle135-og-banner.png', Astro.site);
+  ? withOgVersion(new URL(`${ogBasePath}/${ogSlug}.png`, Astro.site))
+  : image
+    ? new URL(image, Astro.site)
+    : withOgVersion(new URL('/media/alexle135-og-banner.png', Astro.site));
 const ogImageAlt = imageAlt ?? title;
 
 const breadcrumbSchema = buildBreadcrumbSchema(Astro.url.pathname);
@@ -83,6 +92,10 @@ const breadcrumbSchema = buildBreadcrumbSchema(Astro.url.pathname);
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Variantenwahl vor dem ersten Paint (D-39): theme-color zuerst, direkt danach das
+         Pre-Paint-Skript. Einzige Inline-Ausnahme der Phase; Text und Hash in src/lib/themeInit.ts. -->
+    <meta name="theme-color" content={THEME_COLORS.papier}>
+    <script is:inline set:html={THEME_INIT_SCRIPT}></script>
     <meta name="description" content={description}>
     <meta name="author" content="Alexander Schneider">
     {robotsContent && <meta name="robots" content={robotsContent} />}
@@ -95,16 +108,15 @@ const breadcrumbSchema = buildBreadcrumbSchema(Astro.url.pathname);
     <!-- Preconnect / DNS-prefetch for external origins -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 
-    <!-- Brand Font Preload: Geist Variable (Sans + Mono) + Newsreader display serif, selfhosted -->
+    <!-- Font Preload: genau zwei Dateien, beide selfhosted — TeX Gyre Heros Bold (Display) + Geist Sans (Text/UI) -->
+    <link rel="preload" href="/fonts/TeXGyreHeros-Bold.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="/fonts/GeistSans-Variable.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="/fonts/GeistMono-Variable.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="/fonts/Newsreader-roman-latin.woff2" as="font" type="font/woff2" crossorigin>
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
     <link rel="icon" type="image/png" sizes="48x48" href="/icons/favicon-48.png">
     <link rel="icon" type="image/png" sizes="64x64" href="/icons/favicon-64.png">
-    <link rel="icon" href="/brand/alexle135-logo-primary.svg" type="image/svg+xml">
+    <link rel="icon" href="/brand/as-mark.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
 
     <!-- Open Graph -->
@@ -135,10 +147,10 @@ const breadcrumbSchema = buildBreadcrumbSchema(Astro.url.pathname);
     <GoogleAnalytics />
   </head>
 
-  <body class="flex min-h-screen flex-col bg-[#0d0c0c] text-[#f6f2eb] antialiased selection:bg-[#ff6a00] selection:text-[#2a1100]">
+  <body class="flex min-h-screen flex-col bg-[color:var(--paper)] text-[color:var(--ink)] antialiased">
     <a
       href="#main-content"
-      class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-none focus:border focus:border-[color:var(--color-neon-orange)] focus:bg-[color:var(--color-mono-950)] focus:px-4 focus:py-2 focus:font-mono focus:text-xs focus:uppercase focus:tracking-[0.18em] focus:text-[color:var(--color-neon-orange)] focus:outline-none"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-none focus:border focus:border-[color:var(--ink)] focus:bg-[color:var(--paper)] focus:px-4 focus:py-2 focus:font-mono focus:text-xs focus:tracking-[0.08em] focus:text-[color:var(--ink)] focus:outline-2 focus:outline-offset-4 focus:outline-[color:var(--accent)]"
     >
       Zum Inhalt springen
     </a>

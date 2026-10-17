@@ -36,14 +36,14 @@ const useCases = [
 
     <!-- Use Cases -->
     <section class="mt-16">
-      <h2 class="font-editorial text-[clamp(2rem,4vw,3rem)] leading-[0.95] tracking-[-0.04em] text-[color:var(--color-mono-50)] mb-10">Was KI-Agenten leisten</h2>
-      <div class="space-y-0 divide-y divide-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)]">
+      <h2 class="ds-display-m text-[color:var(--ink)] mb-10">Was KI-Agenten leisten</h2>
+      <div class="space-y-0 divide-y divide-[color:color-mix(in_srgb,var(--ink)_10%,transparent)]">
         {useCases.map((uc) => (
           <div class="grid gap-4 py-8 md:grid-cols-[3rem_1fr]">
-            <span class="font-mono text-sm text-[color:var(--color-mono-400)] tabular-nums">{uc.index}</span>
+            <span class="font-mono text-sm text-[color:var(--muted)] tabular-nums">{uc.index}</span>
             <div>
-              <h3 class="font-editorial text-xl text-[color:var(--color-mono-50)] mb-2">{uc.title}</h3>
-              <p class="text-sm leading-7 text-[color:var(--color-mono-300)] max-w-2xl">{uc.description}</p>
+              <h3 class="ds-display-s text-[color:var(--ink)] mb-2">{uc.title}</h3>
+              <p class="text-sm leading-7 text-[color:var(--muted)] max-w-2xl">{uc.description}</p>
             </div>
           </div>
         ))}
@@ -52,44 +52,44 @@ const useCases = [
 
     <!-- Agent Builder -->
     <section class="mt-20">
-      <h2 class="font-editorial text-[clamp(2rem,4vw,3rem)] leading-[0.95] tracking-[-0.04em] text-[color:var(--color-mono-50)] mb-4">Agent Builder</h2>
-      <p class="text-sm leading-7 text-[color:var(--color-mono-300)] mb-10 max-w-xl">
+      <h2 class="ds-display-m text-[color:var(--ink)] mb-4">Agent Builder</h2>
+      <p class="text-sm leading-7 text-[color:var(--muted)] mb-10 max-w-xl">
         Beschreibe deinen Agenten und erhalte eine strukturierte Vorschau. Ideal für die Planung und Dokumentation.
       </p>
 
       <div class="grid gap-10 lg:grid-cols-2">
         <!-- Form -->
-        <div class="v2-panel rounded-sm p-6">
-          <h3 class="v2-kicker mb-6">Agent-Konfigurator</h3>
+        <div class="ds-card">
+          <h3 class="ds-kicker mb-6">Agent-Konfigurator</h3>
           <form id="agent-builder-form" class="space-y-5">
             <div>
-              <label for="agent-name" class="block v2-kicker mb-2">Agent-Name</label>
+              <label for="agent-name" class="block ds-kicker mb-2">Agent-Name</label>
               <input type="text" id="agent-name" placeholder="z.B. Log Analyzer Agent" required
-                class="w-full px-4 py-3 bg-transparent border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] rounded-sm text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-500)] focus:outline-none focus:border-[color:var(--color-neon-orange)] transition-colors font-ui text-sm" />
+                class="w-full px-4 py-3 bg-transparent border border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] text-[color:var(--ink)] placeholder-[color:var(--muted)] focus:outline-none focus:border-[color:var(--accent)] transition-colors font-ui text-sm" />
             </div>
 
             <div>
-              <label for="agent-purpose" class="block v2-kicker mb-2">Aufgabe / Zweck</label>
+              <label for="agent-purpose" class="block ds-kicker mb-2">Aufgabe / Zweck</label>
               <textarea id="agent-purpose" rows="3" placeholder="Was soll der Agent tun?" required
-                class="w-full px-4 py-3 bg-transparent border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] rounded-sm text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-500)] focus:outline-none focus:border-[color:var(--color-neon-orange)] transition-colors font-ui text-sm resize-y"></textarea>
+                class="w-full px-4 py-3 bg-transparent border border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] text-[color:var(--ink)] placeholder-[color:var(--muted)] focus:outline-none focus:border-[color:var(--accent)] transition-colors font-ui text-sm resize-y"></textarea>
             </div>
 
             <div>
-              <label for="agent-stack" class="block v2-kicker mb-2">Tech-Stack</label>
+              <label for="agent-stack" class="block ds-kicker mb-2">Tech-Stack</label>
               <input type="text" id="agent-stack" placeholder="z.B. Python, OpenAI API, Docker"
-                class="w-full px-4 py-3 bg-transparent border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] rounded-sm text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-500)] focus:outline-none focus:border-[color:var(--color-neon-orange)] transition-colors font-ui text-sm" />
+                class="w-full px-4 py-3 bg-transparent border border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] text-[color:var(--ink)] placeholder-[color:var(--muted)] focus:outline-none focus:border-[color:var(--accent)] transition-colors font-ui text-sm" />
             </div>
 
             <div>
-              <label for="agent-tools" class="block v2-kicker mb-2">Tools &amp; Integrationen</label>
+              <label for="agent-tools" class="block ds-kicker mb-2">Tools &amp; Integrationen</label>
               <input type="text" id="agent-tools" placeholder="z.B. GitHub API, Slack, Prometheus"
-                class="w-full px-4 py-3 bg-transparent border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] rounded-sm text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-500)] focus:outline-none focus:border-[color:var(--color-neon-orange)] transition-colors font-ui text-sm" />
+                class="w-full px-4 py-3 bg-transparent border border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] text-[color:var(--ink)] placeholder-[color:var(--muted)] focus:outline-none focus:border-[color:var(--accent)] transition-colors font-ui text-sm" />
             </div>
 
             <div>
-              <label for="agent-metrics" class="block v2-kicker mb-2">Erfolgsmetriken (optional)</label>
+              <label for="agent-metrics" class="block ds-kicker mb-2">Erfolgsmetriken (optional)</label>
               <input type="text" id="agent-metrics" placeholder="z.B. Response Time <2s, Accuracy >90%"
-                class="w-full px-4 py-3 bg-transparent border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] rounded-sm text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-500)] focus:outline-none focus:border-[color:var(--color-neon-orange)] transition-colors font-ui text-sm" />
+                class="w-full px-4 py-3 bg-transparent border border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] text-[color:var(--ink)] placeholder-[color:var(--muted)] focus:outline-none focus:border-[color:var(--accent)] transition-colors font-ui text-sm" />
             </div>
 
             <div class="flex gap-4 pt-2">
@@ -104,11 +104,11 @@ const useCases = [
         </div>
 
         <!-- Preview -->
-        <div class="v2-panel rounded-sm p-6">
-          <h3 class="v2-kicker mb-6">Vorschau</h3>
+        <div class="ds-card">
+          <h3 class="ds-kicker mb-6">Vorschau</h3>
           <div id="agent-preview" class="min-h-[280px]">
             <div class="flex h-full items-center justify-center text-center">
-              <p class="text-sm text-[color:var(--color-mono-400)]">
+              <p class="text-sm text-[color:var(--muted)]">
                 Fülle das Formular aus, um eine Vorschau deines Agenten zu sehen.
               </p>
             </div>
@@ -116,9 +116,9 @@ const useCases = [
         </div>
       </div>
 
-      <div class="mt-6 v2-panel rounded-sm p-4 border-[color:color-mix(in_srgb,var(--color-neon-orange)_20%,transparent)]">
-        <p class="text-sm text-[color:var(--color-mono-300)]">
-          <strong class="text-[color:var(--color-neon-orange)]">Hinweis:</strong> Um deinen Agenten als Projekt zu veröffentlichen, speichere die Vorschau und erstelle einen neuen Eintrag über das CMS oder kontaktiere mich direkt.
+      <div class="mt-6 ds-card">
+        <p class="text-sm text-[color:var(--muted)]">
+          <strong class="text-[color:var(--accent-strong)]">Hinweis:</strong> Um deinen Agenten als Projekt zu veröffentlichen, speichere die Vorschau und erstelle einen neuen Eintrag über das CMS oder kontaktiere mich direkt.
         </p>
       </div>
     </section>
@@ -163,31 +163,31 @@ const useCases = [
 
         preview.innerHTML = `
           <div class="space-y-5">
-            <div class="border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pb-4">
-              <h4 class="font-editorial text-xl text-[color:var(--color-mono-50)]">${escapeHtml(name)}</h4>
+            <div class="border-b border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pb-4">
+              <h4 class="ds-display-s text-[color:var(--ink)]">${escapeHtml(name)}</h4>
             </div>
 
             <div>
-              <p class="v2-kicker mb-1">Aufgabe</p>
-              <p class="text-sm text-[color:var(--color-mono-300)]">${escapeHtml(purpose)}</p>
+              <p class="ds-kicker mb-1">Aufgabe</p>
+              <p class="text-sm text-[color:var(--muted)]">${escapeHtml(purpose)}</p>
             </div>
 
             <div>
-              <p class="v2-kicker mb-1">Stack</p>
-              <p class="font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--color-mono-400)]">${escapeHtml(stack)}</p>
+              <p class="ds-kicker mb-1">Stack</p>
+              <p class="font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--muted)]">${escapeHtml(stack)}</p>
             </div>
 
             <div>
-              <p class="v2-kicker mb-1">Tools &amp; Integrationen</p>
-              <p class="font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--color-mono-400)]">${escapeHtml(tools)}</p>
+              <p class="ds-kicker mb-1">Tools &amp; Integrationen</p>
+              <p class="font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--muted)]">${escapeHtml(tools)}</p>
             </div>
 
             ${metrics ? `
-            <div class="pt-3 border-t border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)]">
-              <p class="v2-kicker mb-2">Zielmetriken</p>
+            <div class="pt-3 border-t border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)]">
+              <p class="ds-kicker mb-2">Zielmetriken</p>
               <div class="flex items-center gap-2">
-                <span class="h-2 w-2 bg-[color:var(--color-neon-orange)]"></span>
-                <span class="font-mono text-xs text-[color:var(--color-mono-400)]">${escapeHtml(metrics)}</span>
+                <span class="h-2 w-2 bg-[color:var(--accent)]"></span>
+                <span class="font-mono text-xs text-[color:var(--muted)]">${escapeHtml(metrics)}</span>
               </div>
             </div>
             ` : ''}
@@ -208,7 +208,7 @@ const useCases = [
         form.reset();
         preview.innerHTML = `
           <div class="flex h-full items-center justify-center text-center">
-            <p class="text-sm text-[color:var(--color-mono-400)]">
+            <p class="text-sm text-[color:var(--muted)]">
               Fülle das Formular aus, um eine Vorschau deines Agenten zu sehen.
             </p>
           </div>

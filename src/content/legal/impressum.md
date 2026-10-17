@@ -4,7 +4,7 @@ title: Impressum
 
 # Impressum
 
-## Angaben gemäß § 5 TMG
+## Angaben gemäß § 5 DDG
 
 Alexander Schneider
 IT-Systemintegration & DevOps
@@ -12,7 +12,7 @@ Leipzig, Deutschland
 
 ## Kontakt
 
-E-Mail: schneider@alexle135.de
+E-Mail: schneider@alex-schneider.dev
 Telefon: +49 1556 8920209
 
 ## Haftungsausschluss

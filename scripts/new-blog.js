@@ -5,8 +5,8 @@
  */
 
 import { createInterface } from 'readline';
-import { writeFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import { writeFileSync, existsSync, statSync } from 'fs';
+import { join, basename } from 'path';
 
 const rl = createInterface({
   input: process.stdin,
@@ -104,7 +104,22 @@ async function main() {
     .filter((t) => t.length > 0);
 
   // Hero image (optional)
-  const heroImage = await question('Hero-Bild Pfad (optional, z.B. /media/uploads/bild.png): ');
+  // Quelle liegt einmal unter src/assets/blog/ (D-25); das Schema prüft sie im Build.
+  const heroInput = await question(
+    'Hero-Bild (optional, Dateiname unter src/assets/blog/, z.B. bild.webp): '
+  );
+  const heroName = basename(heroInput.trim());
+  let heroImage = '';
+  if (heroName) {
+    const heroPath = join(process.cwd(), 'src/assets/blog', heroName);
+    if (existsSync(heroPath) && statSync(heroPath).isFile()) {
+      heroImage = `../../assets/blog/${heroName}`;
+    } else {
+      console.warn(
+        `Hinweis: src/assets/blog/${heroName} existiert nicht. heroImage wird nicht geschrieben, ein fehlendes Bild bräche den Build. Datei dorthin legen und die Zeile nachtragen.`
+      );
+    }
+  }
 
   // Generate content
   const publishedAt = formatDate();
@@ -133,8 +148,8 @@ async function main() {
     frontmatter.push('  - Allgemein');
   }
 
-  if (heroImage.trim()) {
-    frontmatter.push(`heroImage: ${heroImage.trim()}`);
+  if (heroImage) {
+    frontmatter.push(`heroImage: ${escapeYaml(heroImage)}`);
   }
 
   frontmatter.push(`publishedAt: ${publishedAt}`);
@@ -167,7 +182,7 @@ Zusammenfassung und nächste Schritte.
 **Schwierigkeitsgrad:** Anfänger/Fortgeschritten/Experte
 **Lohnt sich?** Ja/Nein
 
-Bei Fragen: [schneider@alexle135.de](mailto:schneider@alexle135.de)
+Bei Fragen: [schneider@alex-schneider.dev](mailto:schneider@alex-schneider.dev)
 `;
 
   // Write file

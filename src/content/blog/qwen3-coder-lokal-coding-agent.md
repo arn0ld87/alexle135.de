@@ -1,5 +1,6 @@
 ---
-title: 'Coding-Agent ohne API-Rechnung: Qwen3-Coder lokal mit llama.cpp und aider'
+title: 'Qwen3-Coder lokal: Coding-Agent ohne API-Rechnung'
+metaDescription: 'Qwen3-Coder lokal als Coding-Agent nutzen: Modell mit llama-server starten, einen OpenAI-kompatiblen Endpunkt bereitstellen und mit aider verbinden.'
 summary: 'Ein lokales MoE-Modell mit 3B aktiven Parametern reicht für echtes agentisches Coding. Hier der komplette Pfad: Qwen3-Coder über llama-server starten, OpenAI-kompatiblen Endpunkt freigeben und aider drauf zeigen lassen.'
 tags:
   - Local-LLM
@@ -9,7 +10,7 @@ tags:
   - AI-Coding
   - Ollama
   - Self-Hosting
-heroImage: /images/blog/qwen3-coder-lokal-coding-agent.webp
+heroImage: ../../assets/blog/qwen3-coder-lokal-coding-agent.webp
 heroImageAlt: 'Lokaler Coding-Agent mit Qwen3-Coder auf eigener Hardware ohne Cloud-API'
 publishedAt: 2026-06-18
 draft: false
@@ -96,3 +97,5 @@ Ich nutze das Setup für die Arbeit, die sich wiederholt. Tests zu bestehenden F
 Wo lokal an die Grenze kommt: lange, verschachtelte Aufgaben, bei denen das Modell über viele Schritte einen Plan halten muss, und Code, der wirklich um die Ecke gedacht ist. Da sind die großen Cloud-Modelle weiter vorn.
 
 Der ehrliche Umgang ist deshalb nicht "lokal ersetzt alles", sondern ein zweigleisiges Setup. Die Grunzarbeit läuft auf Qwen3-Coder im eigenen Haus. Die harte Nuss schickst du nach oben, bewusst und sparsam. Genau dafür ist es gebaut.
+
+**Weiterlesen:** [Vibe Coding Tutorial: Apps mit Google AI Studio](/blog/vibe-coding-gemini-3-google-ai-studio/) als Cloud-Gegenstück zum lokalen Setup.

@@ -26,15 +26,15 @@ if (!skillsData) {
     <!-- Skills Grid -->
     <section class="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {skillsData.data.items.map((skill) => (
-        <article class="v2-panel rounded-sm p-5 flex flex-col h-full transition-colors hover:border-[color:color-mix(in_srgb,var(--color-neon-orange)_30%,transparent)]">
+        <article class="ds-card flex flex-col h-full">
           <div class="flex items-baseline justify-between mb-1">
-            <h3 class="font-editorial text-lg text-[color:var(--color-mono-50)]">{skill.name}</h3>
-            <span class="font-mono text-xs tabular-nums text-[color:var(--color-neon-orange)]">{skill.percentage}%</span>
+            <h2 class="ds-display-s text-[color:var(--ink)]">{skill.name}</h2>
+            <span class="ds-meta tabular-nums text-[color:var(--accent-strong)]">{skill.percentage}%</span>
           </div>
-          <p class="v2-kicker mb-4">{skill.category}</p>
-          <div class="mt-auto h-1 rounded-full bg-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] overflow-hidden" role="progressbar" aria-valuenow={skill.percentage} aria-valuemin={0} aria-valuemax={100} aria-label={`${skill.name}: ${skill.percentage}%`}>
+          <p class="ds-kicker mb-4">{skill.category}</p>
+          <div class="mt-auto h-1 bg-[color:var(--line)] overflow-hidden" role="progressbar" aria-valuenow={skill.percentage} aria-valuemin={0} aria-valuemax={100} aria-label={`${skill.name}: ${skill.percentage}%`}>
             <div
-              class="h-full rounded-full bg-[color:var(--color-neon-orange)] transition-all duration-1000 ease-out"
+              class="h-full bg-[color:var(--accent)] transition-all duration-1000 ease-out"
               style={`width: ${skill.percentage}%`}
             ></div>
           </div>
@@ -44,33 +44,49 @@ if (!skillsData) {
 
     <!-- Weitere Kenntnisse -->
     <section class="mt-20">
-      <h2 class="font-editorial text-[clamp(2rem,4vw,3rem)] leading-[0.95] tracking-[-0.04em] text-[color:var(--color-mono-50)] mb-10">Weitere Kenntnisse</h2>
+      <h2 class="ds-display-m text-[color:var(--ink)] mb-10">Weitere Kenntnisse</h2>
       <div class="grid gap-8 md:grid-cols-3">
-        <div class="v2-panel rounded-sm p-6 space-y-4">
-          <h3 class="v2-kicker">Betriebssysteme</h3>
-          <ul class="text-sm text-[color:var(--color-mono-200)] space-y-2">
-            <li class="flex items-center gap-2"><span class="v2-accent-dot !w-1.5 !h-1.5 !shadow-none" aria-hidden="true"></span> Linux (Ubuntu, CentOS, Debian)</li>
-            <li class="flex items-center gap-2"><span class="v2-accent-dot !w-1.5 !h-1.5 !shadow-none" aria-hidden="true"></span> Windows Server</li>
-            <li class="flex items-center gap-2"><span class="v2-accent-dot !w-1.5 !h-1.5 !shadow-none" aria-hidden="true"></span> Proxmox VE</li>
+        <div class="ds-card space-y-4">
+          <h3 class="ds-kicker">Betriebssysteme</h3>
+          <ul class="text-sm text-[color:var(--ink)] space-y-2">
+            <li class="flex items-center gap-2"><span class="h-1.5 w-1.5 shrink-0 bg-[color:var(--accent)]" aria-hidden="true"></span>Linux (Ubuntu, CentOS, Debian)</li>
+            <li class="flex items-center gap-2"><span class="h-1.5 w-1.5 shrink-0 bg-[color:var(--accent)]" aria-hidden="true"></span>Windows Server</li>
+            <li class="flex items-center gap-2"><span class="h-1.5 w-1.5 shrink-0 bg-[color:var(--accent)]" aria-hidden="true"></span>Proxmox VE</li>
           </ul>
         </div>
-        <div class="v2-panel rounded-sm p-6 space-y-4">
-          <h3 class="v2-kicker">Tools & Automatisierung</h3>
-          <ul class="text-sm text-[color:var(--color-mono-200)] space-y-2">
-            <li class="flex items-center gap-2"><span class="v2-accent-dot !w-1.5 !h-1.5 !shadow-none" aria-hidden="true"></span> Git, GitHub Actions</li>
-            <li class="flex items-center gap-2"><span class="v2-accent-dot !w-1.5 !h-1.5 !shadow-none" aria-hidden="true"></span> Ansible, Terraform</li>
-            <li class="flex items-center gap-2"><span class="v2-accent-dot !w-1.5 !h-1.5 !shadow-none" aria-hidden="true"></span> Grafana, Prometheus</li>
+        <div class="ds-card space-y-4">
+          <h3 class="ds-kicker">Tools & Automatisierung</h3>
+          <ul class="text-sm text-[color:var(--ink)] space-y-2">
+            <li class="flex items-center gap-2"><span class="h-1.5 w-1.5 shrink-0 bg-[color:var(--accent)]" aria-hidden="true"></span>Git, GitHub Actions</li>
+            <li class="flex items-center gap-2"><span class="h-1.5 w-1.5 shrink-0 bg-[color:var(--accent)]" aria-hidden="true"></span>Ansible, Terraform</li>
+            <li class="flex items-center gap-2"><span class="h-1.5 w-1.5 shrink-0 bg-[color:var(--accent)]" aria-hidden="true"></span>Grafana, Prometheus</li>
           </ul>
         </div>
-        <div class="v2-panel rounded-sm p-6 space-y-4">
-          <h3 class="v2-kicker">Sprachen & APIs</h3>
-          <ul class="text-sm text-[color:var(--color-mono-200)] space-y-2">
-            <li class="flex items-center gap-2"><span class="v2-accent-dot !w-1.5 !h-1.5 !shadow-none" aria-hidden="true"></span> Python, Bash</li>
-            <li class="flex items-center gap-2"><span class="v2-accent-dot !w-1.5 !h-1.5 !shadow-none" aria-hidden="true"></span> TypeScript, JavaScript</li>
-            <li class="flex items-center gap-2"><span class="v2-accent-dot !w-1.5 !h-1.5 !shadow-none" aria-hidden="true"></span> OpenAI, Gemini API</li>
+        <div class="ds-card space-y-4">
+          <h3 class="ds-kicker">Sprachen & APIs</h3>
+          <ul class="text-sm text-[color:var(--ink)] space-y-2">
+            <li class="flex items-center gap-2"><span class="h-1.5 w-1.5 shrink-0 bg-[color:var(--accent)]" aria-hidden="true"></span>Python, Bash</li>
+            <li class="flex items-center gap-2"><span class="h-1.5 w-1.5 shrink-0 bg-[color:var(--accent)]" aria-hidden="true"></span>TypeScript, JavaScript</li>
+            <li class="flex items-center gap-2"><span class="h-1.5 w-1.5 shrink-0 bg-[color:var(--accent)]" aria-hidden="true"></span>OpenAI, Gemini API</li>
           </ul>
         </div>
       </div>
+    </section>
+
+    <section class="mt-20 max-w-3xl space-y-4 text-[color:var(--ink)] leading-relaxed" aria-labelledby="kompetenzen-einordnung">
+      <h2 id="kompetenzen-einordnung" class="ds-display-s">Einordnung</h2>
+      <p>
+        Die Prozentwerte oben sind eine Selbsteinschätzung, keine Prüfung. Belegt sind die Kenntnisse durch Projekte und Beiträge:
+        den <a href="/fisi/" class="underline decoration-[color:var(--accent)] underline-offset-4">FISI-Lernpfad</a>,
+        die <a href="/projekte/" class="underline decoration-[color:var(--accent)] underline-offset-4">Projekte</a> und das <a href="/blog/" class="underline decoration-[color:var(--accent)] underline-offset-4">Logbuch</a>.
+      </p>
+      <p>
+        Schwerpunkte sind Linux-Betrieb mit Docker und Reverse-Proxy, Automatisierung mit Bash, Python und GitHub Actions sowie Monitoring.
+        Beispiele dafür sind der <a href="/blog/traefik-v3-docker-reverse-proxy/" class="underline decoration-[color:var(--accent)] underline-offset-4">Traefik-Betrieb hinter Docker</a>,
+        das <a href="/blog/proxmox-homelab/" class="underline decoration-[color:var(--accent)] underline-offset-4">Proxmox-Heimlabor</a> und die
+        <a href="/blog/github-actions-ci-cd-tutorial-fisi/" class="underline decoration-[color:var(--accent)] underline-offset-4">CI/CD-Pipeline mit GitHub Actions</a>.
+        Zertifikate stehen unter <a href="/certifications/" class="underline decoration-[color:var(--accent)] underline-offset-4">Zertifikate</a>.
+      </p>
     </section>
 
     <!-- CTA -->

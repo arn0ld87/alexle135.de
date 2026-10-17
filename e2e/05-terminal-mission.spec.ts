@@ -52,4 +52,31 @@ test.describe('Terminal-Mission', () => {
       `Unerwartete Browser-Fehler: ${pageErrors.map((e) => e.message).join(', ')}`
     ).toHaveLength(0);
   });
+
+  // Regression (Mission-Shell): Im echten WebContainer muss `whoami` die Shell der Missionen
+  // erreichen und `visitor` ausgeben (vorher startete nur das nackte jsh: "command not found").
+  // Bootet WebContainer in der Umgebung nicht (Mock-Fallback), entfällt die Prüfung.
+  test('Linux Grundlagen: whoami läuft in der Mission-Shell', async ({ page }) => {
+    test.setTimeout(90_000);
+    await page.goto('/projekte/terminal-missionen/app');
+    await page.getByText('Linux Grundlagen').first().click();
+    await expect(page.getByText('Zurück zur Missionsauswahl')).toBeVisible();
+    await expect(page.getByText('Initializing Linux Environment...')).toBeHidden({
+      timeout: 45_000,
+    });
+
+    const rows = page.locator('.xterm-rows').first();
+    await expect(rows).toContainText(/Mock Mode|visitor@linux/, { timeout: 15_000 });
+    test.skip(
+      (await rows.innerText()).includes('Mock Mode'),
+      'WebContainer bootet in dieser Umgebung nicht (Mock-Fallback)'
+    );
+
+    await page.locator('.xterm').first().click();
+    await page.keyboard.type('whoami');
+    await page.keyboard.press('Enter');
+    // Zeilen eines xterm-DOM-Renderers haben keine Zeilenumbrüche im Textinhalt.
+    await expect(rows).toContainText(/whoami\s*visitor\s*visitor@linux/);
+    await expect(rows).not.toContainText('command not found');
+  });
 });

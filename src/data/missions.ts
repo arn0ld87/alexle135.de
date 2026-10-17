@@ -531,9 +531,9 @@ export const windowsNetworkingMission: Mission = {
     {
       id: '8',
       title: 'NSLookup',
-      description: 'Finde die IP-Adresse von alexle135.de.',
-      hint: 'Der Befehl "nslookup alexle135.de" löst den Domainnamen auf.',
-      requiredCommand: 'nslookup alexle135.de',
+      description: 'Finde die IP-Adresse von alex-schneider.dev.',
+      hint: 'Der Befehl "nslookup alex-schneider.dev" löst den Domainnamen auf.',
+      requiredCommand: 'nslookup alex-schneider.dev',
     },
   ],
 };
@@ -1088,7 +1088,7 @@ export const linuxCTFLogDetective: Mission = {
       title: 'Logs durchsuchen',
       description: 'Suche nach fehlgeschlagenen Login-Versuchen in /var/log/auth.log.',
       hint: 'Nutze "grep Failed /var/log/auth.log" um Fehlversuche zu finden.',
-      validationRegex: /grep.*Failed.*auth\.log/,
+      validationRegex: /grep.*Failed.*auth\.log/i,
     },
     {
       id: '2',
@@ -1102,7 +1102,7 @@ export const linuxCTFLogDetective: Mission = {
       title: 'Erfolgreicher Einbruch',
       description: 'Finde den einen erfolgreichen Login dieser IP-Adresse.',
       hint: 'Nutze grep mit der gefundenen IP und "Accepted".',
-      validationRegex: /grep.*Accepted/,
+      validationRegex: /grep.*Accepted/i,
     },
   ],
 };

@@ -1,39 +1,89 @@
 ---
 // V2Footer.astro
+// Panel-Fläche (Systemwerk, 02-UI-SPEC "Footer"). Die Betriebszeile zeigt nur Fakten aus
+// dem Build (Kurz-SHA und Datum über getBuildInfo), keinen Live-Zustand (D-21, D-46).
+import { ArrowUp } from 'lucide-astro';
 import LinkedInBadge from './LinkedInBadge.astro';
+import logoNameMono from '../../../public/brand/as-logo-name-mono.svg?raw';
+import { getBuildInfo } from '../../lib/buildInfo';
+
 const currentYear = new Date().getFullYear();
+const build = getBuildInfo();
+const hasBuild = Boolean(build.sha || build.dateDisplay);
+// Ohne SHA nur „Build “ + Datum; der SHA ist reiner Text, kein Link (UI-SPEC R-21).
+const buildLead = build.sha ? (build.dateDisplay ? `Build ${build.sha} · ` : `Build ${build.sha}`) : 'Build ';
+
+const REPO_URL = 'https://github.com/arn0ld87/alexle135.de';
+
+const navigation = [
+  { href: '/', label: 'Start' },
+  { href: '/leistungen/', label: 'Was ich kann' },
+  { href: '/projekte/', label: 'Projekte' },
+  { href: '/kompetenzen/', label: 'Kompetenzen' },
+  { href: '/apps/', label: 'Apps' },
+  { href: '/blog/', label: 'Blog' },
+  { href: '/certifications/', label: 'Zertifikate' },
+];
+
+const social = [
+  { href: 'https://github.com/arn0ld87', label: 'GitHub' },
+  { href: 'https://www.linkedin.com/in/alexander-schneider-9a8b38379', label: 'LinkedIn' },
+  { href: 'https://www.threads.net/@alexle135', label: 'Threads' },
+  { href: 'https://www.instagram.com/alexxaar87', label: 'Instagram' },
+  { href: 'https://www.facebook.com/AlexLE135', label: 'Facebook' },
+];
+
+const system = [
+  { href: '/status/', label: 'Status', external: false },
+  { href: '/changelog/', label: 'Changelog', external: false },
+  { href: REPO_URL, label: 'Quellcode', external: true },
+  { href: '/legal/impressum/', label: 'Impressum', external: false },
+  { href: '/legal/datenschutz/', label: 'Datenschutz', external: false },
+  { href: '', label: 'Cookie-Einstellungen', external: false, action: true },
+];
+
+// Gemeinsame Link-Klassen: auf dem Panel gelten nur Panel-Tokens (RAHMEN 4).
+const linkClass =
+  'font-mono text-[0.85rem] text-[color:var(--panel-text)] underline-offset-4 decoration-[color:var(--panel-accent)] hover:underline focus-visible:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--panel-accent)]';
+const headingClass = 'font-mono text-xs uppercase tracking-[0.08em] text-[color:var(--panel-muted)]';
 ---
 
-<footer class="border-t border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] bg-[color:var(--color-mono-950)] pt-20 pb-12">
+<footer
+  data-surface="panel"
+  class="border-t border-[color:var(--panel-rule)] bg-[color:var(--panel)] pt-20 pb-12 text-[color:var(--panel-text)]"
+>
   <div class="v2-shell">
     <div class="grid gap-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]">
-      
-      <!-- Brand & CTA -->
+      <!-- Marke und Kontakt -->
       <div class="space-y-8">
-        <img
-          src="/brand/alexle135-logo-primary.svg"
-          alt="alexle135 Logo"
-          class="h-10 w-auto max-w-[14rem] opacity-95 sm:h-12"
-          loading="lazy"
+        <!-- Inline, damit currentColor der Panel-Schrift folgt (img erbt sie nicht). Accessible Name kommt aus dem svg-title. -->
+        <div
+          class="w-full max-w-[14rem] text-[color:var(--panel-text)] [&>svg]:block [&>svg]:h-auto [&>svg]:w-full"
+          set:html={logoNameMono}
         />
-        <h2 class="max-w-[12ch] text-balance font-editorial text-[clamp(2.75rem,1.5rem_+_3vw,4.25rem)] leading-[0.92] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
-          Lass uns Systeme bauen.
-        </h2>
-        
+        <h2 class="max-w-[12ch] ds-display-l text-[color:var(--panel-text)]">Lass uns Systeme bauen.</h2>
+
         <div class="flex flex-col items-start gap-4">
-          <p class="font-mono text-[0.8rem] leading-6 text-[color:var(--color-mono-400)]">
+          <p class="font-mono text-[0.8rem] leading-6 text-[color:var(--panel-muted)]">
             Leipzig, Deutschland <br />
             Remote-Arbeit möglich.
           </p>
           <a
-            href="mailto:schneider@alexle135.de"
-            class="group inline-flex items-center gap-3 border-b border-[color:var(--color-mono-300)] pb-1 transition-colors hover:border-[color:var(--color-neon-orange)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-neon-orange)] focus-visible:ring-offset-4 focus-visible:ring-offset-[color:var(--color-mono-950)]"
+            href="mailto:schneider@alex-schneider.dev"
+            class="group inline-flex items-center gap-3 border-b border-[color:var(--panel-edge)] pb-1 transition-colors hover:border-[color:var(--panel-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--panel-accent)]"
           >
-            <span class="font-mono text-[0.85rem] uppercase tracking-[0.15em] text-[color:var(--color-mono-50)] transition-colors group-hover:text-[color:var(--color-neon-orange)]">
-              schneider@alexle135.de
+            <span class="font-mono text-[0.85rem] uppercase tracking-[0.15em] text-[color:var(--panel-text)]">
+              schneider@alex-schneider.dev
             </span>
-            <svg class="h-4 w-4 text-[color:var(--color-mono-300)] transition-transform duration-300 group-hover:translate-x-1 group-hover:text-[color:var(--color-neon-orange)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1.5" d="M5 12h14M12 5l7 7-7 7"></path>
+            <svg
+              class="ds-icon h-4 w-4 text-[color:var(--panel-muted)] transition-transform duration-300 group-hover:translate-x-1 group-hover:text-[color:var(--panel-accent)]"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path stroke-width="1.5" d="M5 12h14M12 5l7 7-7 7"></path>
             </svg>
           </a>
 
@@ -41,60 +91,88 @@ const currentYear = new Date().getFullYear();
         </div>
       </div>
 
-      <!-- Links Grid -->
-      <div class="grid grid-cols-2 gap-8 md:grid-cols-3">
-        
+      <!-- Link-Spalten: mobil eine, ab 768 px drei -->
+      <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
         <div class="space-y-6">
-          <h3 class="font-mono text-[0.7rem] uppercase tracking-[0.25em] text-[color:var(--color-mono-500)]">Navigation</h3>
+          <h3 class={headingClass}>Navigation</h3>
           <ul class="space-y-4">
-            <li><a href="/" class="font-mono text-[0.85rem] text-[color:var(--color-mono-300)] transition-colors hover:text-[color:var(--color-mono-50)] focus:outline-none focus:text-[color:var(--color-neon-orange)]">Start</a></li>
-            <li><a href="/leistungen/" class="font-mono text-[0.85rem] text-[color:var(--color-mono-300)] transition-colors hover:text-[color:var(--color-mono-50)] focus:outline-none focus:text-[color:var(--color-neon-orange)]">Was ich kann</a></li>
-            <li><a href="/projekte/" class="font-mono text-[0.85rem] text-[color:var(--color-mono-300)] transition-colors hover:text-[color:var(--color-mono-50)] focus:outline-none focus:text-[color:var(--color-neon-orange)]">Projekte</a></li>
-            <li><a href="/blog/" class="font-mono text-[0.85rem] text-[color:var(--color-mono-300)] transition-colors hover:text-[color:var(--color-mono-50)] focus:outline-none focus:text-[color:var(--color-neon-orange)]">Blog</a></li>
-            <li><a href="/certifications/" class="font-mono text-[0.85rem] text-[color:var(--color-mono-300)] transition-colors hover:text-[color:var(--color-mono-50)] focus:outline-none focus:text-[color:var(--color-neon-orange)]">Zertifikate</a></li>
+            {
+              navigation.map((item) => (
+                <li>
+                  <a href={item.href} class={linkClass}>
+                    {item.label}
+                  </a>
+                </li>
+              ))
+            }
           </ul>
         </div>
 
         <div class="space-y-6">
-          <h3 class="font-mono text-[0.7rem] uppercase tracking-[0.25em] text-[color:var(--color-mono-500)]">Social</h3>
+          <h3 class={headingClass}>Social</h3>
           <ul class="space-y-4">
-            <li><a href="https://github.com/arn0ld87" target="_blank" rel="me noopener noreferrer" class="font-mono text-[0.85rem] text-[color:var(--color-mono-300)] transition-colors hover:text-[color:var(--color-mono-50)] focus:outline-none focus:text-[color:var(--color-neon-orange)]">GitHub</a></li>
-            <li><a href="https://www.linkedin.com/in/alexander-schneider-9a8b38379" target="_blank" rel="me noopener noreferrer" class="font-mono text-[0.85rem] text-[color:var(--color-mono-300)] transition-colors hover:text-[color:var(--color-mono-50)] focus:outline-none focus:text-[color:var(--color-neon-orange)]">LinkedIn</a></li>
-            <li><a href="https://www.threads.net/@alexle135" target="_blank" rel="me noopener noreferrer" class="font-mono text-[0.85rem] text-[color:var(--color-mono-300)] transition-colors hover:text-[color:var(--color-mono-50)] focus:outline-none focus:text-[color:var(--color-neon-orange)]">Threads</a></li>
-            <li><a href="https://www.instagram.com/alexxaar87" target="_blank" rel="me noopener noreferrer" class="font-mono text-[0.85rem] text-[color:var(--color-mono-300)] transition-colors hover:text-[color:var(--color-mono-50)] focus:outline-none focus:text-[color:var(--color-neon-orange)]">Instagram</a></li>
-            <li><a href="https://www.facebook.com/AlexLE135" target="_blank" rel="me noopener noreferrer" class="font-mono text-[0.85rem] text-[color:var(--color-mono-300)] transition-colors hover:text-[color:var(--color-mono-50)] focus:outline-none focus:text-[color:var(--color-neon-orange)]">Facebook</a></li>
+            {
+              social.map((item) => (
+                <li>
+                  <a href={item.href} target="_blank" rel="me noopener noreferrer" class={linkClass}>
+                    {item.label}
+                  </a>
+                </li>
+              ))
+            }
           </ul>
         </div>
 
         <div class="space-y-6">
-          <h3 class="font-mono text-[0.7rem] uppercase tracking-[0.25em] text-[color:var(--color-mono-500)]">Legal</h3>
+          <h3 class={headingClass}>System</h3>
           <ul class="space-y-4">
-            <li><a href="/legal/impressum/" class="font-mono text-[0.85rem] text-[color:var(--color-mono-300)] transition-colors hover:text-[color:var(--color-mono-50)] focus:outline-none focus:text-[color:var(--color-neon-orange)]">Impressum</a></li>
-            <li><a href="/legal/datenschutz/" class="font-mono text-[0.85rem] text-[color:var(--color-mono-300)] transition-colors hover:text-[color:var(--color-mono-50)] focus:outline-none focus:text-[color:var(--color-neon-orange)]">Datenschutz</a></li>
-            <li>
-              <a href="/status/" class="group flex w-max items-center gap-2 font-mono text-[0.85rem] text-[color:var(--color-mono-300)] transition-colors hover:text-[color:var(--color-mono-50)] focus:outline-none focus:text-[color:var(--color-neon-orange)]">
-                Status
-                <span class="h-1.5 w-1.5 bg-[color:var(--color-neon-orange)]"></span>
-              </a>
-            </li>
+            {
+              system.map((item) => (
+                <li>
+                  {item.action ? (
+                    <button type="button" class={linkClass} data-open-cookie-settings>
+                      {item.label}
+                    </button>
+                  ) : item.external ? (
+                    <a href={item.href} target="_blank" rel="noopener noreferrer" class={linkClass}>
+                      {item.label}
+                    </a>
+                  ) : (
+                    <a href={item.href} class={linkClass}>
+                      {item.label}
+                    </a>
+                  )}
+                </li>
+              ))
+            }
           </ul>
         </div>
-        
       </div>
     </div>
 
-    <!-- Sub Footer -->
-    <div class="mt-20 border-t border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pt-8">
-      <div class="flex flex-col items-center justify-between gap-4 md:flex-row">
-        <p class="font-mono text-[0.7rem] uppercase tracking-[0.15em] text-[color:var(--color-mono-500)]">
-          &copy; {currentYear} Alexander Schneider.
-        </p>
-        <p class="font-mono text-[0.7rem] uppercase tracking-[0.15em] text-[color:var(--color-mono-500)]">
-          Astro SSR &middot; Docker &middot; Traefik &middot; Eigener Server
-        </p>
-        <p class="font-mono text-[0.7rem] uppercase tracking-[0.15em] text-[color:var(--color-mono-500)]">
-          Alle Systeme laufen.
-        </p>
+    <!-- Betriebszeile: Fakten aus dem Build, kein Live-Zustand -->
+    <div class="mt-20 border-t border-[color:var(--panel-rule)] pt-8">
+      <div
+        class="flex flex-col items-start gap-x-4 gap-y-3 font-mono text-xs tracking-[0.08em] text-[color:var(--panel-muted)] md:flex-row md:flex-wrap md:items-center"
+      >
+        <p>&copy; {currentYear} Alexander Schneider</p>
+        {
+          hasBuild && (
+            <>
+              <span aria-hidden="true" class="hidden size-2 shrink-0 bg-[color:var(--panel-accent)] md:block" />
+              <p>{buildLead}{build.dateDisplay && <time datetime={build.date ?? undefined}>{build.dateDisplay}</time>}</p>
+            </>
+          )
+        }
+        <span aria-hidden="true" class="hidden size-2 shrink-0 bg-[color:var(--panel-accent)] md:block"></span>
+        <p>Astro SSR &middot; Docker &middot; Traefik &middot; Eigener Server</p>
+        <a
+          href="#top"
+          class="inline-flex items-center gap-2 text-[color:var(--panel-text)] underline-offset-4 decoration-[color:var(--panel-accent)] hover:underline focus-visible:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--panel-accent)] md:ml-auto"
+        >
+          Nach oben
+          <ArrowUp size={16} class="ds-icon" aria-hidden="true" focusable="false" />
+        </a>
       </div>
     </div>
   </div>

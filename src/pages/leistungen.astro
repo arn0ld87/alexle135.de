@@ -73,18 +73,18 @@ const relatedHubs = [
 
 <V2Layout
   title="Kooperationsbereiche – Infrastruktur & Automation"
-  description="Kernbereiche, an denen ich arbeite: Linux-Server, Container, Systemintegration, Automatisierung und KI-Integration. Portfolio + Kooperationsanfragen aus Leipzig."
+  description="Meine Arbeitsbereiche: Linux-Server, Container, Systemintegration, Automatisierung und KI. Projekte und Möglichkeiten zur Zusammenarbeit aus Leipzig."
   schema={{
     "@context": "https://schema.org",
     "@type": "CollectionPage",
     "name": "Kooperationsbereiche – Alexander Schneider",
-    "url": "https://alexle135.de/leistungen/",
+    "url": "https://alex-schneider.dev/leistungen/",
     "description": "Die vier Kernbereiche, in denen ich Projekte und Kooperationen umsetze: Infrastruktur, Automation, Stabilisierung, KI-Integration.",
     "inLanguage": "de-DE",
     "author": {
       "@type": "Person",
       "name": "Alexander Schneider",
-      "url": "https://alexle135.de/ueber-mich/"
+      "url": "https://alex-schneider.dev/ueber-mich/"
     },
     "mainEntity": {
       "@type": "ItemList",
@@ -108,39 +108,39 @@ const relatedHubs = [
 
     <section class="grid gap-8 py-12 md:py-16 lg:grid-cols-[minmax(0,1.05fr)_minmax(18rem,0.7fr)] lg:items-start">
       <div class="space-y-5">
-        <p class="v2-kicker">Für wen?</p>
-        <h2 class="font-editorial text-[clamp(2.6rem,5vw,4.5rem)] leading-[0.94] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+        <p class="ds-kicker">Für wen?</p>
+        <h2 class="ds-display-l text-[color:var(--ink)]">
           Für Teams, die Technik nicht nur planen, sondern auch betreiben müssen.
         </h2>
       </div>
-      <ul class="space-y-3 border-l border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pl-4 text-sm leading-7 text-[color:var(--color-mono-200)] lg:pl-6">
+      <ul class="space-y-3 border-l border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pl-4 text-sm leading-7 text-[color:var(--ink)] lg:pl-6">
         {audiences.map((audience) => (
-          <li class="border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pb-3">{audience}</li>
+          <li class="border-b border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pb-3">{audience}</li>
         ))}
       </ul>
     </section>
 
     <section aria-labelledby="services-title" class="pt-4 md:pt-8">
       <div class="space-y-5 pb-12 md:pb-16">
-        <p class="v2-kicker">Leistungsblöcke</p>
-        <h2 id="services-title" class="font-editorial text-[clamp(3rem,6vw,5rem)] leading-[0.92] tracking-[-0.06em] text-[color:var(--color-mono-50)]">
+        <p class="ds-kicker">Leistungsblöcke</p>
+        <h2 id="services-title" class="ds-display-xl text-[color:var(--ink)]">
           Vier typische Einsatzfelder. Direkt beschrieben.
         </h2>
       </div>
       {services.map((service) => <ServiceEntry {...service} />)}
     </section>
 
-    <section class="grid gap-8 border-y border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] py-10 md:py-12 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.75fr)] lg:items-start mt-16 md:mt-20">
+    <section class="grid gap-8 border-y border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] py-10 md:py-12 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.75fr)] lg:items-start mt-16 md:mt-20">
       <div class="space-y-5">
-        <p class="v2-kicker">Typische Einsatzfälle</p>
-        <h2 class="font-editorial text-[clamp(2.6rem,5vw,4.4rem)] leading-[0.94] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+        <p class="ds-kicker">Typische Einsatzfälle</p>
+        <h2 class="ds-display-l text-[color:var(--ink)]">
           Daran merkt man meist ziemlich schnell, ob ich helfen kann.
         </h2>
       </div>
-      <ul class="space-y-4 text-sm leading-7 text-[color:var(--color-mono-200)]">
+      <ul class="space-y-4 text-sm leading-7 text-[color:var(--ink)]">
         {useCases.map((item) => (
-          <li class="border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pb-4 font-mono text-[0.8rem] uppercase tracking-[0.12em] text-[color:var(--color-mono-300)]">
-            <span class="text-[color:var(--color-neon-orange)]">$</span> {item}
+          <li class="border-b border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pb-4 font-mono text-[0.8rem] uppercase tracking-[0.12em] text-[color:var(--muted)]">
+            <span class="text-[color:var(--accent-strong)]">$</span> {item}
           </li>
         ))}
       </ul>
@@ -148,29 +148,29 @@ const relatedHubs = [
 
     <section class="grid gap-8 py-16 md:py-20 lg:grid-cols-[minmax(0,1.25fr)_minmax(18rem,0.65fr)] lg:items-start">
       <div class="space-y-5">
-        <p class="v2-kicker">Arbeitsweise</p>
-        <h2 class="font-editorial text-[clamp(2.8rem,5vw,4.6rem)] leading-[0.94] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+        <p class="ds-kicker">Arbeitsweise</p>
+        <h2 class="ds-display-l text-[color:var(--ink)]">
           Erst verständlich. Dann belastbar. Dann erst größer.
         </h2>
       </div>
-      <div class="space-y-5 border-l border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pl-4 lg:pl-6">
-        <p class="text-sm leading-7 text-[color:var(--color-mono-200)]">Ich bevorzuge Lösungen, die jemand nach mir lesen, warten und weiterentwickeln kann. Beeindruckende Komplexität ist wertlos, wenn sie Betrieb und Übergabe sabotiert.</p>
-        <p class="text-sm leading-7 text-[color:var(--color-mono-300)]">Dokumentation, sinnvolle Defaults und ehrliche Scope-Grenzen gehören deshalb zum Angebot dazu. Alles andere ist nur teurer Lärm.</p>
+      <div class="space-y-5 border-l border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pl-4 lg:pl-6">
+        <p class="text-sm leading-7 text-[color:var(--ink)]">Ich bevorzuge Lösungen, die jemand nach mir lesen, warten und weiterentwickeln kann. Beeindruckende Komplexität ist wertlos, wenn sie Betrieb und Übergabe sabotiert.</p>
+        <p class="text-sm leading-7 text-[color:var(--muted)]">Dokumentation, sinnvolle Defaults und ehrliche Scope-Grenzen gehören deshalb zum Angebot dazu. Alles andere ist nur teurer Lärm.</p>
       </div>
     </section>
 
-    <section class="grid gap-8 border-y border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] py-10 md:py-12 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.8fr)] lg:items-start">
+    <section class="grid gap-8 border-y border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] py-10 md:py-12 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.8fr)] lg:items-start">
       <div class="space-y-5">
-        <p class="v2-kicker">Mehr Kontext</p>
-        <h2 class="font-editorial text-[clamp(2.4rem,5vw,4rem)] leading-[0.94] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+        <p class="ds-kicker">Mehr Kontext</p>
+        <h2 class="ds-display-l text-[color:var(--ink)]">
           Die Leistungsfelder werden klarer, wenn man die Tools, Agentenideen und Skills daneben sieht.
         </h2>
       </div>
       <div class="space-y-4">
         {relatedHubs.map((hub) => (
-          <a href={hub.href} class="block border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pb-4 transition-colors hover:text-[color:var(--color-neon-orange)]">
-            <span class="v2-kicker">{hub.label}</span>
-            <p class="mt-2 text-sm leading-7 text-[color:var(--color-mono-200)]">{hub.text}</p>
+          <a href={hub.href} class="block border-b border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pb-4 transition-colors hover:text-[color:var(--accent-strong)]">
+            <span class="ds-kicker">{hub.label}</span>
+            <p class="mt-2 text-sm leading-7 text-[color:var(--ink)]">{hub.text}</p>
           </a>
         ))}
       </div>

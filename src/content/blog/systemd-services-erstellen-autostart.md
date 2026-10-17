@@ -1,5 +1,6 @@
 ---
 title: 'Systemd: App-Lifecycle für Production-Server'
+metaDescription: 'Eigene systemd-Services erstellen: Hintergrundprozesse nach dem Reboot starten, überwachen und bei Abstürzen neu starten. Mit praktischer Konfiguration.'
 summary: 'Schluss mit manuellen tmux-Sessions nach einem Reboot. Wie man systemd konfiguriert, um Hintergrundprozesse stabil zu starten, zu überwachen und bei Abstürzen automatisch zu restarten.'
 tldr: 'Wie man eine Node- oder Python-App als systemd-Service einrichtet, damit sie nach jedem Reboot automatisch wieder läuft. Basis-Unit mit [Unit], [Service] und [Install], Restart-Policy on-failure, EnvironmentFile für Secrets und die üblichen Debug-Kommandos mit systemctl status und journalctl. Keine tmux-Krücken mehr nötig.'
 publishedAt: 2025-11-22
@@ -12,7 +13,7 @@ tags:
 format: 'Field Note'
 readingTime: '08 min'
 snippet: 'systemctl enable --now api.service'
-heroImage: /images/blog/systemd-services.webp
+heroImage: ../../assets/blog/systemd-services.webp
 faq:
   - question: 'Was ist der Unterschied zwischen Restart=always und Restart=on-failure?'
     answer: 'Restart=on-failure startet den Service nur neu, wenn er mit einem Exit-Code ungleich 0 endet oder durch ein Signal gekillt wurde. Restart=always ignoriert den Exit-Code und startet auch nach einem sauberen Exit 0 neu. Für Web-APIs und Daemons passt on-failure meistens, weil ein gewollter Shutdown sonst ignoriert würde. Wenn der Service unter allen Umständen wieder hochkommen soll, nimmst du always.'
@@ -758,7 +759,7 @@ systemd hat meine Server-Verwaltung professionalisiert.
 **Mein Tipp:**
 Fang mit einem einfachen Service an (Node.js, Python). Wenn das läuft, erweitere mit Logging, Limits, Sandboxing.
 
-Bei Fragen: [schneider@alexle135.de](mailto:schneider@alexle135.de)
+Bei Fragen: [schneider@alex-schneider.dev](mailto:schneider@alex-schneider.dev)
 
 ---
 

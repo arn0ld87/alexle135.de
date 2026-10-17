@@ -1,5 +1,6 @@
 ---
 title: 'Windows CMD & PowerShell lernen – Der komplette Praxisguide'
+metaDescription: 'CMD und PowerShell mit sechs interaktiven Missionen lernen: Praxisbeispiele, Cheat Sheets und eine kostenlose Terminal-Simulation für FISI-Azubis.'
 summary: 'Windows CMD & PowerShell lernen für FISI-Azubis: 6 interaktive Missionen von Basics bis Expert-Level. Mit Praxisbeispielen, Cheat Sheets & kostenloser Terminal-Simulation – Learning by Doing statt YouTube-Marathon.'
 publishedAt: 2025-11-24
 tags:
@@ -12,7 +13,7 @@ tags:
   - Prüfungsvorbereitung
   - IT-Umschulung
   - Systemadministration
-heroImage: /images/blog/windows-kommandozeile-lernen-cmd-powershell.webp
+heroImage: ../../assets/blog/windows-kommandozeile-lernen-cmd-powershell.webp
 author: Alexander Schneider
 ---
 
@@ -509,6 +510,6 @@ Wenn du auch FISI-Azubi bist oder Windows-Administration lernst: **Das ist das T
 
 Ich baue Tools, die mir beim Lernen helfen – und teile sie, damit du schneller vorankommst als ich.
 
-**Mehr FISI-Projekte:** [alexle135.de/projekte](/projekte/)
+**Mehr FISI-Projekte:** [alex-schneider.dev/projekte](/projekte/)
 
 **Kontakt:** Feedback, Fehler gefunden, Themenwünsche? [Schreib mir](/kontakt/)

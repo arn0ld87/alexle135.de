@@ -17,12 +17,12 @@ if (adminSession) {
 
         <!-- Lock icon -->
         <div class="mb-8 flex flex-col items-center gap-4">
-          <div class="flex h-12 w-12 items-center justify-center border border-[color:color-mix(in_srgb,var(--color-mono-50)_16%,transparent)]">
-            <svg class="h-5 w-5 text-[color:var(--color-neon-orange)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+          <div class="flex h-12 w-12 items-center justify-center border border-[color:color-mix(in_srgb,var(--ink)_16%,transparent)]">
+            <svg class="h-5 w-5 text-[color:var(--accent-strong)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
             </svg>
           </div>
-          <h1 class="font-[family-name:var(--font-editorial)] text-3xl tracking-tight text-[color:var(--color-mono-50)]">Admin</h1>
+          <h1 class="ds-display-m text-[color:var(--ink)]">Admin</h1>
           <p class="v2-kicker">Nur fuer Alexander Schneider</p>
         </div>
 
@@ -37,10 +37,10 @@ if (adminSession) {
               type="email"
               id="email"
               name="email"
-              placeholder="info@alexle135.de"
+              placeholder="info@alex-schneider.dev"
               required
               autocomplete="email"
-              class="w-full border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] bg-[color:color-mix(in_srgb,var(--color-mono-50)_4%,transparent)] px-4 py-3 font-[family-name:var(--font-ui)] text-sm text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-500)] outline-none transition-all focus:border-[color:var(--color-neon-orange)] focus:ring-1 focus:ring-[color:var(--color-neon-orange)]"
+              class="w-full border border-[color:var(--muted)] bg-[color:var(--paper)] px-4 py-3 text-[color:var(--ink)] placeholder-[color:var(--muted)] focus:outline-none focus-visible:border-[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--accent)] transition-colors font-ui text-sm"
             />
           </div>
 
@@ -53,14 +53,14 @@ if (adminSession) {
               placeholder="••••••••"
               required
               autocomplete="current-password"
-              class="w-full border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] bg-[color:color-mix(in_srgb,var(--color-mono-50)_4%,transparent)] px-4 py-3 font-[family-name:var(--font-ui)] text-sm text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-500)] outline-none transition-all focus:border-[color:var(--color-neon-orange)] focus:ring-1 focus:ring-[color:var(--color-neon-orange)]"
+              class="w-full border border-[color:var(--muted)] bg-[color:var(--paper)] px-4 py-3 text-[color:var(--ink)] placeholder-[color:var(--muted)] focus:outline-none focus-visible:border-[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--accent)] transition-colors font-ui text-sm"
             />
           </div>
 
           <button
             type="submit"
             id="submit-btn"
-            class="group mt-2 flex w-full items-center justify-center gap-2 border border-[color:var(--color-neon-orange)] bg-[color:var(--color-neon-orange)] px-4 py-3 font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--color-neon-orange-ink)] transition-all hover:bg-transparent hover:text-[color:var(--color-neon-orange)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-neon-orange)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-mono-950)] disabled:opacity-40 disabled:cursor-not-allowed"
+            class="group mt-2 flex w-full items-center justify-center gap-2 border border-[color:var(--ink)] bg-[color:var(--ink)] px-4 py-3 font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--paper)] transition-all hover:bg-[color:var(--accent-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--paper)] disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <span id="btn-text">Anmelden</span>
             <svg id="btn-spinner" class="hidden h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -73,7 +73,7 @@ if (adminSession) {
           </button>
 
           <!-- Error message -->
-          <div id="error-message" class="hidden border border-red-500/20 bg-red-500/5 px-4 py-3 text-center font-[family-name:var(--font-ui)] text-sm text-red-400"></div>
+          <div id="error-message" class="hidden border border-[color:var(--danger)] px-4 py-3 text-center font-[family-name:var(--font-ui)] text-sm text-[color:var(--danger)]"></div>
         </form>
 
       </div>

@@ -9,53 +9,59 @@ import { z } from 'astro/zod';
 
 const projects = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/projects' }),
-  schema: z.object({
-    title: z.string(),
-    summary: z.string(),
-    tldr: z.string().optional(),
-    tags: z.array(z.string()).default([]),
-    techStack: z.array(z.string()).default([]),
-    role: z.string().optional(),
-    frameLabel: z.string().optional(),
-    heroImage: z.string().optional(),
-    heroImageAlt: z.string().max(160).optional(),
-    publishedAt: z.date().optional(),
-    category: z.enum(['KI', 'Infrastruktur', 'Web']),
-    schemaType: z
-      .enum(['SoftwareApplication', 'SoftwareSourceCode', 'CreativeWork', 'TechArticle'])
-      .default('SoftwareApplication'),
-    status: z.enum(['planning', 'in-progress', 'completed', 'archived']).default('completed'),
-    demoUrl: z.url().optional(),
-    repoUrl: z.url().optional(),
-    featured: z.boolean().default(false),
-  }),
+  schema: ({ image }) =>
+    z.object({
+      title: z.string(),
+      summary: z.string(),
+      tldr: z.string().optional(),
+      tags: z.array(z.string()).default([]),
+      techStack: z.array(z.string()).default([]),
+      role: z.string().optional(),
+      frameLabel: z.string().optional(),
+      heroImage: image().optional(),
+      heroImageAlt: z.string().max(160).optional(),
+      publishedAt: z.date().optional(),
+      category: z.enum(['KI', 'Infrastruktur', 'Web']),
+      schemaType: z
+        .enum(['SoftwareApplication', 'SoftwareSourceCode', 'CreativeWork', 'TechArticle'])
+        .default('SoftwareApplication'),
+      status: z.enum(['planning', 'in-progress', 'completed', 'archived']).default('completed'),
+      demoUrl: z.url().optional(),
+      repoUrl: z.url().optional(),
+      featured: z.boolean().default(false),
+    }),
 });
 
 const blog = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/blog' }),
-  schema: z.object({
-    title: z.string(),
-    summary: z.string(),
-    tldr: z.string().optional(),
-    tags: z.array(z.string()).default([]),
-    format: z.string().optional(),
-    readingTime: z.string().optional(),
-    snippet: z.string().optional(),
-    heroImage: z.string().optional(),
-    heroImageAlt: z.string().max(160).optional(),
-    publishedAt: z.date().optional(),
-    updatedAt: z.date().optional(),
-    author: z.string().default('Alexander Schneider'),
-    draft: z.boolean().default(false),
-    faq: z
-      .array(
-        z.object({
-          question: z.string(),
-          answer: z.string(),
-        })
-      )
-      .optional(),
-  }),
+  schema: ({ image }) =>
+    z.object({
+      title: z.string(),
+      summary: z.string(),
+      metaDescription: z.string().optional(),
+      tldr: z.string().optional(),
+      tags: z.array(z.string()).default([]),
+      format: z.string().optional(),
+      layout: z.enum(['standard', 'feature']).default('standard'),
+      readingTime: z.string().optional(),
+      snippet: z.string().optional(),
+      heroImage: image().optional(),
+      heroImageAlt: z.string().max(160).optional(),
+      heroVideo: z.string().optional(),
+      heroPoster: image().optional(),
+      publishedAt: z.date().optional(),
+      updatedAt: z.date().optional(),
+      author: z.string().default('Alexander Schneider'),
+      draft: z.boolean().default(false),
+      faq: z
+        .array(
+          z.object({
+            question: z.string(),
+            answer: z.string(),
+          })
+        )
+        .optional(),
+    }),
 });
 
 const changelog = defineCollection({

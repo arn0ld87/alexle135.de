@@ -8,26 +8,23 @@ import V2Layout from '../../layouts/V2Layout.astro';
   noindex
 >
   <main class="v2-shell py-20 md:py-28 lg:py-36 min-h-[60vh] flex items-center">
-    <div class="max-w-2xl space-y-8">
-      <p class="v2-kicker flex items-center gap-3">
-        <span class="v2-accent-dot" aria-hidden="true"></span>
-        <span>Nachricht gesendet</span>
-      </p>
+    <div class="ds-pagehead max-w-2xl space-y-8">
+      <p class="ds-kicker">Nachricht gesendet</p>
 
-      <h1 class="font-editorial text-[clamp(2.5rem,6vw,4.5rem)] leading-[0.92] tracking-[-0.04em] text-[color:var(--color-mono-50)]">
+      <h1 class="ds-display-xl text-[color:var(--ink)]">
         Vielen Dank.
       </h1>
 
-      <p class="text-xl leading-relaxed text-[color:var(--color-mono-300)] max-w-lg">
+      <p class="text-xl leading-relaxed text-[color:var(--muted)] max-w-lg">
         Ich habe deine Nachricht erhalten und melde mich so schnell wie möglich.
       </p>
 
       <div class="pt-6">
         <a
           href="/"
-          class="group inline-flex items-center gap-3 font-mono text-sm uppercase tracking-[0.2em] text-[color:var(--color-mono-300)] hover:text-[color:var(--color-neon-orange)] transition-colors"
+          class="group inline-flex items-center gap-3 font-mono text-sm uppercase tracking-[0.2em] text-[color:var(--muted)] hover:text-[color:var(--accent-strong)] transition-colors"
         >
-          <span class="text-[color:var(--color-neon-orange)] group-hover:-translate-x-1 transition-transform">&larr;</span>
+          <span class="text-[color:var(--accent-strong)] group-hover:-translate-x-1 transition-transform">&larr;</span>
           Startseite
         </a>
       </div>

@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { renderOgPng } from '../../../lib/og';
+import { projectOgInput } from '../../../lib/ogMeta';
 
 export const prerender = false;
 
@@ -21,13 +22,9 @@ export const GET: APIRoute = async ({ params }) => {
       return new Response('Not found', { status: 404 });
     }
 
-    const meta = [project.data.category, project.data.role].filter(Boolean).join('  ·  ');
-
-    const png = await renderOgPng({
-      title: project.data.title,
-      kicker: 'Projekt · alexle135.de',
-      meta,
-    });
+    const png = await renderOgPng(
+      projectOgInput({ title: project.data.title, techStack: project.data.techStack })
+    );
 
     return new Response(new Uint8Array(png), {
       status: 200,

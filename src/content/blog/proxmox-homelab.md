@@ -6,7 +6,7 @@ tags:
   - Homelab
   - Virtualisierung
   - Server
-heroImage: /images/blog/proxmox-homelab.webp
+heroImage: ../../assets/blog/proxmox-homelab.webp
 publishedAt: 2025-11-12
 author: Alexander Schneider
 ---
@@ -104,4 +104,6 @@ Ein eigenes Heimlabor ist Gold wert. Du lernst Dinge, die dir kein Buch beibring
 
 **Lohnt sich das?** Absolut!
 
-Bei Fragen schreib mir gerne: [schneider@alexle135.de](mailto:schneider@alexle135.de)
+Bei Fragen schreib mir gerne: [schneider@alex-schneider.dev](mailto:schneider@alex-schneider.dev)
+
+**Zur Hardware:** Wie M.2-SSDs funktionieren und welche sich für einen Server lohnen, zeigt mein [Vortrag zur M.2-Schnittstelle](/projekte/m2-schnittstelle/).

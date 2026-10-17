@@ -1,0 +1,2047 @@
+/* ============================================================
+   alex-schneider.dev: Design-System "Systemwerk"
+
+   Tokens beider Ansichten (Papier auf :root, Bauplan auf
+   :root[data-variant='bauplan']), Shell, Typografie, Komponentenklassen
+   und Primitive der Unterseiten. Tailwind v4 besitzt die globalen
+   Themevariablen --text-*, --leading-*, --tracking-*, --radius-* und
+   --shadow-*; Tokens mit diesen Präfixen tragen deshalb ein ds-Präfix
+   (--ds-radius-*, --ds-shadow-*, --ds-text-*). Die @font-face-Blöcke und
+   die Schriftstapel stehen in v2-theme.css. docs/DESIGN_SYSTEM.md
+   beschreibt das System; ein Test hält die Token-Tabelle der Doku
+   deckungsgleich mit den beiden Token-Blöcken unten.
+   ============================================================ */
+:root {
+  /* --- Systemwerk (Phase 2): Basis-Tokens, Variante Papier (Standard). ---
+     Die einzige Quelle aller Farbwerte beider Varianten. Die Variante
+     Bauplan überschreibt dieselben Namen am Wurzelelement (Attribut
+     data-variant), nie auf body: ein Override auf body erreicht nur Nachfahren
+     von body, nicht das Wurzelelement selbst (D-39). --- */
+  --paper: #eeeee6;
+  --ink: #252620;
+  --muted: #66685f;
+  --line: #c7c9bf;
+  --accent: #db4a26;
+  --panel: #20231e;
+  --panel-text: #eeeee6;
+
+  /* --- Abgeleitete Tokens (R-01, UI-SPEC "Token-Tabelle") --- */
+  --accent-strong: #b43716;
+  --accent-press: #9c2f13;
+  --marker-on-ink: #ed7650;
+  --panel-accent: #ed7650;
+  --panel-muted: #b8bcb0;
+  --panel-edge: #747a67;
+  --panel-rule: #55584e;
+  --danger: #a3281a;
+  --selection-bg: #e9c0b0;
+  --selection-text: #252620;
+
+  /* --- Fluid display + heading scale ---
+     Kalibriert für Systemwerk (02-02): Hero 87px @1366, 104px Cap; Seiten-H1
+     64px, Section-H2 48px (Cap). Einzige Quelle für Display-Größen —
+     Seiten nutzen die .ds-display-*-Klassen statt eigener clamp()s.
+     Auf :root, damit jede Seite dieselbe Scale bekommt. --- */
+  --text-display-hero: clamp(2.5rem, 13vw, 5.5rem);
+  --text-display-xl: clamp(2.5rem, 1.6rem + 2.8vw, 4rem);
+  --text-display-l: clamp(2rem, 1.4rem + 2vw, 3rem);
+  --text-display-m: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+  --text-display-s: clamp(1.1875rem, 1.05rem + 0.5vw, 1.5rem);
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --text-display-hero: clamp(4rem, 6.4vw, 6.5rem);
+  }
+}
+
+/* Variante Bauplan: setzt dieselben Basis-Tokens am Wurzelelement. */
+:root[data-variant='bauplan'] {
+  --paper: #123b66;
+  --ink: #e2ebee;
+  --muted: #aabfd1;
+  --line: #527592;
+  --accent: #eb9877;
+  --panel: #082b4b;
+  --panel-text: #e2ebee;
+  --accent-strong: #f2a98c;
+  --accent-press: #eb9877;
+  --marker-on-ink: #b8502a;
+  --panel-accent: #eb9877;
+  --panel-muted: #aabfd1;
+  --panel-edge: #6f94b3;
+  --panel-rule: #527592;
+  --danger: #ffb4a6;
+  --selection-bg: #eb9877;
+  --selection-text: #082b4b;
+}
+
+/* Syntaxfarben der Codeblöcke: Shiki-Theme css-variables (astro.config.mjs).
+   Alles zeigt auf Panel-Tokens und folgt damit der Variante; die Mischtöne sind
+   Mischungen zweier Panel-Tokens, keine neuen Farbwerte. Jeder Ton besteht den
+   Kontrast von 4,5:1 auf --panel (src/tests/contrast.test.ts). */
+:root {
+  --astro-code-foreground: var(--panel-text);
+  --astro-code-background: var(--panel);
+  --astro-code-token-comment: var(--panel-muted);
+  --astro-code-token-keyword: var(--panel-accent);
+  --astro-code-token-function: var(--panel-text);
+  --astro-code-token-string: color-mix(in srgb, var(--panel-text) 60%, var(--panel-accent));
+  --astro-code-token-string-expression: var(--astro-code-token-string);
+  --astro-code-token-constant: var(--astro-code-token-string);
+  --astro-code-token-parameter: var(--panel-muted);
+  --astro-code-token-punctuation: var(--panel-text);
+  --astro-code-token-link: var(--panel-accent);
+}
+
+/* ============================================================
+   SHELL — Seitenfläche, Texturen, Variantenwechsel (02-03, D-07, D-14)
+   Alle Werte über var() und color-mix(): keine Hex-Kopien von Tokens.
+   ============================================================ */
+html {
+  scroll-padding-top: 80px;
+}
+
+@media (min-width: 1024px) {
+  html {
+    scroll-padding-top: 88px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+::selection {
+  background: var(--selection-bg);
+  color: var(--selection-text);
+}
+
+/* Papierrauschen: nur Papier und nur ab 768 px, als background-image auf body
+   (kein fixierter Vollbild-Layer, Pitfall 8). Kachel 180 x 180 px, die Deckkraft
+   (.04) ist in der Kachel eingebacken; unter 768 px bleibt die Fläche flach. */
+@media (min-width: 768px) {
+  body {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23000' filter='url(%23n)' opacity='.04' d='M0 0h180v180H0z'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+  }
+}
+
+/* Bauplan-Raster statt Rauschen: 24 x 24 px, in jeder Breite. */
+:root[data-variant='bauplan'] body {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--ink) 9%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--ink) 9%, transparent) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Panel und Dialog setzen ihre Fläche deckend: weder Rauschen noch Raster scheinen
+   durch. Die Terminal-Insel setzt --terminal-bg selbst deckend. */
+[data-surface='panel'] {
+  background-color: var(--panel);
+  color: var(--panel-text);
+}
+
+dialog {
+  background-color: var(--paper);
+  color: var(--ink);
+}
+
+/* Variantenwechsel: html.variant-transition steht nur während des durch den
+   Nutzer ausgelösten Umschaltens (240 ms, gesetzt von variantToggle.ts), nie beim
+   ersten Laden. Unter prefers-reduced-motion wird die Klasse nicht gesetzt und
+   die Regel zusätzlich aufgehoben. */
+html.variant-transition,
+html.variant-transition *,
+html.variant-transition *::before,
+html.variant-transition *::after {
+  transition:
+    background-color 240ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)),
+    color 240ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)),
+    border-color 240ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.variant-transition,
+  html.variant-transition *,
+  html.variant-transition *::before,
+  html.variant-transition *::after {
+    transition: none !important;
+  }
+}
+
+/* ============================================================
+   TOKENS — Abstände, Shell-Maße, Radien, Motion, Terminal- und Zustandsfarben
+   Auf :root, damit Buttons, Felder und Karten des Design-Systems auf jeder
+   Seite gestaltet sind. Die Overrides auf :root[data-variant='bauplan'] (oben)
+   gewinnen über die höhere Spezifität. Die Farben der Seitenflächen stehen
+   ausschließlich im Block oben.
+   ============================================================ */
+:root {
+  --focus-ring: color-mix(in srgb, var(--accent) 45%, transparent);
+
+  /* --- Terminal-Insel: die einzige dauerhaft dunkle Fläche außerhalb des
+     Panels, in beiden Ansichten gleich. Eigene Tokens, damit sie nicht den
+     Seitenfarben folgt. Gelesen von TerminalBand.tsx und dem Chrome der
+     Code-Blöcke. --- */
+  --terminal-bg: #14181a;
+  --terminal-fg: #e7e4da;
+  --terminal-fg-muted: #8b968e;
+  --terminal-accent: #4ade80;
+  --terminal-border: rgba(255, 255, 255, 0.1);
+
+  /* --- Schriften: --font-display, --font-ui, --font-sans und --font-mono
+     kommen aus dem @theme-Block in v2-theme.css, der sie auf :root
+     ausgibt (einzige Quelle der Schriftstapel). --- */
+
+  --text-h1: 2.5rem;
+  --text-h2: 1.9rem;
+  --text-h3: 1.45rem;
+  --text-h4: 1.15rem;
+
+  /* --- Body & supporting (ds- prefix avoids Tailwind --text-sm/-xs clash) --- */
+  --ds-text-body: 1.0625rem;
+  --ds-text-sm: 0.9375rem;
+  --ds-text-label: 0.75rem;
+  /* Entfallen (UI-SPEC): Lead setzt Body, xs setzt UI, micro setzt Label.
+     Untergrenze für jeden sichtbaren Text: 12px. */
+  --ds-text-lead: var(--ds-text-body);
+  --ds-text-xs: var(--ds-text-sm);
+  --ds-text-micro: var(--ds-text-label);
+
+  /* --- Weights: genau 400 und 700 (UI-SPEC R-06) --- */
+  --weight-light: 400;
+  --weight-regular: 400;
+  --weight-medium: 400;
+  --weight-semibold: 700;
+  --weight-bold: 700;
+
+  /* --- Line heights (ds- prefix avoids Tailwind --leading-* clash) --- */
+  --ds-leading-tight: 1.05;
+  --ds-leading-snug: 1.22;
+  --ds-leading-normal: 1.55;
+  --ds-leading-relaxed: 1.85;
+
+  /* --- Tracking (ds- prefix avoids Tailwind --tracking-* clash) --- */
+  --ds-tracking-tight: -0.02em;
+  --ds-tracking-normal: 0;
+  --ds-tracking-wide: 0.08em;
+  --ds-tracking-label: 0.08em;
+
+  /* --- Spacing (4px rhythm) --- */
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 2.5rem;
+  --space-8: 3rem;
+  --space-9: 4rem;
+  --space-10: 5rem;
+  --space-11: 6.5rem;
+  --space-12: 8rem;
+
+  --shell-max: 1240px;
+  --shell-narrow: 760px;
+  --shell-pad: clamp(1.25rem, 0.5rem + 3vw, 2.75rem);
+  --section-gap: clamp(3rem, 2rem + 1.5vw, 4rem);
+
+  /* --- Radii (ds- prefix avoids Tailwind --radius-* clash) --- */
+  --ds-radius-0: 0;
+  --ds-radius-xs: 0;
+  --ds-radius-sm: 0;
+  --ds-radius-md: 0;
+  --ds-radius-lg: 0;
+  --ds-radius-xl: 0;
+  --ds-radius-pill: 0;
+
+  --border-hair: 1px;
+  --border-thick: 1.5px;
+
+  /* --- Shadows (ds- prefix avoids Tailwind --shadow-* clash) ---
+     Systemwerk: keine weichen Schatten. Die Stufen bleiben als wirkungsloser
+     Schatten erhalten, weil sie in Listen mit weiteren Schatten stehen
+     ("none" ist dort ungültig). Auf Papier trägt die Haarlinie. --- */
+  --ds-shadow-xs: 0 0 transparent;
+  --ds-shadow-sm: 0 0 transparent;
+  --ds-shadow-md: 0 0 transparent;
+  --ds-shadow-lg: 0 0 transparent;
+  --ds-shadow-glow: 0 0 0 1px var(--accent);
+  --inset-top: 0 0 transparent;
+  --blur-panel: 18px;
+
+  /* --- Motion --- */
+  --dur-instant: 90ms;
+  --dur-fast: 150ms;
+  --dur-base: 240ms;
+  --dur-slow: 420ms;
+  --dur-reveal: 720ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-entry: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-instant: 0ms;
+    --dur-fast: 0ms;
+    --dur-base: 0ms;
+    --dur-slow: 0ms;
+    --dur-reveal: 0ms;
+  }
+}
+
+/* ============================================================
+   BASE UTILITIES
+   ============================================================ */
+.ds-ground {
+  background:
+    radial-gradient(
+      circle at 12% -8%,
+      color-mix(in srgb, var(--ink) 4.5%, transparent),
+      transparent 42%
+    ),
+    var(--paper);
+}
+
+.ds-shell {
+  width: 100%;
+  max-width: var(--shell-max);
+  margin-inline: auto;
+  padding-inline: var(--shell-pad);
+}
+
+.ds-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--ds-text-label);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--ds-tracking-label);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+/* Marker-Quadrat 8 x 8 px (UI-SPEC: auf das 4-px-Raster gezogen, Skizze 7 px). */
+.ds-kicker::before {
+  content: '';
+  flex: none;
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+}
+.ds-kicker[data-marker='none']::before {
+  display: none;
+}
+
+.ds-rule {
+  height: 1px;
+  border: 0;
+  background: linear-gradient(90deg, transparent, var(--ink), transparent);
+}
+
+/* ── DISPLAY-HEADINGS — zentrale Type-Scale ─────────────────────
+   Ersetzt verstreute text-[clamp(...)]-Arbitraries. Größe, Zeilen-
+   höhe und Tracking gehören zusammen und ändern sich nur hier.
+   hero, xl und l laufen in Heros Bold, m und s in Geist Sans Bold.
+   Alle Klassen brechen lange Komposita statt zu überlaufen. */
+.ds-display-hero,
+.ds-display-xl,
+.ds-display-l,
+.ds-display-m,
+.ds-display-s {
+  font-weight: 700;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.ds-display-hero {
+  font-family: var(--font-display);
+  font-size: var(--text-display-hero);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.ds-display-xl {
+  font-family: var(--font-display);
+  font-size: var(--text-display-xl);
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+}
+
+.ds-display-l {
+  font-family: var(--font-display);
+  font-size: var(--text-display-l);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.ds-display-m {
+  font-family: var(--font-sans);
+  font-size: var(--text-display-m);
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+.ds-display-s {
+  font-family: var(--font-sans);
+  font-size: var(--text-display-s);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+/* Outline-Wort: genau eines je Seite, nur in H1 oder H2. Bleibt echter Text. */
+.ds-outline {
+  color: transparent;
+  -webkit-text-stroke: clamp(1.5px, 0.025em, 3px) var(--ink);
+  letter-spacing: -0.03em;
+}
+
+@supports not (-webkit-text-stroke: 1px red) {
+  .ds-outline {
+    color: var(--accent);
+  }
+}
+
+@media (forced-colors: active) {
+  .ds-outline {
+    color: CanvasText;
+    -webkit-text-stroke: 0;
+  }
+}
+
+/* Icons: eckige Linienenden und Ecken (Systemwerk) */
+svg.ds-icon {
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+
+/* ── RETICLE — terminal corner-bracket frame ───────────────────── */
+.ds-reticle {
+  --tick: 13px;
+  --tick-w: 1.5px;
+  --tick-color: var(--ink);
+  position: relative;
+  background-image:
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color));
+  background-repeat: no-repeat;
+  background-size:
+    var(--tick) var(--tick-w),
+    var(--tick-w) var(--tick),
+    var(--tick) var(--tick-w),
+    var(--tick-w) var(--tick),
+    var(--tick) var(--tick-w),
+    var(--tick-w) var(--tick),
+    var(--tick) var(--tick-w),
+    var(--tick-w) var(--tick);
+  background-position:
+    top left,
+    top left,
+    top right,
+    top right,
+    bottom left,
+    bottom left,
+    bottom right,
+    bottom right;
+}
+.ds-reticle[data-accent] {
+  --tick-color: var(--accent);
+}
+
+/* ============================================================
+   COMPONENT CSS — token-driven, SSR-safe (no runtime injection)
+   ============================================================ */
+
+/* ── Button ─────────────────────────────────────────────────── */
+/* Systemwerk: eckig, flach, zwei Gewichte. Ruhezustand nie orange gefüllt (D-37);
+   --accent erscheint nur als Marker, Unterstrich, Fokusring und im Hover/Active. */
+.axb {
+  --axb-h: 44px;
+  --axb-px: 24px;
+  --axb-fs: 0.9375rem;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: var(--axb-h);
+  padding-inline: var(--axb-px);
+  font-family: var(--font-sans);
+  font-size: var(--axb-fs);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.005em;
+  line-height: 1;
+  border: var(--border-hair) solid transparent;
+  border-radius: var(--ds-radius-sm);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+.axb:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+[data-surface='panel'] .axb:focus-visible {
+  outline-color: var(--panel-accent);
+}
+.axb svg {
+  width: 1.05em;
+  height: 1.05em;
+  flex: none;
+}
+.axb[data-size='sm'] {
+  --axb-h: 36px;
+  --axb-px: 16px;
+  --axb-fs: 0.875rem;
+  gap: 8px;
+}
+.axb[data-size='lg'] {
+  --axb-h: 52px;
+  --axb-px: 32px;
+  --axb-fs: 1.0625rem;
+  gap: 12px;
+}
+.axb[data-block='true'] {
+  display: flex;
+  width: 100%;
+}
+
+/* primary: Tinte auf Papier, Marker vor dem Label */
+.axb[data-variant='primary'] {
+  background: var(--ink);
+  color: var(--paper);
+}
+.axb[data-variant='primary']::before {
+  content: '';
+  flex: none;
+  width: 8px;
+  height: 8px;
+  background: var(--marker-on-ink);
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+@media (hover: hover) {
+  .axb[data-variant='primary']:not([disabled], [aria-disabled='true']):hover {
+    background: var(--accent-strong);
+  }
+  .axb[data-variant='primary']:not([disabled], [aria-disabled='true']):hover::before {
+    background: var(--paper);
+  }
+}
+.axb[data-variant='primary']:not([disabled], [aria-disabled='true']):active {
+  background: var(--accent-press);
+}
+
+/* primary auf dem Panel: invertiert */
+[data-surface='panel'] .axb[data-variant='primary'] {
+  background: var(--panel-text);
+  color: var(--panel);
+}
+[data-surface='panel'] .axb[data-variant='primary']::before {
+  background: var(--panel-accent);
+}
+@media (hover: hover) {
+  [data-surface='panel']
+    .axb[data-variant='primary']:not([disabled], [aria-disabled='true']):hover {
+    background: var(--panel-accent);
+  }
+  [data-surface='panel']
+    .axb[data-variant='primary']:not([disabled], [aria-disabled='true']):hover::before {
+    background: var(--panel);
+  }
+}
+[data-surface='panel'] .axb[data-variant='primary']:not([disabled], [aria-disabled='true']):active {
+  background: color-mix(in srgb, var(--panel-accent) 80%, var(--panel));
+}
+
+/* secondary: transparent mit 1 px Tinte, Hover 2 px layout-neutral */
+.axb[data-variant='secondary'] {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--ink);
+}
+@media (hover: hover) {
+  .axb[data-variant='secondary']:not([disabled], [aria-disabled='true']):hover {
+    box-shadow: inset 0 0 0 1px var(--ink);
+  }
+}
+.axb[data-variant='secondary']:not([disabled], [aria-disabled='true']):active {
+  background: color-mix(in srgb, var(--ink) 8%, var(--paper));
+}
+[data-surface='panel'] .axb[data-variant='secondary'] {
+  color: var(--panel-text);
+  border-color: var(--panel-text);
+}
+@media (hover: hover) {
+  [data-surface='panel']
+    .axb[data-variant='secondary']:not([disabled], [aria-disabled='true']):hover {
+    box-shadow: inset 0 0 0 1px var(--panel-text);
+  }
+}
+[data-surface='panel']
+  .axb[data-variant='secondary']:not([disabled], [aria-disabled='true']):active {
+  background: color-mix(in srgb, var(--panel-text) 12%, var(--panel));
+}
+
+/* ghost / Textlink: Tinte mit Akzent-Unterstrich */
+.axb[data-variant='ghost'] {
+  background: transparent;
+  color: var(--ink);
+  text-decoration-line: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 6px;
+}
+.axb[data-variant='ghost'] svg {
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+@media (hover: hover) {
+  .axb[data-variant='ghost']:not([disabled], [aria-disabled='true']):hover {
+    text-decoration-thickness: 2px;
+  }
+  .axb[data-variant='ghost']:not([disabled], [aria-disabled='true']):hover svg {
+    transform: translate(4px, -4px);
+  }
+}
+.axb[data-variant='ghost']:not([disabled], [aria-disabled='true']):active {
+  color: var(--accent-press);
+}
+[data-surface='panel'] .axb[data-variant='ghost'] {
+  color: var(--panel-text);
+  text-decoration-color: var(--panel-accent);
+}
+[data-surface='panel'] .axb[data-variant='ghost']:not([disabled], [aria-disabled='true']):active {
+  color: var(--panel-accent);
+}
+
+.axb[data-variant='terminal'] {
+  --tick: 9px;
+  --tick-w: 1.5px;
+  --tick-color: var(--ink);
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-medium);
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  border-radius: 0;
+  background-image:
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color));
+  background-repeat: no-repeat;
+  background-size:
+    var(--tick) var(--tick-w),
+    var(--tick-w) var(--tick),
+    var(--tick) var(--tick-w),
+    var(--tick-w) var(--tick),
+    var(--tick) var(--tick-w),
+    var(--tick-w) var(--tick),
+    var(--tick) var(--tick-w),
+    var(--tick-w) var(--tick);
+  background-position:
+    top left,
+    top left,
+    top right,
+    top right,
+    bottom left,
+    bottom left,
+    bottom right,
+    bottom right;
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+.axb[data-variant='terminal']:hover {
+  --tick-color: var(--accent);
+  color: var(--ink);
+}
+.axb[data-variant='terminal']:active {
+  transform: none;
+  color: var(--accent);
+}
+
+.axb[data-variant='danger'] {
+  background: var(--danger);
+  color: var(--paper);
+}
+@media (hover: hover) {
+  .axb[data-variant='danger']:not([disabled], [aria-disabled='true']):hover {
+    background: color-mix(in srgb, var(--danger) 85%, var(--ink));
+  }
+}
+.axb[data-variant='danger']:not([disabled], [aria-disabled='true']):active {
+  background: color-mix(in srgb, var(--danger) 70%, var(--ink));
+}
+
+/* Disabled: Text --muted, gestrichelter Rahmen, keine Fläche, kein Hover */
+.axb[disabled],
+.axb[aria-disabled='true'] {
+  background: transparent;
+  color: var(--muted);
+  border: var(--border-hair) dashed var(--line);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+.axb[disabled]::before,
+.axb[aria-disabled='true']::before {
+  background: var(--muted);
+}
+a.axb[aria-disabled='true'] {
+  pointer-events: none;
+}
+.axb[data-variant='terminal'][disabled],
+.axb[data-variant='terminal'][aria-disabled='true'] {
+  color: var(--muted);
+  border: var(--border-hair) solid transparent;
+  opacity: 0.42;
+  pointer-events: none;
+}
+[data-surface='panel'] .axb[disabled],
+[data-surface='panel'] .axb[aria-disabled='true'] {
+  background: transparent;
+  color: var(--panel-muted);
+  border-color: var(--panel-rule);
+}
+[data-surface='panel'] .axb[disabled]::before,
+[data-surface='panel'] .axb[aria-disabled='true']::before {
+  background: var(--panel-muted);
+}
+
+/* Loading: Label und Breite bleiben, der Marker verschwindet mit dem Label */
+.axb[data-loading='true'] {
+  color: transparent !important;
+}
+.axb[data-loading='true']::before {
+  opacity: 0;
+}
+.axb-spin {
+  position: absolute;
+  width: 1.05em;
+  height: 1.05em;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 999px;
+  animation: axb-spin 0.7s linear infinite;
+  color: var(--paper);
+}
+.axb[data-variant='secondary'] .axb-spin,
+.axb[data-variant='ghost'] .axb-spin,
+.axb[data-variant='terminal'] .axb-spin {
+  color: var(--ink);
+}
+[data-surface='panel'] .axb[data-variant='primary'] .axb-spin {
+  color: var(--panel);
+}
+[data-surface='panel'] .axb[data-variant='secondary'] .axb-spin,
+[data-surface='panel'] .axb[data-variant='ghost'] .axb-spin {
+  color: var(--panel-text);
+}
+@keyframes axb-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── IconButton ─────────────────────────────────────────────── */
+.axib {
+  --axib-s: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--axib-s);
+  height: var(--axib-s);
+  border: var(--border-hair) solid transparent;
+  border-radius: var(--ds-radius-sm);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  flex: none;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+.axib svg {
+  width: 1.15em;
+  height: 1.15em;
+}
+@media (hover: hover) {
+  .axib:hover {
+    background: color-mix(in srgb, var(--ink) 4%, var(--paper));
+    color: var(--ink);
+  }
+}
+.axib:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+[data-surface='panel'] .axib:focus-visible {
+  outline-color: var(--panel-accent);
+}
+.axib[disabled] {
+  opacity: 0.4;
+  pointer-events: none;
+}
+.axib[data-size='sm'] {
+  --axib-s: 32px;
+}
+.axib[data-size='lg'] {
+  --axib-s: 48px;
+}
+.axib[data-variant='solid'] {
+  background: color-mix(in srgb, var(--ink) 4%, var(--paper));
+  border-color: var(--line);
+}
+@media (hover: hover) {
+  .axib[data-variant='solid']:hover {
+    background: color-mix(in srgb, var(--ink) 8%, transparent);
+    border-color: var(--ink);
+  }
+}
+.axib[data-variant='accent'] {
+  background: var(--ink);
+  color: var(--paper);
+}
+@media (hover: hover) {
+  .axib[data-variant='accent']:hover {
+    background: var(--accent-strong);
+    color: var(--paper);
+  }
+}
+
+/* ── Badge ──────────────────────────────────────────────────── */
+.axbadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding-inline: 9px;
+  font-family: var(--font-mono);
+  font-size: var(--ds-text-micro);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: var(--ds-radius-xs);
+  border: var(--border-hair) solid var(--line);
+  background: color-mix(in srgb, var(--ink) 4%, var(--paper));
+  color: var(--muted);
+  white-space: nowrap;
+}
+.axbadge[data-soft='true'] {
+  border-color: transparent;
+}
+.axbadge-dot {
+  width: 6px;
+  height: 6px;
+  background: currentColor;
+  flex: none;
+}
+/* Text in Tinte: Akzentfarbe auf der Akzenttönung erreicht nur 3,1:1 (Papier) und 4,3:1 (Bauplan).
+   Den Akzent tragen Rand und Tönung. */
+.axbadge[data-tone='accent'] {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--accent) 12%, var(--paper));
+  border-color: var(--accent);
+}
+.axbadge[data-tone='success'] {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 14%, transparent);
+  border-color: color-mix(in srgb, var(--ink) 34%, transparent);
+}
+.axbadge[data-tone='warn'] {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 14%, transparent);
+  border-color: color-mix(in srgb, var(--ink) 34%, transparent);
+}
+.axbadge[data-tone='danger'] {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+  border-color: color-mix(in srgb, var(--danger) 34%, transparent);
+}
+.axbadge[data-tone='info'] {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 14%, transparent);
+  border-color: color-mix(in srgb, var(--ink) 34%, transparent);
+}
+
+/* ── Tag ────────────────────────────────────────────────────── */
+.axtag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 30px;
+  padding-inline: 12px;
+  font-family: var(--font-sans);
+  font-size: var(--ds-text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--muted);
+  background: var(--paper);
+  border: var(--border-hair) solid var(--line);
+  border-radius: var(--ds-radius-pill);
+  appearance: none;
+  -webkit-appearance: none;
+  text-align: inherit;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
+}
+.axtag svg {
+  width: 14px;
+  height: 14px;
+  opacity: 0.8;
+}
+.axtag[data-interactive='true'] {
+  cursor: pointer;
+}
+.axtag[data-interactive='true']:hover {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+/* Text in Tinte aus demselben Grund wie beim Badge mit Akzent. */
+.axtag[data-selected='true'] {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--accent) 12%, var(--paper));
+  border-color: var(--accent);
+}
+.axtag-x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-right: -4px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.6;
+  border-radius: 999px;
+}
+.axtag-x:hover {
+  opacity: 1;
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+.axtag-x svg {
+  width: 11px;
+  height: 11px;
+}
+
+/* ── Avatar ─────────────────────────────────────────────────── */
+.axav {
+  --axav-s: 44px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--axav-s);
+  height: var(--axav-s);
+  flex: none;
+  border-radius: var(--ds-radius-md);
+  overflow: hidden;
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  color: var(--muted);
+  border: var(--border-hair) solid var(--line);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-medium);
+  font-size: calc(var(--axav-s) * 0.36);
+  letter-spacing: 0.02em;
+  user-select: none;
+}
+.axav[data-shape='round'] {
+  border-radius: 999px;
+}
+.axav[data-size='sm'] {
+  --axav-s: 32px;
+}
+.axav[data-size='lg'] {
+  --axav-s: 60px;
+}
+.axav[data-size='xl'] {
+  --axav-s: 88px;
+}
+.axav img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.axav-status {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 30%;
+  height: 30%;
+  min-width: 9px;
+  min-height: 9px;
+  border: 2px solid var(--paper);
+  background: var(--muted);
+}
+.axav-status[data-online='true'] {
+  background: var(--ink);
+}
+
+/* ── Card ───────────────────────────────────────────────────── */
+.axcard {
+  position: relative;
+  background: var(--paper);
+  border: var(--border-hair) solid var(--line);
+  border-radius: var(--ds-radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--inset-top);
+  transition:
+    border-color var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out),
+    background var(--dur-base) var(--ease-out);
+}
+.axcard[data-variant='solid'] {
+  background: var(--paper);
+  border-color: var(--line);
+}
+.axcard[data-variant='raised'] {
+  background: var(--paper);
+  border-color: var(--line);
+  box-shadow: var(--inset-top), var(--ds-shadow-md);
+}
+.axcard[data-pad='sm'] {
+  padding: var(--space-4);
+}
+.axcard[data-pad='lg'] {
+  padding: var(--space-8);
+}
+.axcard[data-pad='none'] {
+  padding: 0;
+}
+.axcard[data-interactive='true'] {
+  cursor: pointer;
+}
+.axcard[data-interactive='true']:hover {
+  border-color: var(--ink);
+  transform: translateY(-3px);
+  box-shadow: var(--inset-top), var(--ds-shadow-lg);
+}
+.axcard[data-interactive='true']:hover.axcard[data-reticle='true'] {
+  --tick-color: var(--accent);
+}
+
+.axcard[data-reticle='true'] {
+  --tick: 16px;
+  --tick-w: 1.5px;
+  --tick-color: var(--ink);
+  border-color: transparent;
+  background-image:
+    linear-gradient(var(--paper), var(--paper)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color)),
+    linear-gradient(var(--tick-color), var(--tick-color));
+  background-repeat: no-repeat;
+  background-size:
+    100% 100%,
+    var(--tick) var(--tick-w),
+    var(--tick-w) var(--tick),
+    var(--tick) var(--tick-w),
+    var(--tick-w) var(--tick),
+    var(--tick) var(--tick-w),
+    var(--tick-w) var(--tick),
+    var(--tick) var(--tick-w),
+    var(--tick-w) var(--tick);
+  background-position:
+    center,
+    top left,
+    top left,
+    top right,
+    top right,
+    bottom left,
+    bottom left,
+    bottom right,
+    bottom right;
+  transition:
+    background var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
+}
+
+/* ── Input / textarea field ─────────────────────────────────── */
+.axfield {
+  display: grid;
+  gap: 7px;
+}
+.axfield-label {
+  font-family: var(--font-mono);
+  font-size: var(--ds-text-label);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--ds-tracking-label);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.axinput-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.axinput-ic {
+  position: absolute;
+  left: 14px;
+  display: inline-flex;
+  color: var(--muted);
+  pointer-events: none;
+}
+.axinput-ic svg {
+  width: 17px;
+  height: 17px;
+}
+.axinput {
+  width: 100%;
+  height: 44px;
+  padding: 0 16px;
+  font-family: var(--font-sans);
+  font-size: var(--ds-text-body);
+  color: var(--ink);
+  background: var(--paper);
+  border: var(--border-hair) solid var(--muted);
+  border-radius: var(--ds-radius-md);
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+.axinput::placeholder {
+  color: var(--muted);
+}
+.axinput:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-color: var(--ink);
+}
+.axinput[data-hasicon='true'] {
+  padding-left: 44px;
+}
+.axinput[data-invalid='true'] {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.axinput[data-invalid='true']:focus {
+  border-color: var(--danger);
+}
+.axinput:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.axinput[data-mono='true'] {
+  font-family: var(--font-mono);
+  font-size: var(--ds-text-sm);
+}
+.axfield-hint {
+  font-size: var(--ds-text-xs);
+  color: var(--muted);
+}
+.axfield-hint[data-invalid='true'] {
+  color: var(--danger);
+}
+textarea.axinput {
+  height: auto;
+  min-height: 96px;
+  padding: 12px 16px;
+  resize: vertical;
+  line-height: var(--ds-leading-normal);
+}
+
+/* ── Select ─────────────────────────────────────────────────── */
+.axsel-field {
+  display: grid;
+  gap: 7px;
+}
+.axsel-label {
+  font-family: var(--font-mono);
+  font-size: var(--ds-text-label);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--ds-tracking-label);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.axsel-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.axsel {
+  width: 100%;
+  height: 44px;
+  padding: 0 40px 0 16px;
+  font-family: var(--font-sans);
+  font-size: var(--ds-text-body);
+  color: var(--ink);
+  background: var(--paper);
+  border: var(--border-hair) solid var(--muted);
+  border-radius: var(--ds-radius-md);
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+.axsel:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-color: var(--ink);
+}
+.axsel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.axsel option {
+  background: var(--paper);
+  color: var(--ink);
+}
+.axsel-chev {
+  position: absolute;
+  right: 14px;
+  pointer-events: none;
+  color: var(--muted);
+  display: inline-flex;
+}
+.axsel-chev svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ── Switch ─────────────────────────────────────────────────── */
+.axswitch {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  cursor: pointer;
+  user-select: none;
+}
+.axswitch[data-disabled='true'] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.axswitch-track {
+  position: relative;
+  width: 44px;
+  height: 26px;
+  flex: none;
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  border: var(--border-hair) solid var(--line);
+  border-radius: 999px;
+  transition:
+    background var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out);
+}
+.axswitch-thumb {
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--ink);
+  box-shadow: var(--ds-shadow-xs);
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    background var(--dur-base) var(--ease-out);
+}
+.axswitch input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.axswitch input:checked + .axswitch-track {
+  background: var(--accent);
+  border-color: transparent;
+}
+.axswitch input:checked + .axswitch-track .axswitch-thumb {
+  transform: translateY(-50%) translateX(18px);
+  background: var(--paper);
+}
+.axswitch input:focus-visible + .axswitch-track {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+.axswitch-label {
+  font-family: var(--font-sans);
+  font-size: var(--ds-text-sm);
+  color: var(--ink);
+}
+
+/* ── Checkbox ───────────────────────────────────────────────── */
+.axcheck {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+.axcheck[data-disabled='true'] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.axcheck input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.axcheck-box {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  flex: none;
+  margin-top: 1px;
+  background: var(--paper);
+  border: var(--border-hair) solid var(--ink);
+  border-radius: var(--ds-radius-xs);
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+.axcheck-box svg {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 13px;
+  height: 13px;
+  color: var(--paper);
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    opacity var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+.axcheck input:checked + .axcheck-box {
+  background: var(--accent);
+  border-color: transparent;
+}
+.axcheck input:checked + .axcheck-box svg {
+  opacity: 1;
+  transform: scale(1);
+}
+.axcheck input:focus-visible + .axcheck-box {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+.axcheck-label {
+  font-family: var(--font-sans);
+  font-size: var(--ds-text-sm);
+  color: var(--ink);
+  line-height: var(--ds-leading-snug);
+}
+
+/* ── Tabs ───────────────────────────────────────────────────── */
+.axtabs {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 2px;
+  position: relative;
+  border-bottom: var(--border-hair) solid var(--line);
+}
+.axtabs[data-block='true'] {
+  display: flex;
+  width: 100%;
+}
+.axtab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 16px 13px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: var(--ds-text-sm);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.axtabs[data-block='true'] .axtab {
+  flex: 1;
+  justify-content: center;
+}
+.axtab svg {
+  width: 15px;
+  height: 15px;
+}
+.axtab:hover {
+  color: var(--muted);
+}
+.axtab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+.axtab[data-active='true'] {
+  color: var(--ink);
+}
+.axtab[data-active='true']::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: -1px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px 2px 0 0;
+}
+.axtab-count {
+  font-size: var(--ds-text-micro);
+  color: var(--muted);
+  background: color-mix(in srgb, var(--ink) 4%, var(--paper));
+  border-radius: var(--ds-radius-xs);
+  padding: 1px 5px;
+}
+
+/* ── Callout ────────────────────────────────────────────────── */
+.axcallout {
+  display: flex;
+  gap: 13px;
+  padding: 15px 17px;
+  background: var(--paper);
+  border: var(--border-hair) solid var(--line);
+  border-left-width: 2px;
+  border-left-color: var(--muted);
+  border-radius: var(--ds-radius-md);
+}
+.axcallout-ic {
+  flex: none;
+  margin-top: 1px;
+  color: var(--muted);
+  display: inline-flex;
+}
+.axcallout-ic svg {
+  width: 18px;
+  height: 18px;
+}
+.axcallout-body {
+  display: grid;
+  gap: 3px;
+}
+.axcallout-title {
+  font-family: var(--font-sans);
+  font-weight: var(--weight-semibold);
+  font-size: var(--ds-text-sm);
+  color: var(--ink);
+}
+.axcallout-text {
+  font-size: var(--ds-text-sm);
+  color: var(--muted);
+  line-height: var(--ds-leading-normal);
+}
+.axcallout[data-tone='accent'] {
+  border-left-color: var(--accent);
+}
+.axcallout[data-tone='accent'] .axcallout-ic {
+  color: var(--accent);
+}
+.axcallout[data-tone='success'] {
+  border-left-color: var(--ink);
+}
+.axcallout[data-tone='success'] .axcallout-ic {
+  color: var(--ink);
+}
+.axcallout[data-tone='warn'] {
+  border-left-color: var(--ink);
+}
+.axcallout[data-tone='warn'] .axcallout-ic {
+  color: var(--ink);
+}
+.axcallout[data-tone='danger'] {
+  border-left-color: var(--danger);
+}
+.axcallout[data-tone='danger'] .axcallout-ic {
+  color: var(--danger);
+}
+
+/* ============================================================
+   TerminalBand (Startseite, Plan 02-08, D-13, D-45)
+   Dunkle Terminal-Insel in beiden Varianten: Fläche --terminal-bg, nicht --panel.
+   data-surface="panel" liefert nur die Panel-Schreibweise für Button und Fokus;
+   die Fläche setzt .term-band deckend selbst. Farben nur über Tokens.
+   ============================================================ */
+.term-section {
+  padding-block: var(--section-gap);
+}
+
+.term-band {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: center;
+  padding: var(--space-5);
+  border: 1px solid var(--panel-rule);
+  border-radius: 0;
+}
+
+.term-band[data-surface='panel'] {
+  background-color: var(--terminal-bg);
+  color: var(--terminal-fg);
+}
+
+@media (min-width: 560px) {
+  .term-band {
+    padding: clamp(1.75rem, 4vw, 3.5rem);
+  }
+}
+
+@media (min-width: 820px) {
+  .term-band {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+.term-band__copy {
+  min-width: 0;
+}
+
+.term-band__kicker {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-4);
+  color: var(--panel-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+.term-band__kicker::before {
+  content: '';
+  flex: none;
+  width: 8px;
+  height: 8px;
+  background: var(--panel-accent);
+}
+
+.term-band__title {
+  margin: 0 0 var(--space-4);
+  color: var(--panel-text);
+}
+
+.term-band__lead {
+  max-width: 42ch;
+  margin: 0 0 var(--space-6);
+  color: var(--panel-muted);
+  font-size: var(--ds-text-body);
+  line-height: 1.55;
+}
+
+.term-window {
+  min-width: 0;
+  border: 1px solid var(--panel-rule);
+  background: color-mix(in srgb, var(--terminal-fg) 5%, var(--terminal-bg));
+}
+
+.term-window__bar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--panel-rule);
+}
+
+.term-window__dot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  background: var(--terminal-fg-muted);
+}
+
+.term-window__dot[data-active] {
+  background: var(--terminal-accent);
+}
+
+.term-window__title {
+  margin-left: var(--space-2);
+  min-width: 0;
+  color: var(--terminal-fg-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.term-window__body {
+  padding: 16px 16px 20px;
+  color: var(--terminal-fg);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.85;
+  overflow-wrap: anywhere;
+}
+
+.term-window__user,
+.term-window__ok {
+  color: var(--terminal-accent);
+}
+
+.term-window__sep {
+  color: var(--terminal-fg-muted);
+}
+
+@keyframes term-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.term-caret {
+  color: var(--terminal-accent);
+  animation: term-blink 1.1s step-end infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .term-caret {
+    animation: none;
+  }
+}
+
+/* ============================================================
+   Kontakt-Panel (Startseite, Plan 02-08, D-13)
+   Fläche --panel über data-surface="panel"; nur Panel-Tokens. Die Linie zum Footer
+   liefert dessen border-top in --panel-rule.
+   ============================================================ */
+.contact-section {
+  padding-block: var(--space-9);
+}
+
+@media (min-width: 1024px) {
+  .contact-section {
+    padding-block: var(--space-10);
+  }
+}
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-8);
+}
+
+@media (min-width: 820px) {
+  .contact-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: clamp(2rem, 5vw, 4.5rem);
+    align-items: center;
+  }
+}
+
+.contact-kicker {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-4);
+  color: var(--panel-text);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  line-height: 1.5;
+}
+
+.contact-kicker::before {
+  content: '';
+  flex: none;
+  width: 8px;
+  height: 8px;
+  background: var(--panel-accent);
+}
+
+.contact-title {
+  margin: 0 0 var(--space-4);
+  color: var(--panel-text);
+}
+
+.contact-accent {
+  color: var(--panel-accent);
+}
+
+.contact-lead {
+  max-width: 38ch;
+  margin: 0;
+  color: var(--panel-muted);
+  font-size: var(--ds-text-body);
+  line-height: 1.55;
+}
+
+.contact-form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+/* Honeypot: optisch versteckt, für Bots ausfüllbar, für Menschen leer. */
+.contact-honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.contact-error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--panel-text);
+  font-size: var(--ds-text-sm);
+  line-height: 1.5;
+}
+
+.contact-error::before {
+  content: '';
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-top: 0.45em;
+  background: var(--panel-accent);
+}
+
+.contact-success {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  min-height: 220px;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-4);
+  border: 1px solid var(--panel-edge);
+  text-align: center;
+}
+
+.contact-check {
+  display: inline-flex;
+  width: 52px;
+  height: 52px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--panel-accent);
+  color: var(--panel-accent);
+}
+
+.contact-success-title {
+  color: var(--panel-text);
+}
+
+.contact-success-sub {
+  color: var(--panel-muted);
+  font-size: var(--ds-text-sm);
+}
+
+/* Eingabefelder auf dem Panel: Fläche transparent, Rahmen --panel-edge, Fehler mit Marker
+   in --panel-accent und Text in --panel-text (--danger ist auf dem Panel nicht freigegeben). */
+[data-surface='panel'] .axfield-label {
+  color: var(--panel-muted);
+}
+
+[data-surface='panel'] .axinput {
+  background: transparent;
+  border-color: var(--panel-edge);
+  color: var(--panel-text);
+}
+
+[data-surface='panel'] .axinput::placeholder {
+  color: var(--panel-muted);
+}
+
+[data-surface='panel'] .axinput:focus {
+  outline-color: var(--panel-accent);
+  border-color: var(--panel-text);
+}
+
+[data-surface='panel'] .axinput[data-invalid='true'] {
+  border-color: var(--panel-accent);
+  color: var(--panel-text);
+}
+
+[data-surface='panel'] .axinput-ic {
+  color: var(--panel-muted);
+}
+
+[data-surface='panel'] .axfield-hint,
+[data-surface='panel'] .axfield-hint[data-invalid='true'] {
+  color: var(--panel-muted);
+}
+
+/* ============================================================
+   Unterseiten-Primitive (02-10, D-14)
+   Seitenkopf, Linienraster, Zeile, Karte und Panel der Unterseiten.
+   Nur Tokens, keine Hexwerte. Hover wirkt nur bei (hover: hover);
+   keine Information ist allein per Hover erreichbar.
+   ============================================================ */
+
+/* Seitenkopf: Kicker, H1, Einleitung. Oben --section-gap, unten 64 px, untere Kante 1 px. */
+.ds-pagehead {
+  position: relative;
+  padding-top: var(--section-gap);
+  padding-bottom: var(--space-9);
+  border-bottom: 1px solid var(--line);
+}
+
+.ds-pagehead__title {
+  max-width: 64rem;
+  color: var(--ink);
+}
+
+.ds-pagehead__lead {
+  max-width: 60ch;
+  font-size: var(--ds-text-body);
+  line-height: var(--ds-leading-normal);
+  color: var(--ink);
+}
+
+.ds-pagehead__aside {
+  max-width: 34ch;
+  font-size: var(--ds-text-sm);
+  line-height: var(--ds-leading-normal);
+  color: var(--muted);
+}
+
+/* Linienraster: vier gleiche Spalten, getrennt durch Haarlinien, ab 768 px. Reiner
+   Hintergrund ohne zusätzliche Elemente; unter 768 px bleibt nur die waagerechte Linie
+   des Seitenkopfes. Im Bauplan scheint zusätzlich das Raster von body durch. */
+@media (min-width: 768px) {
+  .ds-linegrid {
+    --ds-hair: color-mix(in srgb, var(--line) 60%, transparent);
+    background-image:
+      linear-gradient(var(--ds-hair), var(--ds-hair)),
+      linear-gradient(var(--ds-hair), var(--ds-hair)),
+      linear-gradient(var(--ds-hair), var(--ds-hair));
+    background-repeat: no-repeat;
+    background-size: 1px 100%;
+    background-position:
+      25% 0,
+      50% 0,
+      75% 0;
+  }
+}
+
+/* Listenzeile: 1 px oben, die letzte Zeile auch unten, Innenabstand 24 px. Der Inhalt
+   (.ds-row__content) rückt bei Hover und Fokus um 8 px nach rechts, der Titel
+   (.ds-row__title) wird --accent-strong. Zeilen ohne diese Klassen bleiben ruhig. */
+.ds-row {
+  padding-block: var(--space-5);
+  border-top: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.ds-row:last-child {
+  border-bottom: 1px solid var(--line);
+}
+
+.ds-row__content {
+  color: inherit;
+  text-decoration: none;
+  transition: transform var(--dur-base) var(--ease-out);
+}
+
+.ds-row__content:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.ds-row__title {
+  color: var(--ink);
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .ds-row:hover .ds-row__content,
+  .ds-row:focus-within .ds-row__content {
+    transform: translateX(8px);
+  }
+
+  .ds-row:hover .ds-row__title,
+  .ds-row:focus-within .ds-row__title {
+    color: var(--accent-strong);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-row:hover .ds-row__content,
+  .ds-row:focus-within .ds-row__content {
+    transform: none;
+  }
+}
+
+/* Flache Karte: 1 px Linie, Papierfläche, 24 px Innenabstand, eckig, ohne Schatten.
+   Karten sind nie Panels. */
+.ds-card {
+  padding: var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background-color: var(--paper);
+  box-shadow: none;
+  color: var(--ink);
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .ds-card:hover,
+  .ds-card:focus-within {
+    border-color: var(--ink);
+  }
+}
+
+/* Dunkles Panel: nur Footer, CTA-Abschluss, Agora-Karte und Code-Blöcke. Das Attribut
+   data-surface="panel" gehört dazu, weil Buttons, Felder und der Druck darauf lesen. */
+.ds-panel {
+  border: 1px solid var(--panel-edge);
+  background-color: var(--panel);
+  color: var(--panel-text);
+}
+
+.ds-panel a:not(.axb) {
+  color: var(--panel-text);
+  text-decoration: underline;
+  text-decoration-color: var(--panel-accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+@media (hover: hover) {
+  .ds-panel a:not(.axb):hover {
+    text-decoration-thickness: 2px;
+  }
+}
+
+/* Marker des Kickers auf dem Panel */
+[data-surface='panel'] .ds-kicker {
+  color: var(--panel-muted);
+}
+
+[data-surface='panel'] .ds-kicker::before {
+  background: var(--panel-accent);
+}
+
+/* Meta-Zeile und Tag der Unterseiten: Geist Mono 12 px, Versalien, --muted. */
+.ds-meta {
+  font-family: var(--font-mono);
+  font-size: var(--ds-text-label);
+  line-height: var(--ds-leading-normal);
+  letter-spacing: var(--ds-tracking-label);
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.ds-meta--ink {
+  color: var(--ink);
+}
+
+.ds-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: var(--ds-text-label);
+  line-height: var(--ds-leading-normal);
+  letter-spacing: var(--ds-tracking-label);
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+/* Hinweisfläche für das eingebettete HTML der Projektinhalte (Plan 02-12.1, D-14):
+   linke Linie 2 px --accent, Innenabstand 16 px oben/unten und 24 px seitlich, Fläche
+   4 % Tinte auf Papier. Eckig, ohne Schatten und ohne Verlauf; der Text erbt die
+   Prosa-Farben, die Zustandsfarbe der alten Fassung entfällt. */
+.ds-note {
+  padding: var(--space-4) var(--space-5);
+  border-left: 2px solid var(--accent);
+  background-color: color-mix(in srgb, var(--ink) 4%, var(--paper));
+  color: var(--ink);
+}
+
+/* Reduzierte Bewegung: kein weiches Scrollen. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* ============================================================
+   Druck (02-10, UI-SPEC "Sonderfälle")
+   Am Dateiende, damit die Regeln die Bauplan-Overrides oben übersteuern.
+   Papier-Palette auch bei gewählter Bauplanansicht (Werte aus RAHMEN Abschnitt 2),
+   Panels als Umriss, Canvas, Texturen und Bauplan-Schalter aus. Die Selektoren stehen
+   eingerückt: der Kontrasttest liest nur die Blöcke am Zeilenanfang.
+   ============================================================ */
+@media print {
+  :root[data-variant='bauplan'] {
+    --paper: #eeeee6;
+    --ink: #252620;
+    --muted: #66685f;
+    --line: #c7c9bf;
+    --accent: #db4a26;
+    --panel: #20231e;
+    --panel-text: #eeeee6;
+    --accent-strong: #b43716;
+    --accent-press: #9c2f13;
+    --marker-on-ink: #ed7650;
+    --panel-accent: #ed7650;
+    --panel-muted: #b8bcb0;
+    --panel-edge: #747a67;
+    --panel-rule: #55584e;
+    --danger: #a3281a;
+    --selection-bg: #e9c0b0;
+    --selection-text: #252620;
+  }
+
+  body,
+  :root[data-variant='bauplan'] body {
+    background-image: none;
+  }
+
+  /* Panel als Umriss: Fläche transparent, 1 px Rahmen, Text in Tinte. Die Panel-Tokens
+     werden auf dem Panel selbst umgebogen, damit alles darin lesbar bleibt. */
+  [data-surface='panel'],
+  .ds-panel {
+    --panel: var(--paper);
+    --panel-text: var(--ink);
+    --panel-muted: var(--muted);
+    --panel-edge: var(--ink);
+    --panel-rule: var(--line);
+    --panel-accent: var(--accent-strong);
+    border: 1px solid var(--ink);
+    background-color: transparent;
+    color: var(--ink);
+  }
+
+  canvas,
+  .bauplan-toggle {
+    display: none;
+  }
+}

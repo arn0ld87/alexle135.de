@@ -8,7 +8,7 @@ tags:
   - Automatisierung
   - Linux
   - Tutorial
-heroImage: /images/blog/server-automatisierung-ansible.webp
+heroImage: ../../assets/blog/server-automatisierung-ansible.webp
 author: Alexander Schneider
 ---
 
@@ -366,4 +366,4 @@ Fang klein an. Ein Playbook für dein Basis-Setup. Dann schrittweise erweitern.
 - [Docker Compose Stacks](/blog/docker-compose-beispiele/)
 - [Docker auf Ubuntu installieren](/blog/docker-ubuntu-setup/)
 
-Bei Fragen: [schneider@alexle135.de](mailto:schneider@alexle135.de)
+Bei Fragen: [schneider@alex-schneider.dev](mailto:schneider@alex-schneider.dev)

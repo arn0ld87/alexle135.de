@@ -4,15 +4,9 @@
   "description": "Alexander Schneider - IT-Systemintegration & DevOps",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@10.28.2",
+  "packageManager": "pnpm@12.11.2",
   "engines": {
     "node": ">=22"
-  },
-  "pnpm": {
-    "overrides": {
-      "esbuild@>=0.27.3 <0.28.1": "0.28.1",
-      "yaml@>=2.0.0 <2.8.3": "2.8.3"
-    }
   },
   "scripts": {
     "dev": "astro dev",
@@ -44,14 +38,14 @@
     "db:migrate": "node scripts/run-postgres-migrations.mjs",
     "db:verify": "node scripts/verify-postgres-schema.mjs",
     "lighthouse:local": "astro build && npx --yes @lhci/cli collect --numberOfRuns=1 --startServerCommand='HOST=127.0.0.1 PORT=4321 node ./dist/server/entry.mjs' --startServerReadyPattern='listening on' --url=http://127.0.0.1:4321/ --url=http://127.0.0.1:4321/blog/ --url=http://127.0.0.1:4321/projekte/",
-    "optimize-images": "node scripts/convert-to-webp.js && node scripts/generate-responsive-images.js",
     "new:blog": "node scripts/new-blog.js",
     "new:projekt": "node scripts/new-project.js"
   },
   "dependencies": {
-    "@astrojs/mdx": "^6.0.3",
-    "@astrojs/node": "^10.1.4",
-    "@astrojs/react": "^5.0.7",
+    "@astrojs/markdown-remark": "^7.3.2",
+    "@astrojs/mdx": "^8.0.3",
+    "@astrojs/node": "^11.1.7",
+    "@astrojs/react": "^7.0.1",
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.3",
     "@google/generative-ai": "^0.24.1",
@@ -64,7 +58,7 @@
     "@webcontainer/api": "^1.6.1",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/xterm": "^5.5.0",
-    "astro": "^6.4.8",
+    "astro": "^7.3.8",
     "better-auth": "^1.6.23",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -77,13 +71,13 @@
     "react-dom": "^19.2.0",
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
-    "sanitize-html": "^2.17.1",
+    "sanitize-html": "^2.18.0",
     "simple-oauth2": "^5.0.0",
     "tailwind-merge": "^3.4.0",
     "terser": "^5.44.1"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.9",
+    "@astrojs/check": "^0.9.10",
     "@eslint/js": "^9.39.2",
     "@playwright/test": "^1.61.1",
     "@tailwindcss/typography": "^0.5.19",
@@ -96,8 +90,8 @@
     "@typescript-eslint/eslint-plugin": "^8.50.1",
     "@typescript-eslint/parser": "^8.50.1",
     "@vitejs/plugin-react": "^5.1.1",
-    "@vitest/coverage-v8": "^4.1.9",
-    "@vitest/ui": "^4.1.0",
+    "@vitest/coverage-v8": "^4.1.11",
+    "@vitest/ui": "^4.1.11",
     "axe-core": "^4.12.1",
     "dotenv": "^17.4.2",
     "eslint": "^9.39.2",
@@ -109,10 +103,10 @@
     "html-validate": "^11.5.5",
     "jsdom": "^27.2.0",
     "prettier": "3.8.1",
-    "sharp": "^0.34.5",
+    "sharp": "^0.35.5",
     "tailwindcss": "^4.0.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.50.1",
-    "vitest": "^4.1.0"
+    "vitest": "^4.1.11"
   }
 }

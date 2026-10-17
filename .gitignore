@@ -214,8 +214,8 @@ public/api/
 
 docs/plans/2026-06-10-homepage-grossputz.md
 
-# Claude-Skills werden zentral in ~/.claude/skills/ verwaltet, nicht im Repo
-.claude/skills/
+# Repo-eigene Prozess-Skills unter .claude/skills/ werden versioniert (nicht mehr ignoriert,
+# s. AGENTS.md „Pflicht-Tools"); nutzerglobale Skills bleiben separat in ~/.claude/skills/.
 
 # Lokale generierte Artefakte (nicht ins Repo)
 .lighthouseci/
@@ -246,6 +246,11 @@ lhci_reports/
 # === Interne Security-/Rewrite-Runbooks (nicht ins Public-Repo) ===
 docs/HISTORY-REWRITE-RUNBOOK.md
 .claude/workflows/alexle-vsco-history-rewrite-verify.js
+.claude/workflows/history-rewrite-verify.mjs
+.claude/workflows/cleanup-discovery.mjs
 
 # Internes Design-Plan-Doc (nicht ins Public-Repo)
 docs/plans/design030726.md
+
+# Lokale Arbeitsnotizen (nicht versioniert)
+.planning/codebase/

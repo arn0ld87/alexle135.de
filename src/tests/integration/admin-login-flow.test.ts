@@ -12,7 +12,7 @@ import { POST } from '../../pages/api/auth/login';
 import { onRequest } from '../../middleware';
 import { INTEGRATION_ADMIN_EMAIL, INTEGRATION_ADMIN_PASSWORD } from './fixtures';
 
-const ORIGIN = 'https://alexle135.de';
+const ORIGIN = 'https://alex-schneider.dev';
 
 type MinimalAdminContext = {
   url: URL;

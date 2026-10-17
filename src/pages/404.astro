@@ -7,17 +7,14 @@ import V2Layout from '../layouts/V2Layout.astro';
   description="Diese Seite existiert nicht oder wurde verschoben."
 >
   <main class="v2-shell py-20 md:py-28 lg:py-36 min-h-[70vh] flex items-center">
-    <div class="max-w-3xl space-y-8">
-      <p class="v2-kicker flex items-center gap-3">
-        <span class="v2-accent-dot" aria-hidden="true"></span>
-        <span>Error / 404</span>
-      </p>
+    <div class="ds-pagehead max-w-3xl space-y-8">
+      <p class="ds-kicker">Error / 404</p>
 
-      <h1 class="font-editorial text-[clamp(3.5rem,8vw,7rem)] leading-[0.88] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+      <h1 class="ds-display-xl text-[color:var(--ink)]">
         Seite nicht gefunden.
       </h1>
 
-      <p class="text-xl leading-relaxed text-[color:var(--color-mono-300)] max-w-xl">
+      <p class="text-xl leading-relaxed text-[color:var(--muted)] max-w-xl">
         Die gesuchte Seite wurde verschoben, entfernt oder hat nie existiert.
       </p>
 
@@ -30,7 +27,7 @@ import V2Layout from '../layouts/V2Layout.astro';
         </a>
         <a
           href="/projekte/"
-          class="font-mono text-sm uppercase tracking-[0.2em] text-[color:var(--color-mono-300)] hover:text-[color:var(--color-neon-orange)] transition-colors"
+          class="font-mono text-sm uppercase tracking-[0.2em] text-[color:var(--muted)] hover:text-[color:var(--accent-strong)] transition-colors"
         >
           Projekte ansehen
         </a>

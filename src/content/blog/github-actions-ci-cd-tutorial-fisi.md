@@ -10,7 +10,7 @@ tags:
   - FISI
   - Automatisierung
   - Tutorial
-heroImage: '/images/blog/github-actions-ci-cd-fisi-tutorial.webp'
+heroImage: '../../assets/blog/github-actions-ci-cd-fisi-tutorial.webp'
 author: Alexander Schneider
 ---
 
@@ -356,7 +356,7 @@ Ich hab den ersten Workflow auch dreimal neu gebaut. Normal. YAML kann nerven. A
 
 **Mein Tipp:** Klein anfangen. Erst nur Tests, dann Deployment hinzufügen.
 
-Fragen? Schreib mir: [schneider@alexle135.de](mailto:schneider@alexle135.de)
+Fragen? Schreib mir: [schneider@alex-schneider.dev](mailto:schneider@alex-schneider.dev)
 
 ---
 
@@ -365,3 +365,5 @@ Fragen? Schreib mir: [schneider@alexle135.de](mailto:schneider@alexle135.de)
 - [DevOps für Einsteiger - Wie CI/CD deine Deployments automatisiert](/blog/devops-einstieg-ci-cd-praxis/)
 - [Docker Container einfach erklärt](/blog/docker-container-einfach-erklaert/)
 - [Git-Workflow für Einsteiger](/blog/git-workflow-einsteiger-branching-merge/)
+- [DevOps-Trends 2025 für Einsteiger](/blog/devops-trends-2025-einsteiger/)
+- [C#-Lernspiel für die FISI-Prüfung im Browser](/blog/csharp-trainer-fisi-browser/)

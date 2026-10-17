@@ -7,7 +7,7 @@ tags:
   - Ubuntu
   - Linux
   - Tutorial
-heroImage: /images/blog/docker-ubuntu-setup.webp
+heroImage: ../../assets/blog/docker-ubuntu-setup.webp
 publishedAt: 2025-11-08
 author: Alexander Schneider
 ---
@@ -152,4 +152,4 @@ Jetzt wo Docker läuft, kannst du loslegen:
 
 Die Docker-Installation auf Ubuntu ist eigentlich straightforward, wenn man weiß, wie es geht und die Fallstricke (wie Snap) vermeidet. Die 15 Minuten Investition lohnen sich definitiv, denn Container sind aus der modernen IT nicht mehr wegzudenken.
 
-Bei Fragen schreib mir gerne: [schneider@alexle135.de](mailto:schneider@alexle135.de)
+Bei Fragen schreib mir gerne: [schneider@alex-schneider.dev](mailto:schneider@alex-schneider.dev)

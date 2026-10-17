@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node -e 'const p=JSON.parse(require(\"fs\").readFileSync(0,\"utf8\")).tool_input?.file_path||\"\"; if(/\\.(ts|tsx|js|jsx|astro|mjs|cjs|json|md|mdx|css)$/.test(p) && p.startsWith(process.cwd())){process.exit(0)} else {process.exit(2)}' 2>/dev/null && npx --no-install prettier --write \"$CLAUDE_FILE_PATHS\" 2>/dev/null || true"
+            "command": "node \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/format-edited-file.mjs\" || true"
           }
         ]
       },

@@ -9,7 +9,7 @@ tags:
   - SSH
   - Sicherheit
   - Tutorial
-heroImage: /images/blog/ssh-keys-einrichten-linux.webp
+heroImage: ../../assets/blog/ssh-keys-einrichten-linux.webp
 author: Alexander Schneider
 ---
 
@@ -318,3 +318,5 @@ Der eigentliche Gewinn kommt danach:
 Wenn du nur einen Server hast, lohnt es sich schon. Wenn du zwei oder mehr hast, willst du danach nicht mehr zurück.
 
 **Weiterlesen:** [Die 10 wichtigsten Linux-Befehle](/blog/linux-befehle-fuer-einsteiger/)
+
+**Passend dazu:** [Proxmox-Heimlabor aufbauen](/blog/proxmox-homelab/), denn dort richtest du SSH-Keys für mehrere Server zuerst ein.

@@ -52,11 +52,11 @@ function makeRequest(
   body: Record<string, unknown>,
   opts: { origin?: string | null } = {}
 ): Request {
-  const origin = opts.origin === undefined ? 'https://alexle135.de' : opts.origin;
+  const origin = opts.origin === undefined ? 'https://alex-schneider.dev' : opts.origin;
   const headers: Record<string, string> = { 'content-type': 'application/json' };
   if (origin !== null) headers['origin'] = origin;
 
-  return new Request('https://alexle135.de/api/ai-tutor', {
+  return new Request('https://alex-schneider.dev/api/ai-tutor', {
     method: 'POST',
     headers,
     body: JSON.stringify(body),
@@ -98,14 +98,20 @@ describe('POST /api/ai-tutor', () => {
       expect(res.status).toBe(403);
     });
 
-    it('akzeptiert https://alexle135.de', async () => {
+    it('akzeptiert https://alex-schneider.dev', async () => {
+      const req = makeRequest({ prompt: 'Hello' }, { origin: 'https://alex-schneider.dev' });
+      const res = await POST({ request: req } as never);
+      expect(res.status).toBe(200);
+    });
+
+    it('akzeptiert https://alexle135.de (Übergangsphase bis 301)', async () => {
       const req = makeRequest({ prompt: 'Hello' }, { origin: 'https://alexle135.de' });
       const res = await POST({ request: req } as never);
       expect(res.status).toBe(200);
     });
 
-    it('akzeptiert https://www.alexle135.de', async () => {
-      const req = makeRequest({ prompt: 'Hello' }, { origin: 'https://www.alexle135.de' });
+    it('akzeptiert https://www.alex-schneider.dev', async () => {
+      const req = makeRequest({ prompt: 'Hello' }, { origin: 'https://www.alex-schneider.dev' });
       const res = await POST({ request: req } as never);
       expect(res.status).toBe(200);
     });

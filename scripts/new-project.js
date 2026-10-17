@@ -5,8 +5,8 @@
  */
 
 import { createInterface } from 'readline';
-import { writeFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import { writeFileSync, existsSync, statSync } from 'fs';
+import { join, basename } from 'path';
 
 const rl = createInterface({
   input: process.stdin,
@@ -100,7 +100,22 @@ async function main() {
     .filter((t) => t.length > 0);
 
   // Hero image (optional)
-  const heroImage = await question('Hero-Bild Pfad (optional, z.B. /media/uploads/projekt.png): ');
+  // Quelle liegt einmal unter src/assets/projects/ (D-25); das Schema prüft sie im Build.
+  const heroInput = await question(
+    'Hero-Bild (optional, Dateiname unter src/assets/projects/, z.B. projekt.webp): '
+  );
+  const heroName = basename(heroInput.trim());
+  let heroImage = '';
+  if (heroName) {
+    const heroPath = join(process.cwd(), 'src/assets/projects', heroName);
+    if (existsSync(heroPath) && statSync(heroPath).isFile()) {
+      heroImage = `../../assets/projects/${heroName}`;
+    } else {
+      console.warn(
+        `Hinweis: src/assets/projects/${heroName} existiert nicht. heroImage wird nicht geschrieben, ein fehlendes Bild bräche den Build. Datei dorthin legen und die Zeile nachtragen.`
+      );
+    }
+  }
 
   // Live Demo URL (optional)
   const liveDemo = await question('Live-Demo URL (optional): ');
@@ -135,8 +150,8 @@ async function main() {
     frontmatter.push('  - Projekt');
   }
 
-  if (heroImage.trim()) {
-    frontmatter.push(`heroImage: ${heroImage.trim()}`);
+  if (heroImage) {
+    frontmatter.push(`heroImage: ${escapeYaml(heroImage)}`);
   }
 
   frontmatter.push(`publishedAt: ${publishedAt}`);

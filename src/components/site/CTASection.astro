@@ -7,23 +7,38 @@ interface Props {
   primaryLabel: string;
   secondaryHref?: string;
   secondaryLabel?: string;
+  /** Wort im Titel, das in der Panel-Akzentfarbe gesetzt wird. */
+  accentWord?: string;
 }
 
-const { kicker = 'Next step', title, body, primaryHref, primaryLabel, secondaryHref, secondaryLabel } = Astro.props;
+const { kicker = 'Next step', title, body, primaryHref, primaryLabel, secondaryHref, secondaryLabel, accentWord } = Astro.props;
+
+const accentAt = accentWord ? title.indexOf(accentWord) : -1;
 ---
 
-<section class="grid gap-8 border-y border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] py-10 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.65fr)] lg:items-end">
+<section
+  class="ds-panel grid gap-8 px-6 py-12 md:px-12 md:py-16 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.65fr)] lg:items-end"
+  data-surface="panel"
+>
   <div class="space-y-5">
-    <p class="v2-kicker">{kicker}</p>
-    <h2 class="max-w-4xl font-editorial text-[clamp(2.8rem,6vw,5rem)] leading-[0.92] tracking-[-0.06em] text-[color:var(--color-mono-50)]">{title}</h2>
+    <p class="ds-kicker">{kicker}</p>
+    <h2 class="max-w-4xl ds-display-l text-[color:var(--panel-text)]">
+      {accentAt === -1 || !accentWord ? (
+        title
+      ) : (
+        <Fragment>
+          {title.slice(0, accentAt)}<span class="text-[color:var(--panel-accent)]">{accentWord}</span>{title.slice(accentAt + accentWord.length)}
+        </Fragment>
+      )}
+    </h2>
   </div>
 
   <div class="space-y-6 lg:justify-self-end">
-    <p class="max-w-[34ch] text-sm leading-7 text-[color:var(--color-mono-300)]">{body}</p>
+    <p class="max-w-[34ch] text-[length:var(--ds-text-sm)] leading-[1.55] text-[color:var(--panel-muted)]">{body}</p>
     <div class="flex flex-wrap gap-4">
-      <a href={primaryHref} class="v2-cta">{primaryLabel}</a>
+      <a href={primaryHref} class="axb" data-variant="primary">{primaryLabel}</a>
       {secondaryHref && secondaryLabel && (
-        <a href={secondaryHref} class="v2-cta-ghost">{secondaryLabel}</a>
+        <a href={secondaryHref} class="axb" data-variant="ghost">{secondaryLabel}</a>
       )}
     </div>
   </div>

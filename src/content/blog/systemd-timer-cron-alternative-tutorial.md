@@ -11,7 +11,7 @@ tags:
   - Timer
   - Tutorial
   - FISI
-heroImage: '/images/blog/systemd-timer-cron-alternative-tutorial.webp'
+heroImage: '../../assets/blog/systemd-timer-cron-alternative-tutorial.webp'
 author: Alexander Schneider
 ---
 
@@ -609,7 +609,7 @@ Mein Setup: Alle wichtigen Cronjobs auf systemd Timer migriert. Cron nur noch f�
 
 **Starte mit einem Job.** Backup, Log-Cleanup, was auch immer. Sobald du siehst, wie übersichtlich das Logging ist, willst du nie wieder zurück.
 
-Fragen? Schreib mir: [schneider@alexle135.de](mailto:schneider@alexle135.de)
+Fragen? Schreib mir: [schneider@alex-schneider.dev](mailto:schneider@alex-schneider.dev)
 
 ---
 

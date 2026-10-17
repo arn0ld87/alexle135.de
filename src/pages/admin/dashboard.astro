@@ -13,8 +13,8 @@ const { postsCount, projectsCount, messagesTotal, messagesOpen } = await getAdmi
     <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <p class="v2-kicker mb-2">Admin</p>
-        <h1 class="font-[family-name:var(--font-editorial)] text-4xl tracking-tight text-[color:var(--color-mono-50)]">Dashboard</h1>
-        <p class="mt-2 font-[family-name:var(--font-ui)] text-sm text-[color:var(--color-mono-400)]">
+        <h1 class="ds-display-m text-[color:var(--ink)]">Dashboard</h1>
+        <p class="mt-2 font-[family-name:var(--font-ui)] text-sm text-[color:var(--muted)]">
           Angemeldet als {user.email}
         </p>
       </div>
@@ -22,13 +22,13 @@ const { postsCount, projectsCount, messagesTotal, messagesOpen } = await getAdmi
         <a
           href="/"
           target="_blank"
-          class="font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--color-mono-400)] transition-colors hover:text-[color:var(--color-mono-50)]"
+          class="font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--muted)] transition-colors hover:text-[color:var(--ink)]"
         >
           Website &nearr;
         </a>
         <button
           id="logout-btn"
-          class="border border-[color:color-mix(in_srgb,var(--color-mono-50)_16%,transparent)] px-4 py-2 font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--color-mono-50)] transition-all hover:border-[color:var(--color-neon-orange)] hover:text-[color:var(--color-neon-orange)]"
+          class="border border-[color:color-mix(in_srgb,var(--ink)_16%,transparent)] px-4 py-2 font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--ink)] transition-all hover:border-[color:var(--accent)] hover:text-[color:var(--accent-strong)]"
         >
           Logout
         </button>
@@ -41,43 +41,43 @@ const { postsCount, projectsCount, messagesTotal, messagesOpen } = await getAdmi
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
 
       <!-- Blog Posts Card -->
-      <a href="/admin/posts" class="v2-panel group p-6 transition-all hover:border-[color:var(--color-neon-orange)]">
+      <a href="/admin/posts" class="v2-panel group p-6 transition-all hover:border-[color:var(--accent)]">
         <div class="flex items-start justify-between">
           <p class="v2-kicker">Blog Posts</p>
-          <svg class="h-5 w-5 text-[color:var(--color-neon-orange)] opacity-60 transition-opacity group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+          <svg class="h-5 w-5 text-[color:var(--accent-strong)] opacity-60 transition-opacity group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
           </svg>
         </div>
-        <p class="mt-4 font-[family-name:var(--font-editorial)] text-4xl text-[color:var(--color-mono-50)]">{postsCount || 0}</p>
-        <p class="mt-2 font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--color-neon-orange)]">Verwalten &rarr;</p>
+        <p class="mt-4 ds-display-m text-[color:var(--ink)]">{postsCount || 0}</p>
+        <p class="mt-2 font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--accent-strong)]">Verwalten &rarr;</p>
       </a>
 
       <!-- Projects Card -->
-      <a href="/admin/projects" class="v2-panel group p-6 transition-all hover:border-[color:var(--color-neon-orange)]">
+      <a href="/admin/projects" class="v2-panel group p-6 transition-all hover:border-[color:var(--accent)]">
         <div class="flex items-start justify-between">
           <p class="v2-kicker">Projekte</p>
-          <svg class="h-5 w-5 text-[color:var(--color-neon-orange)] opacity-60 transition-opacity group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+          <svg class="h-5 w-5 text-[color:var(--accent-strong)] opacity-60 transition-opacity group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" />
           </svg>
         </div>
-        <p class="mt-4 font-[family-name:var(--font-editorial)] text-4xl text-[color:var(--color-mono-50)]">{projectsCount || 0}</p>
-        <p class="mt-2 font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--color-neon-orange)]">Verwalten &rarr;</p>
+        <p class="mt-4 ds-display-m text-[color:var(--ink)]">{projectsCount || 0}</p>
+        <p class="mt-2 font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--accent-strong)]">Verwalten &rarr;</p>
       </a>
 
       <!-- Messages Card -->
-      <a href="/admin/messages/" class="v2-panel group p-6 transition-all hover:border-[color:var(--color-neon-orange)] relative">
+      <a href="/admin/messages/" class="v2-panel group p-6 transition-all hover:border-[color:var(--accent)] relative">
         <div class="flex items-start justify-between">
           <p class="v2-kicker">Kontakt-Inbox</p>
-          <svg class="h-5 w-5 text-[color:var(--color-neon-orange)] opacity-60 transition-opacity group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+          <svg class="h-5 w-5 text-[color:var(--accent-strong)] opacity-60 transition-opacity group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
           </svg>
         </div>
-        <p class="mt-4 font-[family-name:var(--font-editorial)] text-4xl text-[color:var(--color-mono-50)]">{messagesTotal || 0}</p>
+        <p class="mt-4 ds-display-m text-[color:var(--ink)]">{messagesTotal || 0}</p>
         <div class="mt-2 flex items-center gap-3">
-          <p class="font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--color-neon-orange)]">Verwalten &rarr;</p>
+          <p class="font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--accent-strong)]">Verwalten &rarr;</p>
           {messagesOpen !== null && messagesOpen > 0 && (
-            <span class="inline-flex items-center gap-1.5 border border-[color:var(--color-neon-orange)] bg-[color:var(--color-neon-orange)]/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-neon-orange)]">
-              <span class="h-1.5 w-1.5 bg-[color:var(--color-neon-orange)]"></span>
+            <span class="inline-flex items-center gap-1.5 border border-[color:var(--accent)] bg-[color:var(--accent)]/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--accent-strong)]">
+              <span class="h-1.5 w-1.5 bg-[color:var(--accent)]"></span>
               {messagesOpen} neu
             </span>
           )}

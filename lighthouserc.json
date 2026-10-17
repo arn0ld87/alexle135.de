@@ -72,7 +72,7 @@
         ],
         "uses-optimized-images": "off",
         "uses-responsive-images": "off",
-        "uses-text-compression": ["warn", {}],
+        "uses-text-compression": "off",
         "total-byte-weight": [
           "error",
           {

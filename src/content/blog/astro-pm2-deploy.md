@@ -8,7 +8,7 @@ tags:
   - PM2
   - Deployment
   - Nginx
-heroImage: '/images/blog/astro-pm2-deploy.jpg'
+heroImage: '../../assets/blog/astro-pm2-deploy.jpg'
 author: Alexander Schneider
 ---
 
@@ -213,13 +213,4 @@ rsync -avz --delete ./dist/ user@203.0.113.1:/srv/www/example.com/dist/
 - Atomic deploys: upload to `/srv/www/example.com/releases/<ts>` and switch symlink `/srv/www/example.com/current` → reduces partial deployment issues
 - CDN/Cache: hashed filenames + long cache headers; purge CDN on new deploy or use versioned filenames
 
-## Thumbnail‑Text (empfohlen)
-
-- Overlay: "ASTRO + PM2: PRODUCTION"
-- Alt: "Astro SSR Deployment with PM2 and Nginx — Build, Deploy, Troubleshoot"
-
----
-
-# Deploy: GitHub Actions
-
-Die Datei wurde aktualisiert. Soll ich jetzt die GitHub Action `Deploy` für `main` auslösen, damit die Änderung live geht?"
+**Was seitdem passiert ist:** [alexle135.de Update Dezember 2025](/blog/alexle135-update-dezember-2025/) beschreibt Design, Tech-Stack und die nächsten Schritte.

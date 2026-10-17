@@ -41,7 +41,7 @@ describe('Terminal', () => {
     await runCommand(user, 'whoami');
 
     expect(screen.getByText('whoami')).toBeInTheDocument();
-    expect(screen.getByText(/alexle135\\visitor/)).toBeInTheDocument();
+    expect(screen.getByText(/alex-schneider\\visitor/)).toBeInTheDocument();
     expect(onCommand).toHaveBeenCalledWith('whoami');
     expect(getInput().value).toBe('');
   });

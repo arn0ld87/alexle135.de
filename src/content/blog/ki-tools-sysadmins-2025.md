@@ -3,11 +3,9 @@ title: 'KI-Tools für Sysadmins 2025: 13 Stunden pro Woche sparen'
 summary: 'Praktischer Guide: Welche KI-Tools helfen Systemadministratoren wirklich? Von ChatGPT bis GitHub Copilot – ehrliche Einschätzung aus der Praxis.'
 publishedAt: 2025-11-25
 tags: ['KI', 'DevOps', 'Automatisierung', 'Linux', 'Sysadmin']
-heroImage: /images/blog/ki-tools-sysadmins-2025.webp
+heroImage: ../../assets/blog/ki-tools-sysadmins-2025.webp
 author: Alexander Schneider
 ---
-
-# KI-Tools für Sysadmins 2025: 13 Stunden pro Woche sparen
 
 KI revolutioniert gerade die Systemadministration. Die Frage ist nicht mehr "ob", sondern "wie" du KI-Tools effektiv einsetzt.
 
@@ -309,4 +307,6 @@ KI-Tools können dir **13 Stunden pro Woche** sparen. Aber nur, wenn du sie rich
 ---
 
 **Hast du schon KI-Tools für deine Admin-Arbeit genutzt?**
-Schreib mir deine Erfahrungen: [schneider@alexle135.de](mailto:schneider@alexle135.de)
+Schreib mir deine Erfahrungen: [schneider@alex-schneider.dev](mailto:schneider@alex-schneider.dev)
+
+**Weiterlesen:** [KI-Nachrichten-Portal: tägliche Updates per GitHub Actions und Gemini API](/projekte/ki-nachrichten-portal/)

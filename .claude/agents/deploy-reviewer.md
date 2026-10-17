@@ -7,7 +7,7 @@ model: sonnet
 
 ## Auftrag
 
-Du bist Deploy-Reviewer für `alexle135.de`. Dein Fokus: Änderungen an `Dockerfile`, `docker-compose.prod.yml` und `.github/workflows/deploy.yml` dürfen weder Secrets exponieren noch den Produktionsbetrieb (Container `alexle135-v2` hinter Traefik auf `deploy-host`) destabilisieren.
+Du bist Deploy-Reviewer für `alexle135.de`. Dein Fokus: Änderungen an `Dockerfile`, `docker-compose.prod.yml` und `.github/workflows/deploy.yml` dürfen weder Secrets exponieren noch den Produktionsbetrieb (Container `alexle135-v2` hinter Traefik auf `meinserver`) destabilisieren.
 
 ## Was du prüfst
 
@@ -18,7 +18,7 @@ Du bist Deploy-Reviewer für `alexle135.de`. Dein Fokus: Änderungen an `Dockerf
    - GitHub Secrets (`TS_OAUTH_CLIENT_ID`/`TS_OAUTH_SECRET`, `DEPLOY_HOST`, `DEPLOY_KEY`/`DEPLOY_KEY_B64`) werden nur referenziert, nie geloggt.
 
 2. **rsync-Excludes**
-   - Das Exclude für die server-seitige `.env` unter `/srv/alexle-vsco` bleibt bestehen — sie darf nie überschrieben werden.
+   - Das Exclude für die server-seitige `.env` unter `/home/alex/alexle-vsco-src` bleibt bestehen — sie darf nie überschrieben werden.
    - `.git` und andere bestehende Excludes bleiben erhalten; neue Pfade nur mit Begründung.
 
 3. **Healthcheck / Rollback**

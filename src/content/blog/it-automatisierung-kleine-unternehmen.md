@@ -1,5 +1,5 @@
 ---
-title: 'IT-Automatisierung für kleine Unternehmen - 5 Prozesse, die sofort Zeit sparen'
+title: 'IT-Automatisierung für kleine Unternehmen: 5 Prozesse'
 summary: Wie kleine Unternehmen und Selbstständige durch einfache IT-Automatisierung 3-5 Stunden pro Woche sparen können
 tags:
   - Automatisierung
@@ -7,7 +7,7 @@ tags:
   - IT-Services
   - Produktivität
   - KMU
-heroImage: /images/blog/it-automatisierung-kleine-unternehmen.webp
+heroImage: ../../assets/blog/it-automatisierung-kleine-unternehmen.webp
 publishedAt: 2025-11-15
 author: Alexander Schneider
 ---
@@ -195,7 +195,7 @@ Ich unterstütze kleine Unternehmen in Leipzig & Umgebung bei der IT-Automatisie
 - Schulung und laufende Betreuung
 
 **Kontakt:**
-Schreib mir einfach unter [schneider@alexle135.de](mailto:schneider@alexle135.de) für ein unverbindliches Gespräch.
+Schreib mir einfach unter [schneider@alex-schneider.dev](mailto:schneider@alex-schneider.dev) für ein unverbindliches Gespräch.
 
 ---
 

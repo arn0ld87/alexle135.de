@@ -6,30 +6,23 @@
   id="cookie-banner"
   aria-label="Cookie-Einstellungen"
   aria-live="polite"
-  class="fixed bottom-0 left-0 right-0 z-50 hidden border-t border-[color:var(--color-mono-800)] bg-[#111010] px-4 py-4 sm:px-6"
+  class="fixed bottom-0 left-0 right-0 z-50 hidden border-t border-[color:var(--ink)] bg-[color:var(--paper)] px-4 py-4 sm:px-6"
 >
   <div class="mx-auto flex max-w-5xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-    <p class="font-mono text-xs leading-relaxed text-[color:var(--color-mono-400)]">
-      Wir nutzen Google Analytics, um die Nutzung dieser Seite anonym zu messen.
+    <p class="font-mono text-xs leading-relaxed text-[color:var(--ink)]">
+      Wir messen die Nutzung dieser Seite mit Google Analytics: ohne Zustimmung
+      nur cookielos und ohne Wiedererkennung, mit Zustimmung über Cookies.
       Deine Daten werden nicht für Werbung genutzt.
       <a
         href="/legal/datenschutz/"
-        class="ml-1 underline underline-offset-2 hover:text-[color:var(--color-neon-orange)] transition-colors"
+        class="ml-1 underline decoration-[color:var(--accent)] decoration-1 underline-offset-4 hover:decoration-2"
       >Datenschutzerklärung</a>
     </p>
     <div class="flex shrink-0 gap-3">
-      <button
-        id="cookie-reject"
-        type="button"
-        class="border border-[color:var(--color-mono-700)] px-4 py-1.5 font-mono text-xs uppercase tracking-widest text-[color:var(--color-mono-400)] transition-colors hover:border-[color:var(--color-mono-500)] hover:text-[color:var(--color-mono-200)]"
-      >
+      <button id="cookie-reject" type="button" class="axb" data-variant="secondary">
         Ablehnen
       </button>
-      <button
-        id="cookie-accept"
-        type="button"
-        class="bg-[color:var(--color-neon-orange)] px-4 py-1.5 font-mono text-xs uppercase tracking-widest text-[#2a1100] transition-opacity hover:opacity-90"
-      >
+      <button id="cookie-accept" type="button" class="axb" data-variant="primary">
         Akzeptieren
       </button>
     </div>
@@ -49,10 +42,8 @@
     localStorage.setItem('cookie-consent', decision);
     if (typeof window.gtag === 'function') {
       window.gtag('consent', 'update', { analytics_storage: decision });
-    }
-    // GoogleAnalytics.astro lädt das Remote-Script erst, wenn dieses Event feuert.
-    if (decision === 'granted') {
-      window.dispatchEvent(new Event('ga-consent-granted'));
+      // Der erste page_view ging noch ohne Einwilligung raus und zählt in GA4 nicht; nach Zustimmung neu senden.
+      if (decision === 'granted') window.gtag('event', 'page_view');
     }
     // Weitere consent-gegatete Drittanbieter (z. B. LinkedInBadge) ohne Reload informieren.
     window.dispatchEvent(new CustomEvent('cookie-consent-changed', { detail: decision }));
@@ -63,6 +54,13 @@
   if (!localStorage.getItem('cookie-consent')) {
     banner?.classList.remove('hidden');
   }
+
+  // Erneutes Öffnen über den Footer-Link „Cookie-Einstellungen“ (Widerruf/Zustimmung jederzeit).
+  document.addEventListener('click', (event) => {
+    if ((event.target as Element | null)?.closest('[data-open-cookie-settings]')) {
+      banner?.classList.remove('hidden');
+    }
+  });
 
   acceptBtn?.addEventListener('click', () => updateConsent('granted'));
   rejectBtn?.addEventListener('click', () => updateConsent('denied'));

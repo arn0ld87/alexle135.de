@@ -94,7 +94,7 @@ export async function submitIndexNow({
 }
 
 export async function main(argv = process.argv.slice(2), env = process.env) {
-  const siteUrl = env.INDEXNOW_SITE_URL || env.SITE_URL || 'https://alexle135.de';
+  const siteUrl = env.INDEXNOW_SITE_URL || env.SITE_URL || 'https://alex-schneider.dev';
   const key = env.INDEXNOW_KEY;
 
   if (!key) {

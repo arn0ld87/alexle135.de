@@ -43,19 +43,19 @@ const pageTitle = id === 'new' ? 'Neuer Beitrag' : 'Beitrag bearbeiten';
       <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p class="v2-kicker mb-2">Blog</p>
-          <h1 class="font-[family-name:var(--font-editorial)] text-3xl tracking-tight text-[color:var(--color-mono-50)]">{pageTitle}</h1>
+          <h1 class="ds-display-m text-[color:var(--ink)]">{pageTitle}</h1>
         </div>
         <div class="flex items-center gap-3">
           <button
             type="button"
             onclick="history.back()"
-            class="border border-[color:color-mix(in_srgb,var(--color-mono-50)_16%,transparent)] px-4 py-2 font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--color-mono-400)] transition-all hover:border-[color:var(--color-mono-50)] hover:text-[color:var(--color-mono-50)]"
+            class="border border-[color:color-mix(in_srgb,var(--ink)_16%,transparent)] px-4 py-2 font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--muted)] transition-all hover:border-[color:var(--ink)] hover:text-[color:var(--ink)]"
           >
             Abbrechen
           </button>
           <button
             type="submit"
-            class="border border-[color:var(--color-neon-orange)] bg-[color:var(--color-neon-orange)] px-4 py-2 font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--color-neon-orange-ink)] transition-all hover:bg-transparent hover:text-[color:var(--color-neon-orange)]"
+            class="border border-[color:var(--ink)] bg-[color:var(--ink)] px-4 py-2 font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--paper)] transition-all hover:bg-[color:var(--accent-strong)]"
           >
             Speichern
           </button>
@@ -74,7 +74,7 @@ const pageTitle = id === 'new' ? 'Neuer Beitrag' : 'Beitrag bearbeiten';
               name="title"
               value={post.title}
               required
-              class="w-full border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] bg-[color:color-mix(in_srgb,var(--color-mono-50)_4%,transparent)] px-4 py-3 font-[family-name:var(--font-ui)] text-sm text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-500)] outline-none transition-all focus:border-[color:var(--color-neon-orange)] focus:ring-1 focus:ring-[color:var(--color-neon-orange)]"
+              class="w-full border border-[color:var(--muted)] bg-[color:var(--paper)] px-4 py-3 text-[color:var(--ink)] placeholder-[color:var(--muted)] focus:outline-none focus-visible:border-[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--accent)] transition-colors font-ui text-sm"
             />
           </div>
           <div>
@@ -84,7 +84,7 @@ const pageTitle = id === 'new' ? 'Neuer Beitrag' : 'Beitrag bearbeiten';
               name="slug"
               value={post.slug}
               required
-              class="w-full border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] bg-[color:color-mix(in_srgb,var(--color-mono-50)_4%,transparent)] px-4 py-3 font-[family-name:var(--font-ui)] text-sm text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-500)] outline-none transition-all focus:border-[color:var(--color-neon-orange)] focus:ring-1 focus:ring-[color:var(--color-neon-orange)]"
+              class="w-full border border-[color:var(--muted)] bg-[color:var(--paper)] px-4 py-3 text-[color:var(--ink)] placeholder-[color:var(--muted)] focus:outline-none focus-visible:border-[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--accent)] transition-colors font-ui text-sm"
             />
           </div>
         </div>
@@ -94,7 +94,7 @@ const pageTitle = id === 'new' ? 'Neuer Beitrag' : 'Beitrag bearbeiten';
           <textarea
             name="summary"
             rows="3"
-            class="w-full border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] bg-[color:color-mix(in_srgb,var(--color-mono-50)_4%,transparent)] px-4 py-3 font-[family-name:var(--font-ui)] text-sm text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-500)] outline-none transition-all focus:border-[color:var(--color-neon-orange)] focus:ring-1 focus:ring-[color:var(--color-neon-orange)]"
+            class="w-full border border-[color:var(--muted)] bg-[color:var(--paper)] px-4 py-3 text-[color:var(--ink)] placeholder-[color:var(--muted)] focus:outline-none focus-visible:border-[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--accent)] transition-colors font-ui text-sm"
           >{post.summary}</textarea>
         </div>
 
@@ -109,9 +109,9 @@ const pageTitle = id === 'new' ? 'Neuer Beitrag' : 'Beitrag bearbeiten';
             id="published"
             name="published"
             checked={post.published}
-            class="h-4 w-4 border-[color:var(--color-mono-600)] bg-[color:var(--color-mono-900)] text-[color:var(--color-neon-orange)] focus:ring-[color:var(--color-neon-orange)]"
+            class="h-4 w-4 accent-[color:var(--accent)] bg-transparent border-[color:var(--muted)]"
           />
-          <label for="published" class="font-[family-name:var(--font-ui)] text-sm text-[color:var(--color-mono-300)]">Veroeffentlicht</label>
+          <label for="published" class="font-[family-name:var(--font-ui)] text-sm text-[color:var(--muted)]">Veroeffentlicht</label>
         </div>
       </div>
     </form>

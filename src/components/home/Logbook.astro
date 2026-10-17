@@ -1,0 +1,722 @@
+---
+/**
+ * Abschnitt „Logbuch“ der Startseite (Systemwerk, D-08, D-10, D-11).
+ *
+ * Die acht neuesten veröffentlichten Beiträge als Zeilen (Auswahl in `logbook.ts`). Jede Zeile ist
+ * ein echter Link auf den Beitrag. Chips, Suchfeld und Vorschau-Button sind ohne JavaScript
+ * `hidden`; mit JavaScript binden `listFilter.ts` und `previewDialog.ts`. Filter und Suche
+ * arbeiten nur auf diesem Markup: Der Suchtext verlässt den Browser nicht, es gibt kein Formular,
+ * kein `name`, keinen Suchindex. Die seitenweite Suche gehört zu Phase 3. Der Vorschau-Dialog liegt
+ * einmal pro Seite in `PreviewDialog.astro`; jede Zeile bringt ihren Inhalt als `template` mit.
+ */
+import { ArrowUpRight, Eye } from 'lucide-astro';
+import { noteStatusLine, normalizeText, topTags, type NoteRow } from '../../lib/home/logbook';
+
+interface Props {
+  rows: NoteRow[];
+}
+
+const { rows } = Astro.props;
+
+const tags = topTags(rows);
+
+// Serverseitig gebildet: Chips vergleichen gegen `data-tags`, die Suche gegen `data-search-text`.
+const items = rows.map((row) => ({
+  ...row,
+  tagList: row.tags.join('|'),
+  searchText: normalizeText([row.title, row.summary, ...row.tags].join(' ')),
+  meta: row.firstTag ? `${row.firstTag} · ${row.readingTime}` : row.readingTime,
+}));
+---
+
+<section id="logbuch" class="logbook" aria-labelledby="logbook-title" data-logbook>
+  <div class="ds-shell">
+    <div class="logbook__rule"></div>
+
+    <header class="logbook__head">
+      <p class="logbook__kicker">
+        <span class="logbook__marker" aria-hidden="true"></span>
+        03 / LOGBUCH
+      </p>
+      <h2 id="logbook-title" class="ds-display-l logbook__title">
+        Ich schreibe auf, was ich <span class="logbook__accent">lerne</span>
+      </h2>
+      <p class="logbook__intro">
+        Notizen aus meiner eigenen Praxis zu Architektur, Betrieb und Automatisierung.
+      </p>
+    </header>
+
+    <div class="logbook__list" data-filter-root>
+      <div class="logbook__bar">
+        {
+          tags.length > 0 && (
+            <div class="logbook__chips" role="group" aria-label="Logbuch nach Thema filtern" hidden>
+              <button type="button" class="logbook__chip" data-filter-chip="" aria-pressed="true">
+                Alle Notizen
+              </button>
+              {tags.map((tag) => (
+                <button
+                  type="button"
+                  class="logbook__chip"
+                  data-filter-chip={tag}
+                  aria-pressed="false"
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          )
+        }
+
+        <div class="logbook__search" hidden>
+          <label class="logbook__search-label" for="logbook-search">Logbuch durchsuchen</label>
+          <input
+            id="logbook-search"
+            class="logbook__search-input"
+            type="search"
+            data-filter-search
+            placeholder="Stichwort, z. B. Docker"
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </div>
+      </div>
+
+      <p class="logbook__status" data-filter-status aria-live="polite">
+        {noteStatusLine(items.length, items.length)}
+      </p>
+
+      <ul class="logbook__rows">
+        {
+          items.map((item) => (
+            <li
+              class="logbook__row"
+              data-filter-item
+              data-tags={item.tagList}
+              data-search-text={item.searchText}
+            >
+              <a class="logbook__link" href={item.href}>
+                {item.date && (
+                  <time class="logbook__date" datetime={item.isoDate}>
+                    {item.date}
+                  </time>
+                )}
+                <span class="logbook__main">
+                  <span class="ds-display-s logbook__name">{item.title}</span>
+                  <span class="logbook__summary">{item.summary}</span>
+                </span>
+                <span class="logbook__meta">{item.meta}</span>
+                <ArrowUpRight
+                  size={24}
+                  class="ds-icon logbook__arrow"
+                  aria-hidden="true"
+                  focusable="false"
+                />
+              </a>
+
+              <button
+                type="button"
+                class="logbook__preview"
+                data-preview-open
+                data-preview-template={`log-preview-${item.slug}`}
+                data-preview-href={item.href}
+                aria-label={`Vorschau: ${item.title}`}
+                hidden
+              >
+                <Eye
+                  size={20}
+                  class="ds-icon logbook__preview-icon"
+                  aria-hidden="true"
+                  focusable="false"
+                />
+                <span class="logbook__preview-text">Vorschau</span>
+              </button>
+
+              <template id={`log-preview-${item.slug}`}>
+                <p data-preview-kicker>LOGBUCH / VORSCHAU</p>
+                <h2
+                  class="ds-display-m preview__title"
+                  id={`log-preview-title-${item.slug}`}
+                  data-preview-title
+                >
+                  {item.title}
+                </h2>
+                <p class="preview__summary">{item.summary}</p>
+                <dl class="preview__facts">
+                  {item.date && (
+                    <div class="preview__fact">
+                      <dt>Datum</dt>
+                      <dd>{item.date}</dd>
+                    </div>
+                  )}
+                  <div class="preview__fact">
+                    <dt>Lesezeit</dt>
+                    <dd>{item.readingTime}</dd>
+                  </div>
+                  {item.tags.length > 0 && (
+                    <div class="preview__fact">
+                      <dt>Tags</dt>
+                      <dd>
+                        <ul class="preview__tags">
+                          {item.tags.map((tag) => (
+                            <li>{tag}</li>
+                          ))}
+                        </ul>
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+                <div class="preview__actions">
+                  <a class="axb" data-variant="primary" href={item.href}>
+                    Zum Beitrag
+                  </a>
+                  <button type="button" class="axb" data-variant="secondary" data-preview-close>
+                    Schließen
+                  </button>
+                </div>
+              </template>
+            </li>
+          ))
+        }
+      </ul>
+
+      <div class="logbook__empty" data-filter-empty hidden>
+        <p class="ds-display-s logbook__empty-title">Keine passende Notiz.</p>
+        <p class="logbook__empty-text">
+          Probier einen anderen Suchbegriff oder setze die Filter zurück.
+        </p>
+        <button type="button" class="axb" data-variant="secondary" data-filter-reset>
+          Filter zurücksetzen
+        </button>
+      </div>
+
+      <p class="logbook__more">
+        <a class="logbook__all" href="/blog/">Alle Beiträge im Blog</a>
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .logbook {
+    padding-block: var(--section-gap);
+    color: var(--ink);
+  }
+
+  /* Der Browser blendet [hidden] nur mit niedriger Priorität aus; eigene display-Regeln würden es
+     sonst überstimmen. */
+  .logbook [hidden] {
+    display: none;
+  }
+
+  .logbook__rule {
+    margin-bottom: var(--space-6);
+    border-top: 1px solid var(--line);
+  }
+
+  /* ---------- Kopf ---------- */
+  .logbook__head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+    margin-bottom: var(--space-8);
+  }
+
+  .logbook__kicker {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    line-height: 1.5;
+  }
+
+  .logbook__marker {
+    display: block;
+    width: 8px;
+    height: 8px;
+    flex: none;
+    background: var(--accent);
+  }
+
+  .logbook__title {
+    margin: 0;
+    color: var(--ink);
+  }
+
+  .logbook__accent {
+    color: var(--accent);
+  }
+
+  .logbook__intro {
+    max-width: 36ch;
+    margin: 0;
+    color: var(--muted);
+    font-size: var(--ds-text-body);
+    line-height: 1.55;
+  }
+
+  @media (min-width: 768px) {
+    .logbook__head {
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+      column-gap: var(--space-6);
+      align-items: end;
+    }
+
+    .logbook__kicker,
+    .logbook__title {
+      grid-column: 1;
+    }
+
+    .logbook__intro {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .logbook__head {
+      grid-template-columns: minmax(0, 0.65fr) minmax(0, 1.1fr) minmax(0, 0.75fr);
+    }
+
+    .logbook__kicker {
+      grid-column: 1;
+      grid-row: 1;
+      align-self: start;
+    }
+
+    .logbook__title {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .logbook__intro {
+      grid-column: 3;
+      grid-row: 1;
+    }
+  }
+
+  /* ---------- Filterleiste ---------- */
+  .logbook__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-4) var(--space-6);
+    margin-bottom: var(--space-2);
+  }
+
+  .logbook__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .logbook__chip {
+    position: relative;
+    min-height: 40px;
+    padding: 0 var(--space-4);
+    border: 1px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--font-sans);
+    font-size: var(--ds-text-sm);
+    line-height: 1;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      color var(--dur-fast) var(--ease-out),
+      border-color var(--dur-fast) var(--ease-out);
+  }
+
+  .logbook__chip[aria-pressed='true'] {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+
+  /* Aktiver Balken: 2 px Akzent am unteren Rand. */
+  .logbook__chip[aria-pressed='true']::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    bottom: -1px;
+    left: -1px;
+    height: 2px;
+    background: var(--accent);
+  }
+
+  @media (hover: hover) {
+    .logbook__chip:hover {
+      color: var(--ink);
+    }
+  }
+
+  .logbook__chip:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+
+  /* Suchfeld: sichtbares Label, nur untere Linie, Fokusring. */
+  .logbook__search {
+    display: grid;
+    flex: 1 1 16rem;
+    max-width: 24rem;
+    gap: var(--space-1);
+  }
+
+  .logbook__search-label {
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    line-height: 1.5;
+  }
+
+  .logbook__search-input {
+    width: 100%;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-bottom: 1px solid var(--muted);
+    border-radius: 0;
+    background: transparent;
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: var(--ds-text-body);
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .logbook__search-input::placeholder {
+    color: var(--muted);
+    opacity: 1;
+  }
+
+  .logbook__search-input:focus {
+    border-bottom-color: var(--ink);
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+
+  .logbook__status {
+    margin: var(--space-4) 0;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    line-height: 1.5;
+  }
+
+  /* ---------- Zeilen ---------- */
+  .logbook__rows {
+    margin: 0;
+    padding: 0;
+    border-bottom: 1px solid var(--line);
+    list-style: none;
+  }
+
+  .logbook__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-2);
+    border-top: 1px solid var(--line);
+  }
+
+  /* Zeile = ein Link. Mobil gestapelt: Datum, Titel mit Kurzfassung, Meta; Pfeil rechts oben. */
+  .logbook__link {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) 24px;
+    align-items: start;
+    column-gap: var(--space-2);
+    row-gap: var(--space-2);
+    padding-block: var(--space-5);
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .logbook__date {
+    grid-column: 1;
+    grid-row: 1;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    line-height: 1.5;
+  }
+
+  .logbook__main {
+    display: grid;
+    grid-column: 1;
+    grid-row: 2;
+    min-width: 0;
+    gap: var(--space-1);
+    padding-right: var(--space-2);
+  }
+
+  .logbook__name,
+  .logbook__summary {
+    display: -webkit-box;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  .logbook__name {
+    color: var(--ink);
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  .logbook__summary {
+    color: var(--muted);
+    font-size: var(--ds-text-sm);
+    line-height: 1.4;
+  }
+
+  .logbook__meta {
+    grid-column: 1;
+    grid-row: 3;
+    min-width: 0;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    line-height: 1.5;
+  }
+
+  .logbook :global(.logbook__arrow) {
+    grid-column: 2;
+    grid-row: 1;
+    width: 24px;
+    height: 24px;
+    color: var(--ink);
+  }
+
+  .logbook__link:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+
+  .logbook__link:focus-visible .logbook__name {
+    color: var(--accent-strong);
+  }
+
+  @media (hover: hover) {
+    .logbook__link:hover .logbook__name {
+      color: var(--accent-strong);
+    }
+  }
+
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .logbook__date,
+    .logbook__main {
+      transition: transform var(--dur-base) var(--ease-out);
+    }
+
+    .logbook :global(.logbook__arrow) {
+      transition: transform var(--dur-base) var(--ease-out);
+    }
+
+    .logbook__link:hover .logbook__date,
+    .logbook__link:hover .logbook__main {
+      transform: translateX(8px);
+    }
+
+    .logbook__link:hover :global(.logbook__arrow) {
+      transform: translate(4px, -4px);
+    }
+  }
+
+  /* Vorschau-Button: außerhalb des Links, mindestens 44 x 44 px, mobil nur das Icon. */
+  .logbook__preview {
+    position: relative;
+    display: inline-flex;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: 0 var(--space-2);
+    border: 1px solid var(--line);
+    border-radius: 0;
+    background: transparent;
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: var(--ds-text-sm);
+    font-weight: 700;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color var(--dur-fast) var(--ease-out);
+  }
+
+  .logbook :global(.logbook__preview-icon) {
+    width: 20px;
+    height: 20px;
+    flex: none;
+  }
+
+  .logbook__preview-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  @media (hover: hover) {
+    .logbook__preview:hover {
+      border-color: var(--ink);
+    }
+  }
+
+  .logbook__preview:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+
+  /* 768 bis 1023 px: Datum links, Titel, Meta unter dem Titel, Pfeil. */
+  @media (min-width: 768px) {
+    .logbook__link {
+      grid-template-columns: 4.5rem minmax(0, 1fr) 24px;
+      column-gap: var(--space-4);
+    }
+
+    .logbook__date {
+      grid-column: 1;
+      grid-row: 1;
+      padding-top: var(--space-1);
+    }
+
+    .logbook__main {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .logbook__meta {
+      grid-column: 2;
+      grid-row: 2;
+    }
+
+    .logbook :global(.logbook__arrow) {
+      grid-column: 3;
+    }
+
+    .logbook__preview {
+      padding: 0 var(--space-4);
+    }
+
+    .logbook__preview-text {
+      position: static;
+      width: auto;
+      height: auto;
+      overflow: visible;
+      clip-path: none;
+    }
+  }
+
+  /* Ab 1024 px: Datum 64 px, Titel 1fr, Meta 160 px, Pfeil 32 px (Vorschau-Button daneben). */
+  @media (min-width: 1024px) {
+    .logbook__link {
+      grid-template-columns: 64px minmax(0, 1fr) 160px 32px;
+      align-items: center;
+    }
+
+    .logbook__date {
+      padding-top: 0;
+    }
+
+    .logbook__meta {
+      grid-column: 3;
+      grid-row: 1;
+    }
+
+    .logbook :global(.logbook__arrow) {
+      grid-column: 4;
+      width: 32px;
+      height: 32px;
+    }
+  }
+
+  /* ---------- Leerzustand und Abschluss ---------- */
+  .logbook__empty {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-2);
+    padding-block: var(--space-6);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .logbook__empty-title,
+  .logbook__empty-text {
+    margin: 0;
+  }
+
+  .logbook__empty-text {
+    color: var(--muted);
+    font-size: var(--ds-text-sm);
+  }
+
+  .logbook__empty .axb {
+    margin-top: var(--space-2);
+  }
+
+  .logbook__more {
+    margin: var(--space-6) 0 0;
+  }
+
+  .logbook__all {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    color: var(--ink);
+    font-size: var(--ds-text-sm);
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 6px;
+  }
+
+  @media (hover: hover) {
+    .logbook__all:hover {
+      text-decoration-thickness: 2px;
+    }
+  }
+
+  .logbook__all:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+</style>
+
+<script>
+  // Liste, Suche und Vorschau pro Abschnitt genau einmal binden (dataset.initialized je Element);
+  // Aufräumen in astro:before-swap leert das Suchfeld und schließt auch einen offenen Dialog.
+  import { bindListFilter } from '../../lib/home/listFilter';
+  import { matchesNote, noteStatusLine } from '../../lib/home/logbook';
+  import { bindPreview } from '../../lib/home/previewDialog';
+
+  const cleanups: (() => void)[] = [];
+
+  function bindAll() {
+    document.querySelectorAll<HTMLElement>('[data-logbook]').forEach((section) => {
+      const list = section.querySelector<HTMLElement>('[data-filter-root]');
+      if (list) {
+        cleanups.push(bindListFilter(list, { statusLine: noteStatusLine, match: matchesNote }));
+      }
+      cleanups.push(bindPreview(section));
+    });
+  }
+
+  document.addEventListener('astro:page-load', bindAll);
+  document.addEventListener('astro:before-swap', () => {
+    for (const cleanup of cleanups.splice(0)) cleanup();
+  });
+</script>

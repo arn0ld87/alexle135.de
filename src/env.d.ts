@@ -28,6 +28,10 @@ interface ImportMetaEnv {
   readonly CONTACT_IP_SALT?: string;
   /** Google Analytics 4 Measurement ID, injected into client bundle. */
   readonly PUBLIC_GA_MEASUREMENT_ID?: string;
+  /** Kurz-SHA des Deploys, optionales Docker-Build-Arg (kein Geheimnis); Footer-Betriebszeile. */
+  readonly PUBLIC_BUILD_SHA?: string;
+  /** Build-Datum (JJJJ-MM-TT), zur Build-Zeit über vite.define aus astro.config.mjs gesetzt. */
+  readonly PUBLIC_BUILD_DATE?: string;
 }
 
 interface ImportMeta {

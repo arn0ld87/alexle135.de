@@ -118,7 +118,7 @@ function makeContext(
     additionalPrompt?: string;
   } = {}
 ) {
-  const origin = opts.origin === undefined ? 'https://alexle135.de' : opts.origin;
+  const origin = opts.origin === undefined ? 'https://alex-schneider.dev' : opts.origin;
   const headers = new Headers();
   if (origin !== null) headers.set('origin', origin);
 
@@ -176,14 +176,20 @@ describe('POST /api/analyze', () => {
       expect(res.status).toBe(403);
     });
 
-    it('akzeptiert https://alexle135.de', async () => {
+    it('akzeptiert https://alex-schneider.dev', async () => {
+      const ctx = makeContext(defaultFile, { origin: 'https://alex-schneider.dev' });
+      const res = await POST(ctx as never);
+      expect(res.status).toBe(200);
+    });
+
+    it('akzeptiert https://alexle135.de (Übergangsphase bis 301)', async () => {
       const ctx = makeContext(defaultFile, { origin: 'https://alexle135.de' });
       const res = await POST(ctx as never);
       expect(res.status).toBe(200);
     });
 
-    it('akzeptiert https://www.alexle135.de', async () => {
-      const ctx = makeContext(defaultFile, { origin: 'https://www.alexle135.de' });
+    it('akzeptiert https://www.alex-schneider.dev', async () => {
+      const ctx = makeContext(defaultFile, { origin: 'https://www.alex-schneider.dev' });
       const res = await POST(ctx as never);
       expect(res.status).toBe(200);
     });

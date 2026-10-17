@@ -1,13 +1,13 @@
 #!/bin/bash
 # ============================================================================
-# SICHERHEITS-SETUP für alexle135.de (Docker/Nginx)
+# SICHERHEITS-SETUP für alex-schneider.dev (Docker/Nginx)
 # ============================================================================
 # Ausführen auf dem Server (Contabo): bash /var/www/html/scripts/security-setup.sh
 # ============================================================================
 
 set -e
 
-echo "🔒 Sicherheits-Setup für alexle135.de (Docker/Nginx)"
+echo "🔒 Sicherheits-Setup für alex-schneider.dev (Docker/Nginx)"
 echo "======================================================"
 
 # 1. Erstelle sicheren Datenordner außerhalb des Webroot
@@ -51,8 +51,8 @@ SMTP_PORT=587
 SMTP_USERNAME=aschn.privat2@gmail.com
 SMTP_PASSWORD=HIER_NEUES_APP_PASSWORT_EINTRAGEN
 SMTP_FROM_EMAIL=aschn.privat2@gmail.com
-SMTP_FROM_NAME=Alexander Schneider - alexle135.de
-SMTP_TO_EMAIL=schneider@alexle135.de
+SMTP_FROM_NAME=Alexander Schneider - alex-schneider.dev
+SMTP_TO_EMAIL=schneider@alex-schneider.dev
 
 # Gemini API for AI-Tutor
 # Neu generieren: https://aistudio.google.com/apikey
@@ -120,6 +120,6 @@ echo "   docker cp /var/www/html/nginx.conf.secure $NGINX_CONTAINER:/etc/nginx/c
 echo "   docker exec $NGINX_CONTAINER nginx -t && docker exec $NGINX_CONTAINER nginx -s reload"
 echo ""
 echo "4. Testen, dass .env blockiert wird:"
-echo "   curl -I https://alexle135.de/.env"
+echo "   curl -I https://alex-schneider.dev/.env"
 echo "   (Sollte 404 zurückgeben, NICHT 200!)"
 echo ""

@@ -10,7 +10,9 @@ const ROUTE = '/api/auth/login';
 
 const ALLOWED_ORIGINS = new Set([
   'https://alexle135.de',
+  'https://alex-schneider.dev',
   'https://www.alexle135.de',
+  'https://www.alex-schneider.dev',
   'http://localhost:4321',
 ]);
 

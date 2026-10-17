@@ -46,7 +46,11 @@ describe('/api/admin/projects', () => {
 
   it('creates projects through the Postgres repository', async () => {
     const res = await POST({
-      request: makeRequest('POST', 'https://alexle135.de/api/admin/projects', validProjectBody),
+      request: makeRequest(
+        'POST',
+        'https://alex-schneider.dev/api/admin/projects',
+        validProjectBody
+      ),
     } as never);
 
     expect(res.status).toBe(200);
@@ -56,7 +60,7 @@ describe('/api/admin/projects', () => {
 
   it('rejects invalid project statuses', async () => {
     const res = await POST({
-      request: makeRequest('POST', 'https://alexle135.de/api/admin/projects', {
+      request: makeRequest('POST', 'https://alex-schneider.dev/api/admin/projects', {
         ...validProjectBody,
         status: 'invalid',
       }),
@@ -68,7 +72,7 @@ describe('/api/admin/projects', () => {
 
   it('updates projects through the Postgres repository', async () => {
     const res = await PUT({
-      request: makeRequest('PUT', 'https://alexle135.de/api/admin/projects', {
+      request: makeRequest('PUT', 'https://alex-schneider.dev/api/admin/projects', {
         id: PROJECT_ID,
         featured: false,
       }),
@@ -80,7 +84,7 @@ describe('/api/admin/projects', () => {
 
   it('rejects updates with a malformed id', async () => {
     const res = await PUT({
-      request: makeRequest('PUT', 'https://alexle135.de/api/admin/projects', {
+      request: makeRequest('PUT', 'https://alex-schneider.dev/api/admin/projects', {
         id: 'project-1',
         featured: false,
       }),
@@ -92,7 +96,10 @@ describe('/api/admin/projects', () => {
 
   it('deletes projects through the Postgres repository', async () => {
     const res = await DELETE({
-      request: makeRequest('DELETE', `https://alexle135.de/api/admin/projects?id=${PROJECT_ID}`),
+      request: makeRequest(
+        'DELETE',
+        `https://alex-schneider.dev/api/admin/projects?id=${PROJECT_ID}`
+      ),
     } as never);
 
     expect(res.status).toBe(200);
@@ -103,7 +110,11 @@ describe('/api/admin/projects', () => {
     createProjectMock.mockRejectedValue(new Error('db down: connection refused at 10.0.0.5'));
 
     const res = await POST({
-      request: makeRequest('POST', 'https://alexle135.de/api/admin/projects', validProjectBody),
+      request: makeRequest(
+        'POST',
+        'https://alex-schneider.dev/api/admin/projects',
+        validProjectBody
+      ),
     } as never);
 
     expect(res.status).toBe(500);

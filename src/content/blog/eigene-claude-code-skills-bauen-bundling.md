@@ -1,5 +1,6 @@
 ---
-title: 'Eigene Claude-Code-Skills bauen: SKILL.md, Bundling und warum mein Agent jetzt deutsch schreibt wie ich'
+title: 'Eigene Claude-Code-Skills bauen: SKILL.md & Bundling'
+metaDescription: 'Eigene Claude-Code-Skills bauen: Am Beispiel eines Writing-Style-Skills zeige ich SKILL.md, Bundling, Plugin-Namespacing und typische Stolpersteine.'
 summary: 'Skills sind keine Tricks, sondern strukturierte Verhaltensregeln für den Agenten. Ich zeige dir am Beispiel eines Writing-Style-Skills, wie du SKILL.md, Bundling und Plugin-Namespacing aufbaust — und wo die Stolpersteine liegen.'
 publishedAt: 2026-05-25
 tags:
@@ -8,7 +9,7 @@ tags:
   - SKILL.md
   - Plugins
   - Agent Engineering
-heroImage: /images/blog/eigene-claude-code-skills-bauen-bundling.webp
+heroImage: ../../assets/blog/eigene-claude-code-skills-bauen-bundling.webp
 author: Alexander Schneider
 ---
 

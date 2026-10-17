@@ -8,7 +8,7 @@ tags:
   - Umschulung
   - ChatGPT
   - Produktivität
-heroImage: /images/blog/ki-tools-fisi-umschulung-2025.webp
+heroImage: ../../assets/blog/ki-tools-fisi-umschulung-2025.webp
 publishedAt: 2025-11-15
 author: Alexander Schneider
 ---
@@ -134,7 +134,7 @@ KI-Tools sind für FISI-Umschüler kein Luxus mehr, sondern Standard. Sie sparen
 
 **Mein Tipp:** Fang einfach an. Probiere ChatGPT in der kostenlosen Version eine Woche lang für deine täglichen Fragen aus. Wenn es dir hilft, lohnt sich vielleicht das Upgrade. Aber vergiss nie: Du bist der Pilot, die KI nur der Co-Pilot.
 
-Bei Fragen schreib mir gerne: [schneider@alexle135.de](mailto:schneider@alexle135.de)
+Bei Fragen schreib mir gerne: [schneider@alex-schneider.dev](mailto:schneider@alex-schneider.dev)
 
 ---
 
@@ -143,3 +143,5 @@ Bei Fragen schreib mir gerne: [schneider@alexle135.de](mailto:schneider@alexle13
 - [GFN IT-Umschulung mit KI](https://www.gfn.de/it-umschulung-ki/)
 - [IHK KI-Weiterbildung](https://www.ihk.de/rhein-neckar/ausbildung-weiterbildung/weiterbildung-channel/seminar-zertifikat/future-skills/ki-weiterbildung-5873762)
 - Eigene Erfahrung (8 Monate FISI-Umschulung BFW Leipzig)
+
+**Zum Üben:** [Wie ich ein C#-Lernspiel für die FISI-Prüfung gebaut habe](/blog/csharp-trainer-fisi-browser/)

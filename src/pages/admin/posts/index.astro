@@ -18,11 +18,11 @@ try {
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <p class="v2-kicker mb-2">Admin</p>
-        <h1 class="font-[family-name:var(--font-editorial)] text-3xl tracking-tight text-[color:var(--color-mono-50)]">Blog Posts</h1>
+        <h1 class="ds-display-m text-[color:var(--ink)]">Blog Posts</h1>
       </div>
       <a
         href="/admin/posts/new"
-        class="inline-flex items-center gap-2 border border-[color:var(--color-neon-orange)] bg-[color:var(--color-neon-orange)] px-4 py-2 font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--color-neon-orange-ink)] transition-all hover:bg-transparent hover:text-[color:var(--color-neon-orange)]"
+        class="inline-flex items-center gap-2 border border-[color:var(--ink)] bg-[color:var(--ink)] px-4 py-2 font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--paper)] transition-all hover:bg-[color:var(--accent-strong)]"
       >
         Neuer Beitrag
         <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -36,38 +36,38 @@ try {
     <!-- Posts List -->
     <div id="posts-container" class="space-y-3">
       {error ? (
-        <div class="v2-panel p-6 text-center text-red-400 font-[family-name:var(--font-ui)] text-sm">
+        <div class="v2-panel p-6 text-center text-[color:var(--danger)] font-[family-name:var(--font-ui)] text-sm">
           Fehler: {error.message}
         </div>
       ) : posts.length === 0 ? (
         <div class="v2-panel p-12 text-center">
-          <p class="font-[family-name:var(--font-ui)] text-[color:var(--color-mono-500)]">Noch keine Beitraege.</p>
+          <p class="font-[family-name:var(--font-ui)] text-[color:var(--muted)]">Noch keine Beitraege.</p>
         </div>
       ) : (
         posts.map((post) => (
-          <div class="v2-panel group flex items-center justify-between p-4 transition-all hover:border-[color:var(--color-neon-orange)]">
+          <div class="v2-panel group flex items-center justify-between p-4 transition-all hover:border-[color:var(--accent)]">
             <div>
-              <h3 class="font-[family-name:var(--font-editorial)] text-lg text-[color:var(--color-mono-50)]">{post.title}</h3>
+              <h3 class="ds-display-s text-[color:var(--ink)]">{post.title}</h3>
               <div class="mt-1 flex items-center gap-3">
-                <span class={`px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.18em] ${post.published ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'}`}>
+                <span class={`px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.18em] border border-[color:var(--line)] ${post.published ? 'text-[color:var(--ink)]' : 'text-[color:var(--accent-strong)]'}`}>
                   {post.published ? 'Live' : 'Entwurf'}
                 </span>
-                <span class="font-mono text-[10px] text-[color:var(--color-mono-500)]">
+                <span class="font-mono text-[10px] text-[color:var(--muted)]">
                   {new Date(post.created_at).toLocaleDateString('de-DE')}
                 </span>
-                <span class="font-mono text-[10px] text-[color:var(--color-mono-600)]">{post.slug}</span>
+                <span class="font-mono text-[10px] text-[color:var(--muted)]">{post.slug}</span>
               </div>
             </div>
             <div class="flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
               <a
                 href={`/admin/posts/${post.id}`}
-                class="px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-neon-orange)] transition-colors hover:text-[color:var(--color-mono-50)]"
+                class="px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--accent-strong)] transition-colors hover:text-[color:var(--ink)]"
               >
                 Edit
               </a>
               <button
                 data-id={post.id}
-                class="delete-btn px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-red-400 transition-colors hover:text-red-300"
+                class="delete-btn px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-[color:var(--danger)] transition-colors hover:text-[color:var(--ink)]"
               >
                 Delete
               </button>
@@ -79,7 +79,7 @@ try {
 
     <!-- Back link -->
     <div class="mt-8">
-      <a href="/admin/dashboard" class="font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--color-mono-500)] transition-colors hover:text-[color:var(--color-neon-orange)]">
+      <a href="/admin/dashboard" class="font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--muted)] transition-colors hover:text-[color:var(--accent-strong)]">
         &larr; Dashboard
       </a>
     </div>

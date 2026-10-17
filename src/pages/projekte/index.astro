@@ -67,14 +67,14 @@ const projectsSchema = {
   '@context': 'https://schema.org',
   '@type': 'CollectionPage',
   name: 'Projekte',
-  url: 'https://alexle135.de/projekte/',
+  url: 'https://alex-schneider.dev/projekte/',
   description:
     'Ausgewählte Projekte zu Lernprodukten, Automatisierung, Infrastruktur und technischer Umsetzung.',
   inLanguage: 'de-DE',
   author: {
     '@type': 'Person',
     name: 'Alexander Schneider',
-    url: 'https://alexle135.de/ueber-mich/',
+    url: 'https://alex-schneider.dev/ueber-mich/',
   },
   mainEntity: {
     '@type': 'ItemList',
@@ -83,11 +83,11 @@ const projectsSchema = {
     itemListElement: projects.map((project, index) => ({
       '@type': 'ListItem',
       position: index + 1,
-      url: `https://alexle135.de/projekte/${project.id}/`,
+      url: `https://alex-schneider.dev/projekte/${project.id}/`,
       item: {
         '@type': 'CreativeWork',
         name: project.data.title,
-        url: `https://alexle135.de/projekte/${project.id}/`,
+        url: `https://alex-schneider.dev/projekte/${project.id}/`,
         description: project.data.summary,
         datePublished: project.data.publishedAt?.toISOString(),
         keywords: project.data.tags,
@@ -110,16 +110,16 @@ const projectsSchema = {
       aside="Die wichtigsten Sachen stehen vorne. Der Rest kommt danach. So liest es sich einfach besser."
     />
 
-    <section class="grid gap-8 border-y border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] py-10 md:py-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(18rem,0.75fr)] lg:items-start mt-12 md:mt-16">
+    <section class="grid gap-8 border-y border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] py-10 md:py-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(18rem,0.75fr)] lg:items-start mt-12 md:mt-16">
       <div class="space-y-5">
-        <p class="v2-kicker">Leselogik</p>
-        <h2 class="text-balance font-editorial text-[clamp(2.2rem,1.4rem_+_2.4vw,3.4rem)] leading-[0.96] tracking-[-0.04em] text-[color:var(--color-mono-50)]">
+        <p class="ds-kicker">Leselogik</p>
+        <h2 class="ds-display-l text-[color:var(--ink)]">
           Nicht jedes Projekt ist gleich wichtig. Also steht das Wichtigste zuerst.
         </h2>
       </div>
-      <div class="space-y-4 border-l border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pl-4 lg:pl-6 text-sm leading-7 text-[color:var(--color-mono-200)]">
+      <div class="space-y-4 border-l border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pl-4 lg:pl-6 text-sm leading-7 text-[color:var(--ink)]">
         <p>Die stärksten Einträge stehen vorne: Produkt, Automatisierung und infrastrukturlastige Themen. Kleinere oder speziellere Projekte kommen danach.</p>
-        <p class="text-[color:var(--color-mono-300)]">Jeder Eintrag zeigt außerdem kurz, worin der eigentliche Wert liegt. Sonst muss der Besucher sich alles selbst zusammensuchen.</p>
+        <p class="text-[color:var(--muted)]">Jeder Eintrag zeigt außerdem kurz, worin der eigentliche Wert liegt. Sonst muss der Besucher sich alles selbst zusammensuchen.</p>
       </div>
     </section>
 
@@ -140,12 +140,12 @@ const projectsSchema = {
       ))}
     </div>
 
-    <section class="grid gap-6 border-t border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pt-16 md:grid-cols-3 md:pt-20">
+    <section class="grid gap-6 border-t border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] pt-16 md:grid-cols-3 md:pt-20">
       {relatedHubs.map((hub) => (
-        <a href={hub.href} class="v2-panel rounded-sm p-6 transition-colors hover:border-[color:color-mix(in_srgb,var(--color-neon-orange)_28%,transparent)]">
-          <p class="v2-kicker mb-4">{hub.title}</p>
-          <p class="text-sm leading-7 text-[color:var(--color-mono-200)]">{hub.body}</p>
-          <span class="mt-5 inline-flex items-center gap-2 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-[color:var(--color-neon-orange)]">
+        <a href={hub.href} class="ds-card block">
+          <p class="ds-kicker mb-4">{hub.title}</p>
+          <p class="text-sm leading-7 text-[color:var(--ink)]">{hub.body}</p>
+          <span class="mt-5 inline-flex items-center gap-2 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-[color:var(--accent-strong)]">
             Mehr Kontext <span aria-hidden="true">→</span>
           </span>
         </a>

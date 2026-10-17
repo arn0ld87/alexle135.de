@@ -119,10 +119,12 @@ export default function BaseMissionTerminal({
   // Show mission selector if no mission is selected
   if (!selectedMission) {
     return (
-      <div className="space-y-8">
+      <div className="space-y-8 border border-[var(--terminal-border)] bg-[var(--terminal-bg)] text-[var(--terminal-fg)] p-6 md:p-10">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-semibold text-white mb-4 tracking-tight">{displayTitle}</h2>
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed">
+          <h2 className="text-4xl font-semibold text-[var(--terminal-fg)] mb-4 tracking-tight">
+            {displayTitle}
+          </h2>
+          <p className="text-lg text-[var(--terminal-fg-muted)] max-w-2xl mx-auto leading-relaxed">
             {displayDescription}
           </p>
         </div>
@@ -135,12 +137,12 @@ export default function BaseMissionTerminal({
   const progressPercent = Math.round((currentStepIndex / selectedMission.steps.length) * 100);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 border border-[var(--terminal-border)] bg-[var(--terminal-bg)] text-[var(--terminal-fg)] p-6 md:p-10">
       {/* Header with Back Button */}
       <div className="flex items-center justify-between mb-8">
         <button
           onClick={handleBackToSelector}
-          className="flex items-center gap-2 text-gray-400 hover:text-blue-400 transition-colors duration-base text-sm font-medium group"
+          className="flex items-center gap-2 text-[var(--terminal-fg-muted)] hover:text-[var(--terminal-accent)] transition-colors duration-base text-sm font-medium group"
         >
           <svg
             className="w-5 h-5 transition-transform group-hover:-translate-x-1"
@@ -157,32 +159,34 @@ export default function BaseMissionTerminal({
           </svg>
           Zurück zur Missionsauswahl
         </button>
-        <div className="text-xs text-gray-500 tracking-wider uppercase font-medium">
+        <div className="text-xs text-[var(--terminal-fg-muted)] tracking-wider uppercase font-medium">
           {selectedMission.category} • {selectedMission.difficulty}
         </div>
       </div>
 
       {/* Mission Interface */}
-      <div className="grid lg:grid-cols-[320px_1fr] gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)] gap-6 items-start">
         {/* Mission Sidebar */}
-        <div className="bg-surface-glass backdrop-blur-lg border border-surface-border rounded-xl p-6 space-y-6 transition-all duration-base hover:border-surface-border-hover">
+        <div className="border border-[var(--terminal-border)] bg-[color:color-mix(in_srgb,var(--terminal-fg)_5%,var(--terminal-bg))] p-6 space-y-6 transition-all duration-base hover:border-[var(--terminal-accent)]">
           <div>
-            <h3 className="text-blue-400 text-xs uppercase tracking-widest font-semibold mb-3">
+            <h3 className="text-[var(--terminal-accent)] text-xs uppercase tracking-widest font-semibold mb-3">
               {selectedMission.title} • Schritt {currentStepIndex + 1}/
               {selectedMission.steps.length}
             </h3>
 
             {/* Mission Description - Only for Windows mode */}
             {mode === 'windows' && (
-              <div className="mb-6 p-3 bg-white/5 rounded-lg border border-white/10">
-                <p className="text-gray-300 text-xs italic">"{selectedMission.description}"</p>
+              <div className="mb-6 p-3 bg-[color:color-mix(in_srgb,var(--terminal-fg)_5%,transparent)] border border-[var(--terminal-border)]">
+                <p className="text-[var(--terminal-fg)] text-xs italic">
+                  "{selectedMission.description}"
+                </p>
               </div>
             )}
 
-            <h2 className="text-xl font-semibold text-white mb-3">
+            <h2 className="text-xl font-semibold text-[var(--terminal-fg)] mb-3">
               {missionComplete ? 'Mission Erfüllt! 🎉' : currentStep.title}
             </h2>
-            <p className="text-gray-400 text-sm leading-relaxed">
+            <p className="text-[var(--terminal-fg-muted)] text-sm leading-relaxed">
               {missionComplete
                 ? `Du hast "${selectedMission.title}" erfolgreich gemeistert! Du bist bereit für die nächste Herausforderung.`
                 : currentStep.description}
@@ -190,10 +194,10 @@ export default function BaseMissionTerminal({
           </div>
 
           {!missionComplete && (
-            <div className="pt-4 border-t border-white/5 space-y-3">
+            <div className="pt-4 border-t border-[var(--terminal-border)] space-y-3">
               <button
                 onClick={() => setShowHint(!showHint)}
-                className="text-xs text-gray-500 hover:text-blue-400 transition-colors duration-base flex items-center gap-2 font-medium"
+                className="text-xs text-[var(--terminal-fg-muted)] hover:text-[var(--terminal-accent)] transition-colors duration-base flex items-center gap-2 font-medium"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -213,7 +217,7 @@ export default function BaseMissionTerminal({
               </button>
 
               {showHint && (
-                <div className="mt-3 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg text-sm text-blue-300 leading-relaxed">
+                <div className="mt-3 p-4 border border-[color:color-mix(in_srgb,var(--terminal-accent)_30%,transparent)] bg-[color:color-mix(in_srgb,var(--terminal-accent)_10%,transparent)] text-sm text-[var(--terminal-fg)] leading-relaxed">
                   {currentStep.hint}
                 </div>
               )}
@@ -222,8 +226,8 @@ export default function BaseMissionTerminal({
                 onClick={() => setShowAITutor(!showAITutor)}
                 className={`text-xs transition-colors duration-base flex items-center gap-2 font-medium ${
                   mode === 'windows'
-                    ? 'text-gray-500 hover:text-purple-400'
-                    : 'text-purple-400 hover:text-purple-300'
+                    ? 'text-[var(--terminal-fg-muted)] hover:text-[var(--terminal-accent)]'
+                    : 'text-[var(--terminal-accent)] hover:text-[var(--terminal-fg)]'
                 }`}
               >
                 <svg
@@ -251,13 +255,13 @@ export default function BaseMissionTerminal({
 
           {/* Progress Bar */}
           <div className="space-y-2">
-            <div className="flex justify-between text-xs text-gray-500">
+            <div className="flex justify-between text-xs text-[var(--terminal-fg-muted)]">
               <span>Fortschritt</span>
               <span>{progressPercent}%</span>
             </div>
-            <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+            <div className="h-1.5 bg-[color:color-mix(in_srgb,var(--terminal-fg)_10%,transparent)] overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500 ease-out"
+                className="h-full bg-[var(--terminal-accent)] transition-all duration-500 ease-out"
                 style={{ width: `${progressPercent}%` }}
               ></div>
             </div>
@@ -274,7 +278,7 @@ export default function BaseMissionTerminal({
           ) : (
             <Suspense
               fallback={
-                <div className="h-full bg-surface-glass backdrop-blur-lg border border-surface-border rounded-xl flex items-center justify-center text-sm text-gray-400">
+                <div className="h-full border border-[var(--terminal-border)] bg-[color:color-mix(in_srgb,var(--terminal-fg)_5%,var(--terminal-bg))] flex items-center justify-center text-sm text-[var(--terminal-fg-muted)]">
                   Terminal wird geladen…
                 </div>
               }
@@ -285,19 +289,19 @@ export default function BaseMissionTerminal({
 
           {/* Success Overlay */}
           {missionComplete && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-md rounded-xl z-10">
-              <div className="text-center p-10 bg-surface-glass backdrop-blur-xl border-2 border-green-500/40 rounded-2xl shadow-glow-lg max-w-md">
+            <div className="absolute inset-0 flex items-center justify-center bg-[color:color-mix(in_srgb,var(--terminal-bg)_88%,transparent)] z-10">
+              <div className="text-center p-10 bg-[var(--terminal-bg)] border-2 border-green-500/40 max-w-md">
                 <div className="text-6xl mb-6">🏆</div>
-                <h3 className="text-3xl font-semibold text-white mb-3 tracking-tight">
+                <h3 className="text-3xl font-semibold text-[var(--terminal-fg)] mb-3 tracking-tight">
                   Mission erfüllt!
                 </h3>
-                <p className="text-gray-300 mb-8 text-base leading-relaxed">
+                <p className="text-[var(--terminal-fg)] mb-8 text-base leading-relaxed">
                   Du hast "{selectedMission.title}" erfolgreich abgeschlossen.
                 </p>
                 <div className="flex gap-4 justify-center">
                   <button
                     onClick={handleBackToSelector}
-                    className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-semibold transition-all duration-base hover:scale-105 shadow-lg hover:shadow-glow-sm"
+                    className="px-6 py-3 bg-[var(--terminal-accent)] text-[var(--terminal-bg)] text-sm font-semibold transition-all duration-base"
                   >
                     Neue Mission wählen
                   </button>
@@ -307,7 +311,7 @@ export default function BaseMissionTerminal({
                       setMissionComplete(false);
                       setShowHint(false);
                     }}
-                    className="px-6 py-3 bg-surface-glass backdrop-blur-lg border border-surface-border hover:border-surface-border-hover text-white rounded-lg text-sm font-semibold transition-all duration-base hover:scale-105"
+                    className="px-6 py-3 border border-[var(--terminal-border)] bg-[color:color-mix(in_srgb,var(--terminal-fg)_5%,var(--terminal-bg))] hover:border-[var(--terminal-accent)] text-[var(--terminal-fg)] text-sm font-semibold transition-all duration-base"
                   >
                     Nochmal spielen
                   </button>

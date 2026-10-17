@@ -1,5 +1,6 @@
 ---
-title: 'Vibe Coding Tutorial: Apps in Minuten bauen mit Google AI Studio & Gemini 3 Pro'
+title: 'Vibe Coding Tutorial: Apps mit Google AI Studio'
+metaDescription: 'Apps mit Gemini 3 Pro in Google AI Studio bauen: Mein Einstieg ins Vibe Coding zeigt die einzelnen Schritte vom Prompt bis zur fertigen Anwendung.'
 summary: "Vergiss Syntax-Frust. 'Vibe Coding' ist der neue Trend. Ich zeige dir Schritt für Schritt, wie du mit Google AI Studio und dem neuen Gemini 3 Pro komplette Apps baust – ohne eine Zeile Code selbst zu tippen."
 publishedAt: 2025-12-08
 tags:
@@ -8,7 +9,7 @@ tags:
   - Vibe Coding
   - Google AI Studio
   - Coding
-heroImage: /images/blog/vibe-coding-hero.webp
+heroImage: ../../assets/blog/vibe-coding-hero.webp
 author: Alexander Schneider
 ---
 

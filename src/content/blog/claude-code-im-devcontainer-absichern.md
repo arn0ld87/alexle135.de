@@ -1,5 +1,6 @@
 ---
-title: 'Claude Code im Käfig: Coding-Agenten sicher im DevContainer laufen lassen'
+title: 'Claude Code sicher im DevContainer laufen lassen'
+metaDescription: 'Claude Code im DevContainer absichern: Anthropics Referenz-Setup mit Outbound-Firewall nachbauen und den Zugriff eines Coding-Agenten begrenzen.'
 summary: 'Einen Coding-Agenten unbeaufsichtigt durchlaufen zu lassen ist verlockend und riskant zugleich. Anthropics Referenz-DevContainer sperrt den Agenten in einen Container mit Outbound-Firewall. So baust du das Setup nach.'
 tags:
   - Claude Code
@@ -8,7 +9,7 @@ tags:
   - Security
   - AI-Coding
   - Firewall
-heroImage: /images/blog/claude-code-im-devcontainer-absichern.webp
+heroImage: ../../assets/blog/claude-code-im-devcontainer-absichern.webp
 heroImageAlt: 'Coding-Agent isoliert in einem Docker-Container mit eingeschränktem Netzwerkzugang'
 publishedAt: 2026-06-27
 draft: false

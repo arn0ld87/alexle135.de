@@ -1,10 +1,10 @@
 import React from 'react';
 
 /**
- * Warm-Noir primary action control. CSS lives globally in
- * `src/styles/warm-noir.css` (`.axb`), so this renders cleanly during
- * Astro SSR without runtime style injection. Use ONE `primary` per view;
- * `terminal` is the signature CLI-flavoured variant.
+ * Primäres Bedienelement des Systemwerk-Designs. Das CSS steht global in
+ * `src/styles/systemwerk.css` (`.axb`), die Komponente rendert deshalb auch beim
+ * Astro-SSR ohne Stil-Injektion. Pro Ansicht genau ein `primary`; `terminal` ist die
+ * Variante der Terminal-Insel.
  */
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'terminal' | 'danger';
 export type ButtonSize = 'sm' | 'md' | 'lg';

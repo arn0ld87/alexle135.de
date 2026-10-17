@@ -4,11 +4,9 @@ summary: 'Keine Theorie: 5 fertige Bash-Scripts für FISI-Umschüler, die du sof
 tldr: 'Fünf Bash-Scripts, die ich im Umschulungs-Alltag selbst nutze: tägliches Backup mit rsync, Log-Suche nach Fehlern, Service-Monitor mit Alert, Disk-Usage-Check und ein Setup-Helper für frische Ubuntu-VMs. Copy-paste-fertig, kommentiert, inklusive der Stolpersteine, die ich selbst eingesammelt habe.'
 publishedAt: 2025-11-21
 tags: ['Bash', 'Linux', 'FISI', 'Automatisierung', 'Scripts']
-heroImage: /images/blog/bash-scripting-fisi-umschueler-praxis.webp
+heroImage: ../../assets/blog/bash-scripting-fisi-umschueler-praxis.webp
 author: Alexander Schneider
 ---
-
-# Bash-Scripting für FISI: 5 praktische Scripts die Zeit sparen
 
 Bash-Scripting ist **Pflicht in der FISI-Umschulung**. Aber Theorie hilft wenig, wenn du nicht weißt, wofür du es brauchst.
 
@@ -713,4 +711,6 @@ Diese 5 Scripts sparen mir **~2 Stunden pro Woche**:
 ---
 
 **Welches Script nutzt du zuerst?**
-Schreib mir deine Erfahrungen: [schneider@alexle135.de](mailto:schneider@alexle135.de)
+Schreib mir deine Erfahrungen: [schneider@alex-schneider.dev](mailto:schneider@alex-schneider.dev)
+
+**Weiterlesen:** [IT-Automatisierung für kleine Unternehmen: 5 Prozesse](/blog/it-automatisierung-kleine-unternehmen/) und der [Automatisierungs-ROI-Rechner](/projekte/roi-rechner/), um den Nutzen eines Scripts zu beziffern.

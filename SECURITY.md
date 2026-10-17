@@ -1,6 +1,6 @@
 # Sicherheitsrichtlinie
 
-Danke, dass du hilfst, alexle135.de sicher zu halten. Dieses Dokument
+Danke, dass du hilfst, alex-schneider.dev sicher zu halten. Dieses Dokument
 beschreibt, wie du eine Schwachstelle meldest und was du danach erwarten
 kannst.
 

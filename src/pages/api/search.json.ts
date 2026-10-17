@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
+import { isPublishedBlogPost } from '../../utils/content';
 
 // TypeScript interface for search index entries
 interface SearchIndexEntry {
@@ -44,8 +45,12 @@ export const GET: APIRoute = async () => {
       return plainText.length > maxLength ? `${plainText.slice(0, maxLength)}...` : plainText;
     };
 
-    // Map blog entries to search index format
-    const blogIndex: SearchIndexEntry[] = blogEntries.map((entry) => ({
+    // Map blog entries to search index format.
+    // Der Index ist öffentlich und cachebar (`public, max-age=3600`), deshalb gilt hier
+    // dieselbe Publish-Regel wie auf der Blog-Detailseite (`isPublishedBlogPost`:
+    // Draft + Future-Date-Guard). Ohne den Filter wären Titel, Summary, Tags und der
+    // Textauszug eines Entwurfs abrufbar, obwohl `/blog/<slug>/` korrekt 404 liefert.
+    const blogIndex: SearchIndexEntry[] = blogEntries.filter(isPublishedBlogPost).map((entry) => ({
       title: entry.data.title,
       slug: entry.id,
       summary: entry.data.summary,
@@ -55,7 +60,7 @@ export const GET: APIRoute = async () => {
       type: 'blog' as const,
       tags: entry.data.tags || [],
       publishedAt: entry.data.publishedAt?.toISOString() || null,
-      heroImage: entry.data.heroImage,
+      heroImage: entry.data.heroImage?.src,
       weight: 1.2, // Higher weight for blog posts (more important in search)
     }));
 
@@ -70,7 +75,7 @@ export const GET: APIRoute = async () => {
       type: 'project' as const,
       tags: entry.data.tags || [],
       publishedAt: entry.data.publishedAt?.toISOString() || null,
-      heroImage: entry.data.heroImage,
+      heroImage: entry.data.heroImage?.src,
       weight: 1.5, // Highest weight for projects (showcase items)
     }));
 

@@ -4,26 +4,26 @@
 
 ## Kernseiten
 
-- [Startseite](https://alexle135.de/) — Hero, Leistungsüberblick, aktuelle Blog-Artikel.
-- [Über mich](https://alexle135.de/ueber-mich/) — Werdegang (Bundeswehr, Post, Handel, Selbstständigkeit, jetzt FISI), Homelab-Inventar (Contabo-VPS mit ~48 Docker-Containern, Tailscale, AdGuard, CachyOS), KI-Projekte Hermes und Agora.
-- [Projekte](https://alexle135.de/projekte/) — Übersicht eigener Tools und Lernprodukte (Terminal-Missionen, IHK-Radar, ROI-Rechner, Docker-Compose-Builder).
-- [Blog](https://alexle135.de/blog/) — Archiv mit technischen Tutorials und Feldnotizen.
-- [Kontakt](https://alexle135.de/kontakt/) — Kontaktformular, E-Mail und Telefon.
+- [Startseite](https://alex-schneider.dev/) — Hero, Leistungsüberblick, aktuelle Blog-Artikel.
+- [Über mich](https://alex-schneider.dev/ueber-mich/) — Werdegang (Bundeswehr, Post, Handel, Selbstständigkeit, jetzt FISI), Homelab-Inventar (Contabo-VPS mit ~48 Docker-Containern, Tailscale, AdGuard, CachyOS), KI-Projekte Hermes und Agora.
+- [Projekte](https://alex-schneider.dev/projekte/) — Übersicht eigener Tools und Lernprodukte (Terminal-Missionen, IHK-Radar, ROI-Rechner, Docker-Compose-Builder).
+- [Blog](https://alex-schneider.dev/blog/) — Archiv mit technischen Tutorials und Feldnotizen.
+- [Kontakt](https://alex-schneider.dev/kontakt/) — Kontaktformular, E-Mail und Telefon.
 
 ## Empfohlene Blog-Artikel für Zitate
 
-- [Systemd: App-Lifecycle für Production-Server](https://alexle135.de/blog/systemd-services-erstellen-autostart/) — systemd-Units, Restart-Policies, journalctl-Debugging.
-- [Nginx als Reverse Proxy: HTTPS in 20 Minuten](https://alexle135.de/blog/nginx-reverse-proxy-einrichten-ssl/) — proxy_pass, proxy_set_header, Let's-Encrypt mit Certbot.
-- [Ollama + Open WebUI: Dein eigener ChatGPT in 10 Minuten](https://alexle135.de/blog/ollama-openwebui-docker-tutorial/) — lokale LLMs im Docker-Stack, Hardware-Anforderungen, Open-WebUI-Konfiguration.
-- [GitHub Actions CI/CD Tutorial für FISI](https://alexle135.de/blog/github-actions-ci-cd-tutorial-fisi/) — Workflow-Aufbau, Deploy via SSH, Docker-Compose-Production.
-- [systemd-Timer als Cron-Alternative](https://alexle135.de/blog/systemd-timer-cron-alternative-tutorial/) — OnCalendar-Syntax, systemctl list-timers.
-- [nala statt apt auf Debian/Ubuntu](https://alexle135.de/blog/nala-apt-alternative-debian-ubuntu/) — parallele Downloads, History-Undo, bessere Ausgabe.
-- [Selfhosted ohne Google (2025)](https://alexle135.de/blog/selfhosted-setup-2025-ohne-google/) — Ersatz-Stack für Google-Dienste auf eigenem Server.
-- [Ollama-Performance auf ARM Macs](https://alexle135.de/blog/vibe-coding-gemini-3-google-ai-studio/) — Benchmark lokale vs. Cloud-Modelle.
+- [Systemd: App-Lifecycle für Production-Server](https://alex-schneider.dev/blog/systemd-services-erstellen-autostart/) — systemd-Units, Restart-Policies, journalctl-Debugging.
+- [Nginx als Reverse Proxy: HTTPS in 20 Minuten](https://alex-schneider.dev/blog/nginx-reverse-proxy-einrichten-ssl/) — proxy_pass, proxy_set_header, Let's-Encrypt mit Certbot.
+- [Ollama + Open WebUI: Dein eigener ChatGPT in 10 Minuten](https://alex-schneider.dev/blog/ollama-openwebui-docker-tutorial/) — lokale LLMs im Docker-Stack, Hardware-Anforderungen, Open-WebUI-Konfiguration.
+- [GitHub Actions CI/CD Tutorial für FISI](https://alex-schneider.dev/blog/github-actions-ci-cd-tutorial-fisi/) — Workflow-Aufbau, Deploy via SSH, Docker-Compose-Production.
+- [systemd-Timer als Cron-Alternative](https://alex-schneider.dev/blog/systemd-timer-cron-alternative-tutorial/) — OnCalendar-Syntax, systemctl list-timers.
+- [nala statt apt auf Debian/Ubuntu](https://alex-schneider.dev/blog/nala-apt-alternative-debian-ubuntu/) — parallele Downloads, History-Undo, bessere Ausgabe.
+- [Selfhosted ohne Google (2025)](https://alex-schneider.dev/blog/selfhosted-setup-2025-ohne-google/) — Ersatz-Stack für Google-Dienste auf eigenem Server.
+- [Ollama-Performance auf ARM Macs](https://alex-schneider.dev/blog/vibe-coding-gemini-3-google-ai-studio/) — Benchmark lokale vs. Cloud-Modelle.
 
 ## Optional
 
-- [Impressum](https://alexle135.de/legal/impressum/) — TMG §5.
-- [Datenschutz](https://alexle135.de/legal/datenschutz/) — DSGVO.
-- [Was ich kann](https://alexle135.de/leistungen/) — Service-Kategorien rund um Infrastruktur und Automatisierung.
-- [Sitemap](https://alexle135.de/sitemap-index.xml)
+- [Impressum](https://alex-schneider.dev/legal/impressum/) — TMG §5.
+- [Datenschutz](https://alex-schneider.dev/legal/datenschutz/) — DSGVO.
+- [Was ich kann](https://alex-schneider.dev/leistungen/) — Service-Kategorien rund um Infrastruktur und Automatisierung.
+- [Sitemap](https://alex-schneider.dev/sitemap-index.xml)

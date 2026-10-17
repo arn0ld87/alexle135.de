@@ -16,13 +16,13 @@ import {
 // Security-Headern — siehe Issue #252.
 
 const EXPECTED_CSP_DEFAULT_RUNTIME =
-  "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.googletagmanager.com https://platform.linkedin.com; connect-src 'self' https://*.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://platform.linkedin.com; frame-src 'self' https://platform.linkedin.com https://www.linkedin.com; worker-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net; base-uri 'self'; frame-ancestors 'self'";
+  "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.googletagmanager.com https://platform.linkedin.com https://static.cloudflareinsights.com; connect-src 'self' https://*.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://platform.linkedin.com https://cloudflareinsights.com; frame-src 'self' https://platform.linkedin.com https://www.linkedin.com; worker-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net; base-uri 'self'; frame-ancestors 'self'";
 
 const EXPECTED_CSP_DEFAULT_DEV =
-  "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.googletagmanager.com https://platform.linkedin.com; connect-src 'self' ws: wss: https://*.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://platform.linkedin.com; frame-src 'self' https://platform.linkedin.com https://www.linkedin.com; worker-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net; base-uri 'self'; frame-ancestors 'self'";
+  "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.googletagmanager.com https://platform.linkedin.com https://static.cloudflareinsights.com; connect-src 'self' ws: wss: https://*.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://platform.linkedin.com https://cloudflareinsights.com; frame-src 'self' https://platform.linkedin.com https://www.linkedin.com; worker-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net; base-uri 'self'; frame-ancestors 'self'";
 
 const EXPECTED_CSP_WEBCONTAINER =
-  "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://*.stackblitz.io https://*.webcontainer.io https://stackblitz.com https://*.stackblitz.com https://www.googletagmanager.com https://platform.linkedin.com; connect-src 'self' ws: wss: https://*.stackblitz.io wss://*.stackblitz.io https://*.webcontainer.io wss://*.webcontainer.io https://stackblitz.com https://*.stackblitz.com https://*.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://platform.linkedin.com; frame-src 'self' https://*.stackblitz.io https://*.webcontainer.io https://stackblitz.com https://*.stackblitz.com https://platform.linkedin.com https://www.linkedin.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net; base-uri 'self'; frame-ancestors 'self'";
+  "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://*.stackblitz.io https://*.webcontainer.io https://stackblitz.com https://*.stackblitz.com https://www.googletagmanager.com https://platform.linkedin.com https://static.cloudflareinsights.com; connect-src 'self' ws: wss: https://*.stackblitz.io wss://*.stackblitz.io https://*.webcontainer.io wss://*.webcontainer.io https://stackblitz.com https://*.stackblitz.com https://*.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://platform.linkedin.com https://cloudflareinsights.com; frame-src 'self' https://*.stackblitz.io https://*.webcontainer.io https://stackblitz.com https://*.stackblitz.com https://platform.linkedin.com https://www.linkedin.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net; base-uri 'self'; frame-ancestors 'self'";
 
 describe('security-headers', () => {
   it('CSP_DEFAULT (runtime/prod) matches the pre-refactor literal 1:1 (ident. zu docker-compose.prod.yml)', () => {
@@ -67,7 +67,9 @@ describe('security-headers', () => {
         true
       );
       expect(
-        isWebContainerRoute('https://alexle135.de/projekte/windows-terminal-missionen/app/bar')
+        isWebContainerRoute(
+          'https://alex-schneider.dev/projekte/windows-terminal-missionen/app/bar'
+        )
       ).toBe(true);
       // Query-Params dürfen das Matching nicht beeinflussen
       expect(isWebContainerRoute('/projekte/terminal-missionen/app?foo=bar')).toBe(true);
@@ -84,7 +86,7 @@ describe('security-headers', () => {
       // segment-genau: '/app-details' darf NICHT als Unterpfad von '/app' gelten
       expect(isWebContainerRoute('/projekte/terminal-missionen/app-details')).toBe(false);
       expect(
-        isWebContainerRoute('https://alexle135.de/projekte/terminal-missionen/app-details')
+        isWebContainerRoute('https://alex-schneider.dev/projekte/terminal-missionen/app-details')
       ).toBe(false);
     });
   });

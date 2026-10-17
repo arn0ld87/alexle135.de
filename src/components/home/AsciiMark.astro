@@ -1,0 +1,268 @@
+---
+/**
+ * Bildmarke als ASCII-Zeichenbild im Hero der Startseite (Plan 02-18.1, D-48, D-49).
+ *
+ * Das Standbild steht als fertiger Text in zwei übereinanderliegenden `<pre>`-Ebenen
+ * (Körper in `--ink`, Keil in `--accent`) schon im serverseitigen HTML; es gilt ohne
+ * JavaScript, bei reduzierter Bewegung und vor dem Start der Drehung. Das Drehmodul lädt
+ * `bind.ts` erst nach dem Laden und im Leerlauf nach (dynamischer Import), nie bei
+ * reduzierter Bewegung und nie statisch (Mobile-Performance, PERF-01).
+ *
+ * Die Fläche hat ein festes Seitenverhältnis; ihre Größe hängt nie von der Schrift ab,
+ * damit weder der Schriftwechsel noch der Start der Drehung etwas verschiebt. Der Status
+ * behauptet keine Live-Verbindung: „STANDBILD“, „DREHUNG“ oder „ANGEHALTEN“. Auf der Fläche
+ * liegt das Ziehen (Pointer Events, `bind.ts`); der Schalter darunter ist sichtbar, sobald
+ * die Bindung gelaufen ist.
+ */
+import { Pause } from 'lucide-astro';
+import { BODY, COLS, ROWS, WEDGE } from '../../lib/ascii-mark/mark';
+
+const bodyText = BODY.join('\n');
+const wedgeText = WEDGE.join('\n');
+
+// Schriftgröße aus der Fläche: die Zeichenzelle ist 0,6 em breit und 1,2 em hoch; der
+// Block füllt höchstens 80 % der Breite und höchstens 80 % der Höhe, zentriert.
+const COL_EM = COLS * 0.6;
+const ROW_EM = ROWS * 1.2;
+const layerFont = `min(${(80 / COL_EM).toFixed(4)}cqw, ${(80 / ROW_EM).toFixed(4)}cqh)`;
+---
+
+<div class="ascii" data-ascii-mark>
+  <div class="ascii__ruler">
+    <span>FIG. 01 / BILDMARKE</span>
+    <span data-ascii-status>STANDBILD</span>
+  </div>
+
+  <div
+    class="ascii__surface"
+    data-ascii-surface
+    role="img"
+    aria-label="Bildmarke von Alexander Schneider als Zeichenbild"
+  >
+    <span class="ascii__midline" aria-hidden="true"></span>
+    <span class="ascii__cross ascii__cross--tl" aria-hidden="true">+</span>
+    <span class="ascii__cross ascii__cross--br" aria-hidden="true">+</span>
+
+    <pre
+      class="ascii__layer ascii__layer--body"
+      data-ascii-layer="body"
+      aria-hidden="true"
+      style={`font-size: ${layerFont}`}>{bodyText}</pre>
+    <pre
+      class="ascii__layer ascii__layer--wedge"
+      data-ascii-layer="wedge"
+      aria-hidden="true"
+      style={`font-size: ${layerFont}`}>{wedgeText}</pre>
+  </div>
+
+  <div class="ascii__caption">
+    <span>AS-BILDMARKE AUS {COLS} × {ROWS} ZEICHEN</span>
+  </div>
+
+  <button type="button" class="ascii__pause" data-ascii-pause hidden aria-pressed="true">
+    <span class="ascii__marker" aria-hidden="true"></span>
+    <span data-ascii-label>Drehung starten</span>
+    <Pause size={20} class="ds-icon ascii__icon" aria-hidden="true" focusable="false" />
+  </button>
+</div>
+
+<style>
+  .ascii {
+    min-width: 0;
+    border: 1px solid var(--line);
+    color: var(--ink);
+  }
+
+  /* Der Browser blendet [hidden] nur mit niedriger Priorität aus; Komponenten-Regeln mit
+     eigenem display würden es sonst überstimmen. */
+  .ascii [hidden] {
+    display: none;
+  }
+
+  .ascii__ruler,
+  .ascii__caption {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.25rem 1rem;
+    padding: 0.5rem 1rem;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    line-height: 1.5;
+  }
+
+  .ascii__ruler {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .ascii__caption {
+    border-top: 1px solid var(--line);
+  }
+
+  /* Feste Größe aus Breite und Seitenverhältnis: der Inhalt bestimmt sie nie, damit der
+     Start der Drehung und der Schriftwechsel nichts verschieben. */
+  .ascii__surface {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 5 / 4;
+    overflow: hidden;
+    container-type: size;
+    contain: layout paint;
+    /* Ziehen mit Maus und Finger: der Zeiger wird gefangen, der Browser scrollt hier nicht. */
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Während des Ziehens kommt die Klasse aus `bind.ts` dazu; die Fläche bleibt dieselbe. */
+  .ascii__surface.is-dragging {
+    cursor: grabbing;
+  }
+
+  @media (min-width: 1024px) {
+    .ascii__surface {
+      min-height: 448px;
+    }
+  }
+
+  .ascii__midline {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+    background: var(--line);
+  }
+
+  .ascii__cross {
+    position: absolute;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    line-height: 1;
+  }
+
+  .ascii__cross--tl {
+    top: 0.5rem;
+    left: 0.5rem;
+  }
+
+  .ascii__cross--br {
+    right: 0.5rem;
+    bottom: 0.5rem;
+  }
+
+  /* Beide Ebenen liegen deckungsgleich übereinander; die Schriftgröße folgt allein aus
+     der Fläche (Containerabfrage-Einheiten) und steht als Wert am Element. */
+  .ascii__layer {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-family: var(--font-mono);
+    line-height: 1.2;
+    white-space: pre;
+  }
+
+  .ascii__layer--body {
+    color: var(--ink);
+  }
+
+  .ascii__layer--wedge {
+    color: var(--accent);
+  }
+
+  /* Aktion im Rahmen: Ruhe Tinte auf Papier, gedrückt Akzent-Stark auf Papier. */
+  .ascii__pause {
+    display: flex;
+    width: 100%;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0 1.5rem;
+    border: 0;
+    border-top: 1px solid var(--line);
+    border-radius: 0;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      background-color var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out);
+  }
+
+  .ascii__marker {
+    display: block;
+    width: 8px;
+    height: 8px;
+    flex: none;
+    background: var(--marker-on-ink);
+  }
+
+  .ascii__pause :global(.ascii__icon) {
+    width: 20px;
+    height: 20px;
+    flex: none;
+  }
+
+  .ascii__pause[aria-pressed='true'] {
+    background: var(--accent-strong);
+    color: var(--paper);
+  }
+
+  .ascii__pause[aria-pressed='true'] .ascii__marker {
+    background: var(--paper);
+  }
+
+  @media (hover: hover) {
+    .ascii__pause:hover {
+      background: var(--accent-strong);
+    }
+
+    .ascii__pause:hover .ascii__marker {
+      background: var(--paper);
+    }
+  }
+
+  .ascii__pause:active {
+    background: var(--accent-press);
+  }
+
+  .ascii__pause:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+</style>
+
+<script>
+  // Pro Rahmen genau einmal binden (dataset.initialized in bindAsciiMark); Aufräumen in
+  // astro:before-swap. Das Drehmodul wird hier nicht genannt: der einzige Verweis steht
+  // als dynamischer Import in bind.ts.
+  import { bindAsciiMark } from '../../lib/ascii-mark/bind';
+
+  const cleanups: (() => void)[] = [];
+
+  function bindAll() {
+    document.querySelectorAll<HTMLElement>('[data-ascii-mark]').forEach((root) => {
+      cleanups.push(bindAsciiMark(root));
+    });
+  }
+
+  document.addEventListener('astro:page-load', bindAll);
+  document.addEventListener('astro:before-swap', () => {
+    for (const cleanup of cleanups.splice(0)) cleanup();
+  });
+</script>

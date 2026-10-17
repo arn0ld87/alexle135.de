@@ -5,7 +5,7 @@ import { parseJsonBody, parseWithSchema } from '../parseRequest';
 const schema = z.object({ title: z.string().min(1, 'title ist erforderlich.') });
 
 function makeRequest(body: unknown): Request {
-  return new Request('https://alexle135.de/api/admin/example', {
+  return new Request('https://alex-schneider.dev/api/admin/example', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(body),
@@ -29,7 +29,7 @@ describe('parseJsonBody', () => {
   });
 
   it('returns a 400 with a dedicated message on unparseable JSON', async () => {
-    const badRequest = new Request('https://alexle135.de/api/admin/example', {
+    const badRequest = new Request('https://alex-schneider.dev/api/admin/example', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: 'not json',
@@ -43,7 +43,7 @@ describe('parseJsonBody', () => {
   });
 
   it('returns a 400 with a dedicated message on an empty body', async () => {
-    const emptyRequest = new Request('https://alexle135.de/api/admin/example', {
+    const emptyRequest = new Request('https://alex-schneider.dev/api/admin/example', {
       method: 'POST',
     });
     const result = await parseJsonBody(emptyRequest, schema);

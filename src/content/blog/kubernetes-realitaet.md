@@ -9,7 +9,7 @@ tags:
 format: 'Essay'
 readingTime: '06 min'
 snippet: 'if (scale > N) k8s() else compose()'
-heroImage: /images/blog/kubernetes-realitaet.webp
+heroImage: ../../assets/blog/kubernetes-realitaet.webp
 publishedAt: 2025-11-16
 author: Alexander Schneider
 ---
@@ -121,4 +121,4 @@ Lerne Docker und Docker Compose perfekt. Lerne die Basics von Kubernetes für de
 
 Nicht jedes Problem ist ein Nagel, nur weil du einen Hammer hast.
 
-**Fragen?** [schneider@alexle135.de](mailto:schneider@alexle135.de)
+**Fragen?** [schneider@alex-schneider.dev](mailto:schneider@alex-schneider.dev)

@@ -1,5 +1,6 @@
 ---
 title: 'Das Terminal 2026: atuin, zoxide, yazi, lazygit und uv im Alltag'
+metaDescription: 'Sechs CLI-Werkzeuge aus meinem Terminal-Alltag: Was sie leisten, wie ich sie einrichte und welche Shell-Init-Zeilen du für den Einstieg brauchst.'
 summary: 'Die Rust-Generation der CLI-Tools ist über bat und exa hinaus. Sechs Werkzeuge, die ich täglich nutze, mit den Shell-Init-Zeilen, die du wirklich brauchst, und ohne die übliche Listicle-Beliebigkeit.'
 tags:
   - Linux
@@ -9,7 +10,7 @@ tags:
   - Produktivität
   - Rust
   - FISI
-heroImage: /images/blog/modernes-terminal-2026-cli-tools.webp
+heroImage: ../../assets/blog/modernes-terminal-2026-cli-tools.webp
 heroImageAlt: 'Modernes Terminal-Setup mit atuin, zoxide, yazi und lazygit'
 publishedAt: 2026-05-30
 draft: false

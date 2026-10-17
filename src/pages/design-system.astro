@@ -1,198 +1,380 @@
 ---
 /**
- * V2 Design System Reference
- * Dokumentation des editorial-technischen V2-Designsystems
+ * Referenzseite des Design-Systems „Systemwerk“ (Plan 02-13, D-19).
+ *
+ * Die Seite nennt keinen Farbwert im Quelltext: Jedes Farbfeld trägt sein Token als
+ * `data-token`, das gebündelte Skript liest den berechneten Wert und schreibt ihn in
+ * das Element mit `data-token-value`. Damit zeigt die Seite in beiden Ansichten, was
+ * das Stylesheet tatsächlich liefert, und kann nicht auseinanderlaufen.
  */
 import V2Layout from '../layouts/V2Layout.astro';
 import PageIntro from '../components/site/PageIntro.astro';
 import Showcase from '../components/ds/Showcase';
+
+/** Farbfelder der Papierfläche: Werte stehen ausschließlich in src/styles/systemwerk.css. */
+const paperTokens = [
+  '--paper',
+  '--ink',
+  '--muted',
+  '--line',
+  '--accent',
+  '--accent-strong',
+  '--accent-press',
+  '--danger',
+];
+
+/** Farbfelder des dunklen Panels (Footer, CTA-Abschluss, Agora-Karte, Codeblöcke). */
+const panelTokens = [
+  '--panel',
+  '--panel-text',
+  '--panel-muted',
+  '--panel-edge',
+  '--panel-rule',
+  '--panel-accent',
+  '--marker-on-ink',
+];
+
+/** Terminal-Insel: in beiden Ansichten unverändert dunkel. */
+const terminalTokens = [
+  '--terminal-bg',
+  '--terminal-fg',
+  '--terminal-fg-muted',
+  '--terminal-accent',
+];
+
+/** Die Akzentregel aus RAHMEN Abschnitt 4, als Liste. */
+const accentRule = [
+  'Marker-Quadrate 8 x 8 px, Keil der Bildmarke, Grafik, Fokusring 2 px, aktiver Balken 2 px, Unterstreichung von Links.',
+  'Schrift ab 24 px normal bzw. 18,66 px fett; auf dem Panel gilt statt --accent der Ton --panel-accent.',
+  '--accent-strong: kleiner Text, der farbig sein muss, Hover-Farbe großer Zeilentitel, Hover-Fläche des Primärbuttons. Nur auf Papierflächen.',
+  'Links im Fließtext und kleine Mono-Zeichen stehen in --ink mit Akzent-Unterstrich statt in Akzentfarbe.',
+  'Auf dem Panel gelten --panel-text, --panel-muted, --panel-accent, --panel-edge und --panel-rule; --accent-strong und --muted sind dort verboten.',
+  'Der Primärbutton ist nie orange gefüllt: Ruhefläche --ink mit Marker --marker-on-ink, Hover --accent-strong.',
+];
+
+/** Spacing-Skala der Unterseiten (UI-SPEC „Spacing Scale“), Basis 4 px. */
+const spacingScale = [
+  { token: '--space-1', px: '4px', use: 'Icon-Abstände, Inline-Abstand' },
+  { token: '--space-2', px: '8px', use: 'Chip-Abstand, Marker-Abstand' },
+  { token: '--space-4', px: '16px', use: 'Standardabstand, Dialogrand mobil' },
+  { token: '--space-5', px: '24px', use: 'Karten-Innenabstand, Zeilen-Innenabstand' },
+  { token: '--space-6', px: '32px', use: 'Layout-Lücken, Spaltenlücke' },
+  { token: '--space-8', px: '48px', use: 'Sektionsabstand mobil, Block-Abstände' },
+  { token: '--space-9', px: '64px', use: 'Abstand Seitenkopf zu Inhalt' },
+];
 ---
 
 <V2Layout
   title="Design System"
-  description="Referenz des editorial-technischen V2-Designsystems von alexle135.de: Farben, Typografie, Komponenten und Patterns."
+  description="Referenz des Design-Systems Systemwerk von alex-schneider.dev: Tokens beider Ansichten, Typografie, Primitive und Komponenten."
   noindex={true}
 >
   <main class="v2-shell py-20 md:py-28">
     <PageIntro
-      kicker="System Reference"
-      title="V2 Design System"
-      lead="Referenz aller Designentscheidungen, Tokens, Typografie und Komponenten des editorial-technischen Systems."
-      aside="Dieses System lebt von Spannung zwischen offenem Raum und präzisen Rahmen, nicht von 40 Karten auf schwarzem Hintergrund."
+      kicker="DESIGN-SYSTEM"
+      title="Design System: Systemwerk"
+      lead="Referenz der Tokens, der Typografie, der Primitive und der Komponenten. Alle Werte stehen in einem Stylesheet; diese Seite liest sie zur Laufzeit und zeigt sie in beiden Ansichten."
+      aside="Systemwerk ist eckig und flach: Linien statt Schatten, Fläche statt Glas, ein Akzent statt einer zweiten Markenfarbe."
     />
 
     <!-- Farben -->
     <section class="mt-20">
-      <h2 class="font-editorial text-[clamp(2rem,4vw,3rem)] leading-[0.95] tracking-[-0.04em] text-[color:var(--color-mono-50)] mb-10">Farben</h2>
+      <h2 class="ds-display-m mb-10">Farben</h2>
 
-      <div class="grid gap-6 md:grid-cols-2">
-        <!-- Mono-Palette -->
-        <div class="v2-panel rounded-sm p-6">
-          <h3 class="v2-kicker mb-6">Mono-Palette</h3>
-          <div class="space-y-3">
-            <div class="flex items-center gap-4">
-              <div class="h-10 w-10 rounded-sm bg-[color:var(--color-mono-50)]"></div>
-              <div>
-                <span class="text-sm text-[color:var(--color-mono-50)]">Mono 50</span>
-                <span class="font-mono text-xs text-[color:var(--color-mono-400)] ml-2">#f6f2eb</span>
-              </div>
-            </div>
-            <div class="flex items-center gap-4">
-              <div class="h-10 w-10 rounded-sm bg-[color:var(--color-mono-100)]"></div>
-              <div>
-                <span class="text-sm text-[color:var(--color-mono-50)]">Mono 100</span>
-                <span class="font-mono text-xs text-[color:var(--color-mono-400)] ml-2">#e6e0d7</span>
-              </div>
-            </div>
-            <div class="flex items-center gap-4">
-              <div class="h-10 w-10 rounded-sm bg-[color:var(--color-mono-200)]"></div>
-              <div>
-                <span class="text-sm text-[color:var(--color-mono-50)]">Mono 200</span>
-                <span class="font-mono text-xs text-[color:var(--color-mono-400)] ml-2">#ccc4ba</span>
-              </div>
-            </div>
-            <div class="flex items-center gap-4">
-              <div class="h-10 w-10 rounded-sm bg-[color:var(--color-mono-300)]"></div>
-              <div>
-                <span class="text-sm text-[color:var(--color-mono-50)]">Mono 300</span>
-                <span class="font-mono text-xs text-[color:var(--color-mono-400)] ml-2">#ada398</span>
-              </div>
-            </div>
-            <div class="flex items-center gap-4">
-              <div class="h-10 w-10 rounded-sm bg-[color:var(--color-mono-400)]"></div>
-              <div>
-                <span class="text-sm text-[color:var(--color-mono-50)]">Mono 400</span>
-                <span class="font-mono text-xs text-[color:var(--color-mono-400)] ml-2">#8b8177</span>
-              </div>
-            </div>
-            <div class="flex items-center gap-4">
-              <div class="h-10 w-10 rounded-sm bg-[color:var(--color-mono-950)]  border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)]"></div>
-              <div>
-                <span class="text-sm text-[color:var(--color-mono-50)]">Mono 950 (Canvas)</span>
-                <span class="font-mono text-xs text-[color:var(--color-mono-400)] ml-2">#0d0c0c</span>
-              </div>
-            </div>
-          </div>
-        </div>
+      <h3 class="ds-display-s mb-4">Papierfläche</h3>
+      <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {
+          paperTokens.map((token) => (
+            <li
+              class="flex items-start gap-3 border border-[color:var(--line)] p-3"
+              data-token={token}
+            >
+              <span
+                class="block h-10 w-10 flex-none border border-[color:var(--line)]"
+                style={`background: var(${token})`}
+                aria-hidden="true"
+              />
+              <span class="flex min-w-0 flex-col gap-1">
+                <span class="font-mono text-xs break-all text-[color:var(--ink)]">{token}</span>
+                <span class="font-mono text-xs text-[color:var(--muted)]" data-token-value />
+              </span>
+            </li>
+          ))
+        }
+      </ul>
 
-        <!-- Akzent -->
-        <div class="v2-panel rounded-sm p-6">
-          <h3 class="v2-kicker mb-6">Akzent & Rollen</h3>
-          <div class="space-y-3">
-            <div class="flex items-center gap-4">
-              <div class="h-10 w-10 rounded-sm bg-[color:var(--color-neon-orange)]"></div>
-              <div>
-                <span class="text-sm text-[color:var(--color-mono-50)]">Neon Orange</span>
-                <span class="font-mono text-xs text-[color:var(--color-mono-400)] ml-2">#ff6a00</span>
-              </div>
-            </div>
-            <div class="flex items-center gap-4">
-              <div class="h-10 w-10 rounded-sm bg-[color:var(--color-neon-orange-ink)]"></div>
-              <div>
-                <span class="text-sm text-[color:var(--color-mono-50)]">Orange Ink</span>
-                <span class="font-mono text-xs text-[color:var(--color-mono-400)] ml-2">#2a1100</span>
-              </div>
-            </div>
-            <div class="flex items-center gap-4">
-              <div class="h-10 w-10 rounded-sm v2-panel"></div>
-              <div>
-                <span class="text-sm text-[color:var(--color-mono-50)]">Surface faint (v2-panel)</span>
-                <span class="font-mono text-xs text-[color:var(--color-mono-400)] ml-2">6% mono-50</span>
-              </div>
-            </div>
-          </div>
+      <h3 class="ds-display-s mt-12 mb-4">Panel</h3>
+      <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {
+          panelTokens.map((token) => (
+            <li
+              class="flex items-start gap-3 border border-[color:var(--line)] p-3"
+              data-token={token}
+            >
+              <span
+                class="block h-10 w-10 flex-none border border-[color:var(--line)]"
+                style={`background: var(${token})`}
+                aria-hidden="true"
+              />
+              <span class="flex min-w-0 flex-col gap-1">
+                <span class="font-mono text-xs break-all text-[color:var(--ink)]">{token}</span>
+                <span class="font-mono text-xs text-[color:var(--muted)]" data-token-value />
+              </span>
+            </li>
+          ))
+        }
+      </ul>
 
-          <div class="mt-8 border-t border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pt-6">
-            <h4 class="v2-kicker mb-3">Regel</h4>
-            <p class="text-sm leading-7 text-[color:var(--color-mono-300)]">80-85% der Fläche bleibt monochrom. Orange markiert Handlung, Spannung oder Systemzustand. Keine zweite dominante Brandfarbe.</p>
-          </div>
-        </div>
-      </div>
+      <h3 class="ds-display-s mt-12 mb-4">Terminal-Insel</h3>
+      <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {
+          terminalTokens.map((token) => (
+            <li
+              class="flex items-start gap-3 border border-[color:var(--line)] p-3"
+              data-token={token}
+            >
+              <span
+                class="block h-10 w-10 flex-none border border-[color:var(--line)]"
+                style={`background: var(${token})`}
+                aria-hidden="true"
+              />
+              <span class="flex min-w-0 flex-col gap-1">
+                <span class="font-mono text-xs break-all text-[color:var(--ink)]">{token}</span>
+                <span class="font-mono text-xs text-[color:var(--muted)]" data-token-value />
+              </span>
+            </li>
+          ))
+        }
+      </ul>
+
+      <h3 class="ds-display-s mt-12 mb-4">Akzentregel</h3>
+      <ul class="flex max-w-[68ch] flex-col gap-3">
+        {
+          accentRule.map((rule) => (
+            <li class="border-l-2 border-[color:var(--accent)] pl-4 text-[length:var(--ds-text-body)] leading-[var(--ds-leading-normal)] text-[color:var(--ink)]">
+              {rule}
+            </li>
+          ))
+        }
+      </ul>
     </section>
 
     <!-- Typografie -->
     <section class="mt-20">
-      <h2 class="font-editorial text-[clamp(2rem,4vw,3rem)] leading-[0.95] tracking-[-0.04em] text-[color:var(--color-mono-50)] mb-10">Typografie</h2>
+      <h2 class="ds-display-m mb-10">Typografie</h2>
 
-      <div class="v2-panel rounded-sm p-6 md:p-8 space-y-8">
-        <div>
-          <p class="v2-kicker mb-4">Editorial (Serif)</p>
-          <div class="space-y-3">
-            <p class="font-editorial text-[clamp(3rem,7vw,5.5rem)] leading-[0.9] tracking-[-0.06em] text-[color:var(--color-mono-50)]">Hero Display</p>
-            <p class="font-editorial text-[clamp(2rem,4vw,3.5rem)] leading-[0.92] tracking-[-0.04em] text-[color:var(--color-mono-50)]">Page Heading</p>
-            <p class="font-editorial text-[clamp(1.5rem,3vw,2.4rem)] leading-[1.1] tracking-[-0.03em] text-[color:var(--color-mono-50)]">Section Heading</p>
-            <p class="font-editorial text-xl text-[color:var(--color-mono-50)]">Card Title</p>
+      <div class="flex flex-col gap-10">
+        <div class="flex flex-col gap-6">
+          <p class="ds-kicker">Display — TeX Gyre Heros Bold</p>
+          <div class="flex flex-col gap-6">
+            <p class="ds-display-hero">Kontrolle.</p>
+            <p class="font-mono text-xs text-[color:var(--muted)]">.ds-display-hero</p>
+          </div>
+          <div class="flex flex-col gap-3">
+            <p class="ds-display-xl">Seitenkopf einer Unterseite</p>
+            <p class="font-mono text-xs text-[color:var(--muted)]">.ds-display-xl</p>
+          </div>
+          <div class="flex flex-col gap-3">
+            <p class="ds-display-l">Abschnitt in Heros Bold</p>
+            <p class="font-mono text-xs text-[color:var(--muted)]">.ds-display-l</p>
+          </div>
+          <div class="flex flex-col gap-2">
+            <p class="ds-display-m">Zwischenüberschrift</p>
+            <p class="font-mono text-xs text-[color:var(--muted)]">.ds-display-m</p>
+          </div>
+          <div class="flex flex-col gap-2">
+            <p class="ds-display-s">Titel in einer Karte oder Zeile</p>
+            <p class="font-mono text-xs text-[color:var(--muted)]">.ds-display-s</p>
+          </div>
+          <div class="flex flex-col gap-2">
+            <p class="ds-display-m"><span class="ds-outline">Umriss</span> und Füllung im selben Satz</p>
+            <p class="font-mono text-xs text-[color:var(--muted)]">.ds-outline</p>
           </div>
         </div>
 
-        <div class="v2-rule"></div>
+        <div class="flex flex-col gap-4 border-t border-[color:var(--line)] pt-8">
+          <p class="ds-kicker">Text — Geist Sans 17 px</p>
+          <p class="max-w-[68ch] text-[length:var(--ds-text-body)] leading-[var(--ds-leading-normal)] text-[color:var(--ink)]">
+            Fließtext steht in Geist Sans mit 17 px und Zeilenhöhe 1,55. Diese Stufe trägt Einleitungen,
+            Absätze und Beschreibungen; sie ist der Standard für alles, was gelesen wird.
+          </p>
+        </div>
 
-        <div>
-          <p class="v2-kicker mb-4">UI (Sans)</p>
-          <div class="space-y-2">
-            <p class="font-ui text-lg leading-8 text-[color:var(--color-mono-200)]">Lead-Text - Einleitende Sätze und Zusammenfassungen</p>
-            <p class="font-ui text-base leading-7 text-[color:var(--color-mono-300)]">Body-Text - Normaler Fliesstext und Beschreibungen</p>
-            <p class="font-ui text-sm leading-7 text-[color:var(--color-mono-300)]">Small Text - Sekundäre Informationen</p>
+        <div class="flex flex-col gap-4 border-t border-[color:var(--line)] pt-8">
+          <p class="ds-kicker">Kicker und Labels — Geist Mono 12 px</p>
+          <p class="font-mono text-xs tracking-[0.08em] text-[color:var(--muted)] uppercase">
+            01 / Nummerierung / Datum
+          </p>
+          <p class="max-w-[68ch] text-[length:var(--ds-text-body)] leading-[var(--ds-leading-normal)] text-[color:var(--ink)]">
+            Geist Mono trägt Kicker, Labels, Meta-Zeilen und Betriebsdaten. Kein sichtbarer Text
+            unterschreitet 12 px.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Abstände und Raster -->
+    <section class="mt-20">
+      <h2 class="ds-display-m mb-10">Abstände und Raster</h2>
+
+      <dl class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {
+          spacingScale.map((step) => (
+            <div class="flex items-baseline gap-3 border border-[color:var(--line)] p-4">
+              <dt class="font-mono text-xs text-[color:var(--ink)]">{step.token}</dt>
+              <dd class="text-[length:var(--ds-text-sm)] text-[color:var(--muted)]">
+                {step.px} — {step.use}
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+
+      <ul class="mt-8 flex max-w-[68ch] flex-col gap-3">
+        <li class="border-l-2 border-[color:var(--accent)] pl-4 text-[length:var(--ds-text-body)] leading-[var(--ds-leading-normal)] text-[color:var(--ink)]">
+          Shell: --shell-max 1240 px, --shell-narrow 760 px für Prosa und Blogspalten, --shell-pad
+          fließend von 20 px bis 44 px.
+        </li>
+        <li class="border-l-2 border-[color:var(--accent)] pl-4 text-[length:var(--ds-text-body)] leading-[var(--ds-leading-normal)] text-[color:var(--ink)]">
+          --section-gap liegt zwischen 48 px und 64 px und trägt den Abstand jeder Sektion; jede
+          Sektion beginnt mit einer 1 px Linie in --line über die Shell-Breite.
+        </li>
+        <li class="border-l-2 border-[color:var(--accent)] pl-4 text-[length:var(--ds-text-body)] leading-[var(--ds-leading-normal)] text-[color:var(--ink)]">
+          Ecken sind überall 0. Schatten gibt es nicht; getrennt wird mit 1 px Linien statt mit
+          Höhenwirkung.
+        </li>
+      </ul>
+    </section>
+
+    <!-- Primitive -->
+    <section class="mt-20">
+      <h2 class="ds-display-m mb-10">Primitive</h2>
+
+      <div class="flex flex-col gap-10">
+        <div class="flex flex-col gap-4">
+          <p class="ds-kicker">.ds-pagehead — Seitenkopf, hier verkleinert</p>
+          <div class="border border-[color:var(--line)]">
+            <header
+              class="ds-pagehead ds-linegrid grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.7fr)] lg:items-end"
+              style="--section-gap: var(--space-5); padding-bottom: var(--space-5)"
+            >
+              <div class="flex flex-col gap-4">
+                <p class="ds-kicker">PROJEKTE</p>
+                <p class="ds-pagehead__title ds-display-l">Projekte und <span class="ds-outline">Baupläne</span></p>
+                <p class="ds-pagehead__lead">
+                  Ein Seitenkopf trägt Kicker, H1 und Einleitung; darunter trennt eine 1 px Linie.
+                </p>
+              </div>
+              <p class="ds-pagehead__aside lg:justify-self-end">
+                Die vierte Spalte nimmt eine kurze Randnotiz auf.
+              </p>
+            </header>
           </div>
         </div>
 
-        <div class="v2-rule"></div>
+        <div class="flex flex-col gap-4">
+          <p class="ds-kicker">.ds-row — Listenzeile</p>
+          <ul class="border-t border-[color:var(--line)]">
+            <li class="ds-row">
+              <a class="ds-row__content block" href="#">
+                <span class="ds-row__title ds-display-s">Zeile mit Titel und Meta</span>
+                <span class="ds-meta mt-1 block">2026 · Systemwerk</span>
+              </a>
+            </li>
+            <li class="ds-row">
+              <a class="ds-row__content block" href="#">
+                <span class="ds-row__title ds-display-s">Zweite Zeile</span>
+                <span class="ds-meta mt-1 block">2026 · Referenz</span>
+              </a>
+            </li>
+          </ul>
+        </div>
 
-        <div>
-          <p class="v2-kicker mb-4">System (Mono)</p>
-          <div class="space-y-2">
-            <p class="v2-kicker">Kicker / Label / Meta</p>
-            <p class="font-mono text-xs tabular-nums text-[color:var(--color-mono-400)]">01 / Nummerierung / Datum</p>
-            <p class="font-mono text-xs text-[color:var(--color-neon-orange)]">Code-Inline: docker compose up -d</p>
+        <div class="grid gap-6 md:grid-cols-2">
+          <div class="ds-card">
+            <p class="ds-kicker mb-3">.ds-card</p>
+            <p class="text-[length:var(--ds-text-body)] leading-[var(--ds-leading-normal)] text-[color:var(--ink)]">
+              Flache Karte: 1 px Linie, Papierfläche, 24 px Innenabstand, eckig, ohne Schatten.
+            </p>
+          </div>
+
+          <div class="ds-panel p-6" data-surface="panel">
+            <p class="ds-kicker mb-3">.ds-panel</p>
+            <p class="text-[length:var(--ds-text-body)] leading-[var(--ds-leading-normal)]">
+              Das dunkle Panel ist reserviert für Footer, Abschluss, Agora-Karte und Codeblöcke.
+              Karten sind nie Panels.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-4">
+          <p class="ds-kicker">.ds-kicker, .ds-tag und .ds-note</p>
+          <div class="flex flex-wrap items-center gap-3">
+            <span class="ds-kicker">Kicker</span>
+            <span class="ds-tag">Tag</span>
+            <span class="ds-tag">Zweiter Tag</span>
+          </div>
+          <div class="ds-note">
+            <p class="text-[length:var(--ds-text-body)] leading-[var(--ds-leading-normal)] text-[color:var(--ink)]">
+              Hinweisflächen tragen links eine 2 px Linie in der Akzentfarbe und eine ruhige,
+              getönte Fläche.
+            </p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Utilities -->
+    <!-- Buttons und Felder -->
     <section class="mt-20">
-      <h2 class="font-editorial text-[clamp(2rem,4vw,3rem)] leading-[0.95] tracking-[-0.04em] text-[color:var(--color-mono-50)] mb-10">Utilities</h2>
+      <h2 class="ds-display-m mb-10">Buttons und Felder</h2>
 
-      <div class="space-y-4">
-        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <div class="v2-panel rounded-sm p-5">
-            <p class="v2-kicker mb-3">v2-shell</p>
-            <p class="text-sm text-[color:var(--color-mono-300)]">Hauptcontainer. max-w-7xl, responsive Padding.</p>
-            <code class="mt-2 inline-block font-mono text-xs text-[color:var(--color-neon-orange)]">.v2-shell</code>
+      <div class="flex flex-col gap-10">
+        <div class="flex flex-col gap-4">
+          <p class="ds-kicker">Buttons</p>
+          <div class="flex flex-wrap items-center gap-4">
+            <a class="axb" data-variant="primary" href="#">Kontakt aufnehmen</a>
+            <a class="axb" data-variant="secondary" href="#">Projekte ansehen</a>
+            <a class="axb" data-variant="ghost" href="#">
+              Mehr erfahren
+              <span aria-hidden="true">&rarr;</span>
+            </a>
           </div>
+        </div>
 
-          <div class="v2-panel rounded-sm p-5">
-            <p class="v2-kicker mb-3">v2-kicker</p>
-            <p class="text-sm text-[color:var(--color-mono-300)]">Uppercase Label. UI-Font, hoher Letter-Spacing.</p>
-            <code class="mt-2 inline-block font-mono text-xs text-[color:var(--color-neon-orange)]">.v2-kicker</code>
+        <div class="flex flex-col gap-4">
+          <p class="ds-kicker">Invertiert auf dem Panel</p>
+          <div class="ds-panel p-6" data-surface="panel">
+            <a class="axb" data-variant="primary" href="#">Kontakt aufnehmen</a>
+            <p class="mt-4 text-[length:var(--ds-text-sm)] text-[color:var(--panel-muted)]">
+              Auf dem Panel invertiert der Primärbutton: helle Fläche, dunkle Schrift, Marker in
+              --panel-accent.
+            </p>
           </div>
+        </div>
 
-          <div class="v2-panel rounded-sm p-5">
-            <p class="v2-kicker mb-3">v2-panel</p>
-            <p class="text-sm text-[color:var(--color-mono-300)]">Surface mit Border und Blur. Ersetzt GlassCard.</p>
-            <code class="mt-2 inline-block font-mono text-xs text-[color:var(--color-neon-orange)]">.v2-panel</code>
-          </div>
-
-          <div class="v2-panel rounded-sm p-5">
-            <div class="v2-rule mb-3"></div>
-            <p class="v2-kicker mb-3">v2-rule</p>
-            <p class="text-sm text-[color:var(--color-mono-300)]">Gradient-Divider. Ersetzt hr und border-Hacks.</p>
-            <code class="mt-2 inline-block font-mono text-xs text-[color:var(--color-neon-orange)]">.v2-rule</code>
-          </div>
-
-          <div class="v2-panel rounded-sm p-5">
-            <div class="flex items-center gap-2 mb-3">
-              <span class="v2-accent-dot"></span>
-              <p class="v2-kicker">v2-accent-dot</p>
+        <div class="grid gap-6 md:grid-cols-2">
+          <div class="axfield">
+            <label class="axfield-label" for="ds-input-name">Name</label>
+            <div class="axinput-wrap">
+              <input class="axinput" id="ds-input-name" type="text" placeholder="Vor- und Nachname" />
             </div>
-            <p class="text-sm text-[color:var(--color-mono-300)]">Orange Markierungspunkt mit Glow.</p>
-            <code class="mt-2 inline-block font-mono text-xs text-[color:var(--color-neon-orange)]">.v2-accent-dot</code>
           </div>
 
-          <div class="v2-panel rounded-sm p-5">
-            <p class="v2-kicker mb-3">v2-prose</p>
-            <p class="text-sm text-[color:var(--color-mono-300)]">Prose-Styling für Markdown-Content.</p>
-            <code class="mt-2 inline-block font-mono text-xs text-[color:var(--color-neon-orange)]">.v2-prose</code>
+          <div class="axfield">
+            <label class="axfield-label" for="ds-input-mail">E-Mail-Adresse</label>
+            <div class="axinput-wrap">
+              <input
+                class="axinput"
+                id="ds-input-mail"
+                type="email"
+                value="name@"
+                data-invalid="true"
+                aria-describedby="ds-input-mail-hint"
+              />
+            </div>
+            <p class="axfield-hint" id="ds-input-mail-hint" data-invalid="true">
+              Bitte eine vollständige Adresse angeben.
+            </p>
           </div>
         </div>
       </div>
@@ -200,126 +382,104 @@ import Showcase from '../components/ds/Showcase';
 
     <!-- Komponenten -->
     <section class="mt-20">
-      <h2 class="font-editorial text-[clamp(2rem,4vw,3rem)] leading-[0.95] tracking-[-0.04em] text-[color:var(--color-mono-50)] mb-10">Komponenten</h2>
-
-      <div class="space-y-0 divide-y divide-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)]">
-        <div class="grid gap-4 py-8 md:grid-cols-[3rem_1fr_minmax(10rem,0.4fr)]">
-          <span class="font-mono text-sm text-[color:var(--color-mono-400)]">01</span>
-          <div>
-            <h3 class="font-editorial text-xl text-[color:var(--color-mono-50)] mb-1">PageIntro</h3>
-            <p class="text-sm text-[color:var(--color-mono-300)]">Seiten-Header mit Kicker, Serif-Headline, Lead und optionaler Aside-Spalte.</p>
-          </div>
-          <span class="v2-kicker md:text-right">components/site/</span>
-        </div>
-
-        <div class="grid gap-4 py-8 md:grid-cols-[3rem_1fr_minmax(10rem,0.4fr)]">
-          <span class="font-mono text-sm text-[color:var(--color-mono-400)]">02</span>
-          <div>
-            <h3 class="font-editorial text-xl text-[color:var(--color-mono-50)] mb-1">CTASection</h3>
-            <p class="text-sm text-[color:var(--color-mono-300)]">Abschluss-CTA mit Kicker, Serif-Headline, Body, Primary + Secondary Action.</p>
-          </div>
-          <span class="v2-kicker md:text-right">components/site/</span>
-        </div>
-
-        <div class="grid gap-4 py-8 md:grid-cols-[3rem_1fr_minmax(10rem,0.4fr)]">
-          <span class="font-mono text-sm text-[color:var(--color-mono-400)]">03</span>
-          <div>
-            <h3 class="font-editorial text-xl text-[color:var(--color-mono-50)] mb-1">ServiceEntry</h3>
-            <p class="text-sm text-[color:var(--color-mono-300)]">Nummerierter Leistungsblock mit Eyebrow, Titel und Wann/Was/Ergebnis-Struktur.</p>
-          </div>
-          <span class="v2-kicker md:text-right">components/site/</span>
-        </div>
-
-        <div class="grid gap-4 py-8 md:grid-cols-[3rem_1fr_minmax(10rem,0.4fr)]">
-          <span class="font-mono text-sm text-[color:var(--color-mono-400)]">04</span>
-          <div>
-            <h3 class="font-editorial text-xl text-[color:var(--color-mono-50)] mb-1">ProjectEntry</h3>
-            <p class="text-sm text-[color:var(--color-mono-300)]">Projekt-Modul mit Visual, Meta-Rail, Stack und View-Link.</p>
-          </div>
-          <span class="v2-kicker md:text-right">components/site/</span>
-        </div>
-
-        <div class="grid gap-4 py-8 md:grid-cols-[3rem_1fr_minmax(10rem,0.4fr)]">
-          <span class="font-mono text-sm text-[color:var(--color-mono-400)]">05</span>
-          <div>
-            <h3 class="font-editorial text-xl text-[color:var(--color-mono-50)] mb-1">BlogEntry</h3>
-            <p class="text-sm text-[color:var(--color-mono-300)]">Blog-Listeneintrag mit Datum, Titel, Summary und Meta.</p>
-          </div>
-          <span class="v2-kicker md:text-right">components/site/</span>
-        </div>
-
-        <div class="grid gap-4 py-8 md:grid-cols-[3rem_1fr_minmax(10rem,0.4fr)]">
-          <span class="font-mono text-sm text-[color:var(--color-mono-400)]">06</span>
-          <div>
-            <h3 class="font-editorial text-xl text-[color:var(--color-mono-50)] mb-1">ProofStrip</h3>
-            <p class="text-sm text-[color:var(--color-mono-300)]">Kompakte Faktenreihe direkt unter dem Hero.</p>
-          </div>
-          <span class="v2-kicker md:text-right">components/site/</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- CTA-System -->
-    <section class="mt-20">
-      <h2 class="font-editorial text-[clamp(2rem,4vw,3rem)] leading-[0.95] tracking-[-0.04em] text-[color:var(--color-mono-50)] mb-10">CTA-System</h2>
-
-      <div class="v2-panel rounded-sm p-6 md:p-8 space-y-8">
-        <div>
-          <p class="v2-kicker mb-4">Primary CTA</p>
-          <a href="#" class="v2-cta">Kontakt aufnehmen</a>
-          <p class="mt-3 text-xs text-[color:var(--color-mono-400)]">Orange Fläche, dunkle Typo, uppercase, tracking, eckig. Hover invertiert zu Kontur statt Glow. Einsatz: Hero, Abschluss, priorisierte Conversion.</p>
-        </div>
-
-        <div class="v2-rule"></div>
-
-        <div>
-          <p class="v2-kicker mb-4">Secondary CTA</p>
-          <a href="#" class="v2-cta-ghost">Projekte ansehen</a>
-          <p class="mt-3 text-xs text-[color:var(--color-mono-400)]">Outline-Link, keine Konkurrenz zum Primary. Einsatz: Listenenden, Seitenübergänge.</p>
-        </div>
-
-        <div class="v2-rule"></div>
-
-        <div>
-          <p class="v2-kicker mb-4">Inline Action</p>
-          <a href="#" class="inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.2em] text-[color:var(--color-neon-orange)] hover:underline">Öffnen <span aria-hidden="true">&rarr;</span></a>
-          <p class="mt-3 text-xs text-[color:var(--color-mono-400)]">Textlink mit Arrow. Einsatz: Listeneinträge, Karten.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Designprinzipien -->
-    <section class="mt-20 mb-8">
-      <h2 class="font-editorial text-[clamp(2rem,4vw,3rem)] leading-[0.95] tracking-[-0.04em] text-[color:var(--color-mono-50)] mb-10">Prinzipien</h2>
-
-      <div class="space-y-0 divide-y divide-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)]">
-        <div class="grid gap-4 py-6 md:grid-cols-[3rem_1fr]">
-          <span class="font-mono text-sm text-[color:var(--color-mono-400)]">01</span>
-          <p class="text-sm leading-7 text-[color:var(--color-mono-200)]">Weniger Flächen, mehr Richtung. Inhalt bleibt wichtiger als Container.</p>
-        </div>
-        <div class="grid gap-4 py-6 md:grid-cols-[3rem_1fr]">
-          <span class="font-mono text-sm text-[color:var(--color-mono-400)]">02</span>
-          <p class="text-sm leading-7 text-[color:var(--color-mono-200)]">Typografie trägt die Hierarchie. Headline entscheidet die Seite.</p>
-        </div>
-        <div class="grid gap-4 py-6 md:grid-cols-[3rem_1fr]">
-          <span class="font-mono text-sm text-[color:var(--color-mono-400)]">03</span>
-          <p class="text-sm leading-7 text-[color:var(--color-mono-200)]">Der Akzent ist knapp und dadurch wertvoll. Orange nur für Priorität.</p>
-        </div>
-        <div class="grid gap-4 py-6 md:grid-cols-[3rem_1fr]">
-          <span class="font-mono text-sm text-[color:var(--color-mono-400)]">04</span>
-          <p class="text-sm leading-7 text-[color:var(--color-mono-200)]">Technical tone without cosplay. Keine Fake-CLI ohne Funktion.</p>
-        </div>
-        <div class="grid gap-4 py-6 md:grid-cols-[3rem_1fr]">
-          <span class="font-mono text-sm text-[color:var(--color-mono-400)]">05</span>
-          <p class="text-sm leading-7 text-[color:var(--color-mono-200)]">Pages are systems, not posters. Jede Seite folgt derselben Grammatik.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Warm Noir Komponenten-Showcase -->
-    <section class="warm-noir mt-20 mb-8">
-      <h2 class="font-editorial text-[clamp(2rem,4vw,3rem)] leading-[0.95] tracking-[-0.04em] text-[color:var(--color-mono-50)] mb-10">Warm Noir — Komponenten</h2>
+      <h2 class="ds-display-m mb-10">Komponenten</h2>
+      <p class="mb-8 max-w-[68ch] text-[length:var(--ds-text-body)] leading-[var(--ds-leading-normal)] text-[color:var(--ink)]">
+        Die React-Primitive unter <span class="font-mono text-xs">src/components/ds/</span> lesen
+        dieselben Tokens und dieselben Klassen wie die Seiten. Sie laufen hier als Insel und
+        werden erst sichtbar geladen.
+      </p>
       <Showcase client:visible />
     </section>
+
+    <!-- Bauplanansicht -->
+    <section class="mt-20">
+      <h2 class="ds-display-m mb-10">Bauplanansicht</h2>
+      <ul class="flex max-w-[68ch] flex-col gap-3">
+        <li class="border-l-2 border-[color:var(--accent)] pl-4 text-[length:var(--ds-text-body)] leading-[var(--ds-leading-normal)] text-[color:var(--ink)]">
+          Die zweite Ansicht hängt als Attribut data-variant am Wurzelelement und setzt dieselben
+          Tokens auf andere Werte; die Klassen der Komponenten bleiben unverändert.
+        </li>
+        <li class="border-l-2 border-[color:var(--accent)] pl-4 text-[length:var(--ds-text-body)] leading-[var(--ds-leading-normal)] text-[color:var(--ink)]">
+          Der Schalter im Header wechselt zwischen Papier und Bauplan. Die Wahl liegt im Browser
+          unter dem Schlüssel systemwerk-variant, gilt ohne Speicherzugriff bis zum Neuladen und
+          folgt nie der Systemeinstellung; gedruckt wird immer auf Papier.
+        </li>
+      </ul>
+    </section>
+
+    <!-- Prinzipien -->
+    <section class="mt-20 mb-8">
+      <h2 class="ds-display-m mb-10">Prinzipien</h2>
+
+      <ul class="flex flex-col">
+        <li class="grid gap-4 border-t border-[color:var(--line)] py-6 md:grid-cols-[3rem_1fr]">
+          <span class="font-mono text-xs text-[color:var(--muted)]">01</span>
+          <p class="text-[length:var(--ds-text-body)] leading-[var(--ds-leading-normal)] text-[color:var(--ink)]">
+            Eckig. Ecken sind 0, Kreise gehören allein den Statuspunkten und den Grafiken.
+          </p>
+        </li>
+        <li class="grid gap-4 border-t border-[color:var(--line)] py-6 md:grid-cols-[3rem_1fr]">
+          <span class="font-mono text-xs text-[color:var(--muted)]">02</span>
+          <p class="text-[length:var(--ds-text-body)] leading-[var(--ds-leading-normal)] text-[color:var(--ink)]">
+            Flach. Linien und Flächen tragen die Ordnung, nicht Unschärfe, Verlauf oder Höhenlicht.
+          </p>
+        </li>
+        <li class="grid gap-4 border-t border-[color:var(--line)] py-6 md:grid-cols-[3rem_1fr]">
+          <span class="font-mono text-xs text-[color:var(--muted)]">03</span>
+          <p class="text-[length:var(--ds-text-body)] leading-[var(--ds-leading-normal)] text-[color:var(--ink)]">
+            Der Akzent bleibt sparsam. Er markiert Handlung, Fundstelle und Zustand; er füllt
+            keine Flächen und keine Sektionen.
+          </p>
+        </li>
+        <li class="grid gap-4 border-t border-[color:var(--line)] py-6 md:grid-cols-[3rem_1fr]">
+          <span class="font-mono text-xs text-[color:var(--muted)]">04</span>
+          <p class="text-[length:var(--ds-text-body)] leading-[var(--ds-leading-normal)] text-[color:var(--ink)]">
+            Typografie trägt die Hierarchie. Größe, Zeilenhöhe und Laufweite stehen zusammen in den
+            Display-Klassen und werden nie lokal überschrieben.
+          </p>
+        </li>
+        <li class="grid gap-4 border-y border-[color:var(--line)] py-6 md:grid-cols-[3rem_1fr]">
+          <span class="font-mono text-xs text-[color:var(--muted)]">05</span>
+          <p class="text-[length:var(--ds-text-body)] leading-[var(--ds-leading-normal)] text-[color:var(--ink)]">
+            Tokens statt Werte. Kein Farbwert steht in einer Komponente; jede Seite liest dieselben
+            Namen, und beide Ansichten ziehen automatisch mit.
+          </p>
+        </li>
+      </ul>
+    </section>
   </main>
+
+  <script>
+    // Farbwerte zur Laufzeit (D-19): Der Quelltext der Seite nennt keinen Hexwert, das
+    // Stylesheet bleibt die einzige Quelle. Gelesen wird beim Laden und nach jedem Wechsel
+    // der Ansicht (Ereignis systemwerk-variant aus src/lib/variantToggle.ts).
+    const FIELD_SELECTOR = '[data-token]';
+    let controller: AbortController | undefined;
+
+    function readTokenValues(): void {
+      const styles = getComputedStyle(document.documentElement);
+      document.querySelectorAll<HTMLElement>(FIELD_SELECTOR).forEach((field) => {
+        const name = field.dataset.token;
+        const out = field.querySelector<HTMLElement>('[data-token-value]');
+        if (!name || !out) return;
+        const value = styles.getPropertyValue(name).trim();
+        if (value) out.textContent = value;
+      });
+    }
+
+    // Idempotenz: pro Seitenaufbau genau eine Bindung; beim Seitenwechsel lösen.
+    function bindTokenValues(): void {
+      controller?.abort();
+      if (!document.querySelector(FIELD_SELECTOR)) return;
+      controller = new AbortController();
+      readTokenValues();
+      window.addEventListener('systemwerk-variant', readTokenValues, { signal: controller.signal });
+      document.addEventListener('astro:before-swap', () => controller?.abort(), {
+        signal: controller.signal,
+        once: true,
+      });
+    }
+
+    document.addEventListener('astro:page-load', bindTokenValues);
+  </script>
 </V2Layout>

@@ -1,5 +1,6 @@
 ---
-title: 'Codebase als Wissensgraph: warum ich für Code-Review keinen Grep mehr nutze'
+title: 'Code-Review ohne Grep: Codebase als Wissensgraph'
+metaDescription: 'Code Review Graph nutzt Tree-sitter für Funktionen, Aufrufe und Tests. Ich zeige, wie ich damit Abhängigkeiten prüfe und wo die Grenzen liegen.'
 summary: 'Tree-sitter parst die Codebase, ein Graph speichert Funktionen, Aufrufe und Tests als Knoten. Statt mit Grep zu tasten, frage ich den Graph nach Impact-Radius und Callern. Hier ist, wann das hilft und wann nicht.'
 publishedAt: 2026-05-11
 tags:
@@ -8,7 +9,7 @@ tags:
   - Knowledge Graph
   - Claude Code
   - MCP
-heroImage: /images/blog/code-review-graph-tree-sitter-knowledge-graph.webp
+heroImage: ../../assets/blog/code-review-graph-tree-sitter-knowledge-graph.webp
 author: Alexander Schneider
 ---
 

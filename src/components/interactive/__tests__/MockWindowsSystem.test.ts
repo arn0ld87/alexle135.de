@@ -253,7 +253,7 @@ describe('MockWindowsSystem', () => {
     });
 
     it('whoami prints the fake user', () => {
-      expect(sys.processCommand('whoami').output).toBe('alexle135\\visitor\r\n');
+      expect(sys.processCommand('whoami').output).toBe('alex-schneider\\visitor\r\n');
     });
 
     it('ping with a host echoes replies', () => {

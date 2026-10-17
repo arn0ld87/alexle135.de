@@ -8,7 +8,7 @@ tags:
   - Homelab
   - Tutorial
   - Proxmox
-heroImage: /images/blog/selfhosted-setup-2025.webp
+heroImage: ../../assets/blog/selfhosted-setup-2025.webp
 author: Alexander Schneider
 ---
 
@@ -271,7 +271,7 @@ server {
 
 **Weiterlesen:** [Docker auf Ubuntu installieren](/blog/docker-ubuntu-setup/)
 
-Viel Erfolg beim Nachbauen! Wenn ihr Fragen habt – besonders zur DNS-Challenge, die etwas tricky sein kann – schreibt mir: [schneider@alexle135.de](mailto:schneider@alexle135.de)
+Viel Erfolg beim Nachbauen! Wenn ihr Fragen habt – besonders zur DNS-Challenge, die etwas tricky sein kann – schreibt mir: [schneider@alex-schneider.dev](mailto:schneider@alex-schneider.dev)
 
 ---
 

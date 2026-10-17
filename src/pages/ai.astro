@@ -1,0 +1,142 @@
+---
+import V2Layout from '../layouts/V2Layout.astro';
+import PageIntro from '../components/site/PageIntro.astro';
+import CTASection from '../components/site/CTASection.astro';
+
+// Englischsprachiger One-Pager als Deck-Ersatz für Partner-/Programm-Bewerbungen
+// (z. B. Alibaba Cloud Free-Token-Programm). Bewusst noindex + Sitemap-Ausschluss,
+// solange die Seite nicht Teil der deutschen Content-Strategie ist.
+
+const useCases = [
+  {
+    name: 'code-review-graph',
+    role: 'Code Knowledge Graph',
+    text: 'Parses whole repositories with Tree-sitter into a structural graph, then layers embeddings on top — qwen3-embedding, served locally through Ollama. A coding agent can ask "who calls this function, what breaks if I change it" and gets a small, ranked context set instead of reading the entire repo. Runs as an MCP server inside my daily coding setup, across six registered repositories.',
+    status: 'In daily use',
+  },
+  {
+    name: 'Agora',
+    role: 'Agentic Prediction Engine',
+    text: 'One document in, one world out. Agora turns text into a knowledge graph, populates it with hundreds of agents that each carry a biography, an attitude and a filter bubble, and lets them discuss, share and argue. You watch in real time how narratives spread and which voices tip the discourse. Runs locally on Neo4j and Ollama; when local inference gets too slow, it falls back to cloud models.',
+    status: 'v0.2 preview',
+  },
+  {
+    name: 'Hermes',
+    role: 'Self-hosted Agent Framework',
+    text: 'An agent framework that runs entirely on infrastructure I control: no third-party API key in the background, no external logs, no telemetry. Built for tasks where data leaving the network is not acceptable. Long-term memory lives in a self-hosted Honcho instance.',
+    status: 'In development',
+  },
+] as const;
+
+const stack = [
+  'Ollama with qwen3-embedding:4b and embeddinggemma:300m',
+  'Neo4j 5.x as graph store',
+  'Python 3.12 with uv, Vue 3 and Astro SSR on the frontend side',
+  'Docker and Traefik on an ARM64 Ubuntu server as primary host, a second Ubuntu VPS for the rest',
+  'Tailscale, so internal services never touch the open internet',
+] as const;
+
+const qwenPlan = [
+  'Bulk embedding of larger repositories, where a laptop GPU becomes the bottleneck',
+  'Summarisation passes over graph communities in code-review-graph',
+  'Burst inference for Agora simulations with hundreds of concurrent agents',
+] as const;
+---
+
+<V2Layout
+  title="AI Use Cases – Alexander Schneider"
+  description="How I build with AI: a code knowledge graph, an agentic prediction engine and a self-hosted agent framework. Local-first with Ollama, Neo4j and Qwen."
+  noindex={true}
+  schema={{
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": "https://alex-schneider.dev/ai/#page",
+    "url": "https://alex-schneider.dev/ai/",
+    "name": "AI Use Cases – Alexander Schneider",
+    "description": "How Alexander Schneider builds with AI: code knowledge graph, agentic prediction engine, self-hosted agent framework.",
+    "inLanguage": "en",
+    "mainEntity": { "@id": "https://alex-schneider.dev/#person" }
+  }}
+>
+  <main class="v2-shell py-20 md:py-28 lg:py-36">
+    <PageIntro
+      kicker="AI at alex-schneider.dev"
+      title="AI is not a feature here. It is the workbench."
+      lead="I am a one-person shop building self-hosted AI tooling: a code knowledge graph, an agent swarm engine and the infrastructure underneath. Everything on this page exists, runs, and was built on hardware I can touch."
+      aside="One page instead of a company deck: what I build with AI, what it runs on, and where cloud inference fits in. Updated July 2026."
+    />
+
+    <div class="mt-16 space-y-16">
+      <section class="space-y-10" aria-labelledby="use-cases-heading">
+        <div class="space-y-5">
+          <p class="ds-kicker">Use Cases</p>
+          <h2 id="use-cases-heading" class="max-w-4xl ds-display-l text-[color:var(--ink)]">
+            Three systems, all built because I needed them.
+          </h2>
+        </div>
+
+        <div class="space-y-8">
+          {useCases.map((p, index) => (
+            <article class="grid gap-6 border-t border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pt-8 first:border-t-0 first:pt-0 lg:grid-cols-[4.5rem_minmax(0,1fr)] lg:gap-10">
+              <p class="font-mono text-[0.82rem] leading-6 tracking-[0.18em] text-[color:var(--muted)]">{String(index + 1).padStart(2, '0')}</p>
+              <div class="space-y-4">
+                <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                  <h3 class="ds-display-m text-[color:var(--ink)]">{p.name}</h3>
+                  <span class="font-mono text-[0.72rem] uppercase tracking-[0.18em] text-[color:var(--accent-strong)]">{p.role}</span>
+                </div>
+                <p class="max-w-[68ch] text-base leading-8 text-[color:var(--ink)]">{p.text}</p>
+                <p class="font-mono text-[0.72rem] uppercase tracking-[0.18em] text-[color:var(--muted)]">Status: {p.status}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section class="grid gap-8 border-y border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] py-10 md:py-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.75fr)] lg:items-start" aria-labelledby="stack-heading">
+        <div class="space-y-5">
+          <p class="ds-kicker">Stack</p>
+          <h2 id="stack-heading" class="ds-display-l text-[color:var(--ink)]">
+            Local-first, for budget reasons as much as for principle.
+          </h2>
+          <p class="text-base leading-8 text-[color:var(--ink)]">
+            The whole setup runs on a MacBook Air M3, a CachyOS desktop and two Ubuntu servers. That constraint shaped the architecture: small models where they are good enough, graphs instead of brute-force context, and orchestration that stays on my own machines.
+          </p>
+        </div>
+        <ul class="space-y-3 border-l border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pl-4 text-sm leading-7 text-[color:var(--ink)] lg:pl-6">
+          {stack.map((item) => (
+            <li class="border-b border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pb-3">{item}</li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="grid gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(18rem,0.75fr)] lg:items-start" aria-labelledby="qwen-heading">
+        <div class="space-y-5">
+          <p class="ds-kicker">Why Qwen</p>
+          <h2 id="qwen-heading" class="ds-display-l text-[color:var(--ink)]">
+            Qwen was in this stack long before any application form.
+          </h2>
+          <p class="text-base leading-8 text-[color:var(--ink)]">
+            I picked qwen3-embedding in 2025 because it was the best embedding model I could run on my own hardware, and it still powers the semantic search in code-review-graph today. The bottleneck now is scale: a laptop and two small servers only get you so far with embedding batches and agent loops. The plan is to move the heavy parts to Qwen models on Alibaba Cloud and keep the orchestration self-hosted.
+          </p>
+        </div>
+        <ul class="space-y-4 border-l border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pl-4 font-mono text-[0.78rem] uppercase tracking-[0.12em] text-[color:var(--muted)] lg:pl-6">
+          {qwenPlan.map((item) => (
+            <li class="border-b border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pb-4">
+              <span class="text-[color:var(--accent-strong)]">$</span> {item}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <CTASection
+        kicker="Contact"
+        title="Questions about any of this? Ask me directly."
+        body="I answer faster and more honestly than a slide deck would. Project write-ups and the blog go deeper on every system mentioned here."
+        primaryHref="/kontakt/"
+        primaryLabel="Get in touch"
+        secondaryHref="/projekte/"
+        secondaryLabel="See the projects"
+      />
+    </div>
+  </main>
+</V2Layout>

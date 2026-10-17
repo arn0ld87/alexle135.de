@@ -1,5 +1,6 @@
 ---
 title: 'Nginx als Reverse Proxy: HTTPS in 20 Minuten'
+metaDescription: "Nginx als Reverse Proxy einrichten: interne Apps über einen zentralen Einstiegspunkt mit Let's Encrypt, TLS und lokalem Port-Mapping bereitstellen."
 summary: "Statt interne Apps direkt freizugeben: Ein sauberes Gateway-Setup mit Nginx und Let's Encrypt. TLS-Verschlüsselung, lokales Port-Mapping und sicheres Routing an einem zentralen Einstiegspunkt."
 tldr: 'Ein Reverse Proxy wie Nginx nimmt Anfragen von außen entgegen und leitet sie intern an deine eigentliche App weiter. Dadurch brauchst du keine offenen App-Ports nach außen, kannst HTTPS zentral terminieren und mehrere Services sauber unter Domains oder Subdomains betreiben.'
 publishedAt: 2025-10-28
@@ -13,7 +14,7 @@ tags:
 format: 'Tutorial'
 readingTime: '10 min'
 snippet: 'proxy_pass http://localhost:3000;'
-heroImage: /images/blog/nginx-reverse-proxy.webp
+heroImage: ../../assets/blog/nginx-reverse-proxy.webp
 faq:
   - question: 'Warum ändert ein Slash am Ende von proxy_pass alles?'
     answer: 'Nginx verhält sich unterschiedlich, je nachdem ob die proxy_pass-URL auf einen Slash endet. Mit Slash (proxy_pass http://backend/) ersetzt Nginx den location-Match und hängt den Rest-Path an. Ohne Slash (proxy_pass http://backend) bleibt der komplette Request-Pfad inklusive location-Präfix erhalten. Für eine reine Weiterleitung an ein einzelnes Backend willst du meistens die Variante ohne Slash, also proxy_pass http://localhost:3000;.'
@@ -26,11 +27,11 @@ author: Alexander Schneider
 
 ## Warum ich zu Nginx gewechselt bin
 
-Ich hatte eine Node.js-App auf Port 3000 laufen. Zugriff nur via `http://example.de:3000` – unprofessionell.
+Ich hatte eine Node.js-App auf Port 3000 laufen. Zugriff nur via `http://example.com:3000` – unprofessionell.
 
 Ich wollte:
 
-- ✅ Zugriff via `https://example.de` (ohne Port)
+- ✅ Zugriff via `https://example.com` (ohne Port)
 - ✅ SSL/TLS-Verschlüsselung (das grüne Schloss im Browser)
 - ✅ Mehrere Apps auf einem Server
 
@@ -58,7 +59,7 @@ Nginx ist der einzige Einstiegspunkt. Er verteilt Anfragen intern.
 
 - Linux-Server (Ubuntu, Debian, oder ähnlich)
 - Root-Zugriff (sudo)
-- Domain (z.B. `example.de`)
+- Domain (z.B. `example.com`)
 - Backend-App (z.B. Node.js auf Port 3000)
 - 20 Minuten Zeit
 
@@ -110,12 +111,12 @@ sudo rm /etc/nginx/sites-enabled/default
 
 ### Szenario
 
-Du hast eine Node.js-App auf Port 3000. Domain: `app.example.de`
+Du hast eine Node.js-App auf Port 3000. Domain: `app.example.com`
 
 ### Config-Datei erstellen
 
 ```bash
-sudo nano /etc/nginx/sites-available/app.example.de
+sudo nano /etc/nginx/sites-available/app.example.com
 ```
 
 ### Basic Reverse Proxy Config
@@ -124,7 +125,7 @@ sudo nano /etc/nginx/sites-available/app.example.de
 server {
     listen 80;
     listen [::]:80;
-    server_name app.example.de;
+    server_name app.example.com;
 
     location / {
         proxy_pass http://localhost:3000;
@@ -151,7 +152,7 @@ server {
 
 ```bash
 # Symlink erstellen
-sudo ln -s /etc/nginx/sites-available/app.example.de /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/app.example.com /etc/nginx/sites-enabled/
 
 # Config testen
 sudo nginx -t
@@ -161,7 +162,7 @@ sudo systemctl reload nginx
 ```
 
 **Testen:**
-Öffne `http://app.example.de` – du solltest deine App sehen.
+Öffne `http://app.example.com` – du solltest deine App sehen.
 
 ## Schritt 4: SSL/TLS mit Let's Encrypt
 
@@ -174,7 +175,7 @@ sudo apt install certbot python3-certbot-nginx -y
 ### Zertifikat erstellen
 
 ```bash
-sudo certbot --nginx -d app.example.de
+sudo certbot --nginx -d app.example.com
 ```
 
 **Was passiert:**
@@ -195,7 +196,7 @@ Deine Config wird automatisch erweitert:
 
 ```nginx
 server {
-    server_name app.example.de;
+    server_name app.example.com;
 
     location / {
         proxy_pass http://localhost:3000;
@@ -204,46 +205,46 @@ server {
 
     listen [::]:443 ssl ipv6only=on; # managed by Certbot
     listen 443 ssl; # managed by Certbot
-    ssl_certificate /etc/letsencrypt/live/app.example.de/fullchain.pem; # managed by Certbot
-    ssl_certificate_key /etc/letsencrypt/live/app.example.de/privkey.pem; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/app.example.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/app.example.com/privkey.pem; # managed by Certbot
     include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
 }
 
 server {
-    if ($host = app.example.de) {
+    if ($host = app.example.com) {
         return 301 https://$host$request_uri;
     } # managed by Certbot
 
     listen 80;
     listen [::]:80;
-    server_name app.example.de;
+    server_name app.example.com;
     return 404; # managed by Certbot
 }
 ```
 
 **Testen:**
-Öffne `https://app.example.de` – grünes Schloss im Browser!
+Öffne `https://app.example.com` – grünes Schloss im Browser!
 
 ## Schritt 5: Mehrere Apps einrichten
 
 ### Szenario
 
-- `app1.example.de` → Port 3000
-- `app2.example.de` → Port 4000
-- `api.example.de` → Port 5000
+- `app1.example.com` → Port 3000
+- `app2.example.com` → Port 4000
+- `api.example.com` → Port 5000
 
 ### Config für app2
 
 ```bash
-sudo nano /etc/nginx/sites-available/app2.example.de
+sudo nano /etc/nginx/sites-available/app2.example.com
 ```
 
 ```nginx
 server {
     listen 80;
     listen [::]:80;
-    server_name app2.example.de;
+    server_name app2.example.com;
 
     location / {
         proxy_pass http://localhost:4000;
@@ -261,10 +262,10 @@ server {
 
 ```bash
 # Aktivieren
-sudo ln -s /etc/nginx/sites-available/app2.example.de /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/app2.example.com /etc/nginx/sites-enabled/
 
 # SSL hinzufügen
-sudo certbot --nginx -d app2.example.de
+sudo certbot --nginx -d app2.example.com
 
 # Nginx neu laden
 sudo systemctl reload nginx
@@ -304,10 +305,10 @@ Domain ist nicht korrekt konfiguriert.
 
 ```bash
 # Prüfen ob Domain auf Server zeigt
-dig app.example.de
+dig app.example.com
 
 # Oder:
-nslookup app.example.de
+nslookup app.example.com
 ```
 
 **DNS-Record sollte deine Server-IP anzeigen.**
@@ -316,7 +317,7 @@ nslookup app.example.de
 Bei deinem Domain-Provider (z.B. Namecheap, Cloudflare):
 
 ```
-A-Record: app.example.de → 203.0.113.10
+A-Record: app.example.com → 203.0.113.10
 ```
 
 ### Fehler 3: Certbot schlägt fehl
@@ -572,7 +573,7 @@ Jede App auf eigenem Port, kein SSL, unprofessionell.
 **Mein Tipp:**
 Fang mit einer App an. Wenn das läuft, weitere hinzufügen.
 
-Bei Fragen: [schneider@alexle135.de](mailto:schneider@alexle135.de)
+Bei Fragen: [schneider@alex-schneider.dev](mailto:schneider@alex-schneider.dev)
 
 ---
 

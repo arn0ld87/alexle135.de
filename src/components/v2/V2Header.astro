@@ -1,40 +1,46 @@
 ---
 // V2Header.astro
+import BrandMark from './BrandMark.astro';
+import BauplanToggle from './BauplanToggle.astro';
+
 const navItems = [
   { href: '/leistungen/', label: 'Was ich kann' },
   { href: '/projekte/', label: 'Projekte' },
   { href: '/ueber-mich/', label: 'Über mich' },
   { href: '/blog/', label: 'Blog' },
+  { href: '/certifications/', label: 'Zertifikate' },
   { href: '/kontakt/', label: 'Kontakt' },
 ];
+
+// Aktive Seite: der Header wird je Seite serverseitig neu gerendert (kein transition:persist).
+const currentPath = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro.url.pathname}/`;
+const isActive = (href: string) => currentPath.startsWith(href);
 ---
 
-<header class="sticky top-0 z-50 border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] bg-[color:var(--color-mono-950)]/90 backdrop-blur-xl transition-colors duration-300">
-  <div class="v2-shell !py-4 lg:!py-5 flex items-center justify-between">
+<header class="sticky top-0 z-50 border-b border-[color:var(--line)] bg-[color:var(--paper)]">
+  <div class="v2-shell flex h-16 items-center justify-between lg:h-[72px]">
 
     <!-- Logo / Brand -->
-    <a href="/" class="group flex items-center gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-neon-orange)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-mono-950)]">
-      <img
-        src="/brand/alexle135-logo-primary.svg"
-        alt="alexle135 Logo"
-        width="180"
-        height="36"
-        class="h-8 w-auto max-w-[9.5rem] transition-transform duration-300 group-hover:scale-[0.98] group-active:scale-95 motion-reduce:transition-none motion-reduce:transform-none sm:h-9"
-        loading="eager"
-      />
-      <span class="hidden font-mono text-[0.72rem] uppercase tracking-[0.18em] text-[color:var(--color-mono-300)] transition-colors duration-300 group-hover:text-[color:var(--color-neon-orange)] lg:inline">
-        alexle135.de
+    <a
+      href="/"
+      aria-label="alex-schneider.dev – Alexander Schneider, Startseite"
+      class="brand-link group inline-flex min-h-[44px] items-center gap-3 text-[color:var(--ink)]"
+    >
+      <BrandMark class="h-8 w-8 flex-none sm:h-9 sm:w-9" />
+      <span class="hidden font-mono text-xs tracking-[0.08em] text-[color:var(--muted)] transition-colors group-hover:text-[color:var(--ink)] lg:inline">
+        alex-schneider.dev
       </span>
     </a>
 
-    <!-- Desktop Nav -->
-    <nav class="hidden md:block" aria-label="Hauptnavigation">
+    <!-- Desktop Nav (erst ab 1024 px; darunter das details-Menü) -->
+    <nav class="hidden lg:block" aria-label="Hauptnavigation">
       <ul class="flex items-center gap-8">
         {navItems.map(item => (
           <li>
             <a
               href={item.href}
-              class="font-mono text-[0.76rem] uppercase tracking-[0.16em] text-[color:var(--color-mono-300)] transition-colors hover:text-[color:var(--color-mono-50)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-neon-orange)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--color-mono-950)]"
+              class="nav-link"
+              aria-current={isActive(item.href) ? 'page' : undefined}
             >
               {item.label}
             </a>
@@ -43,18 +49,20 @@ const navItems = [
       </ul>
     </nav>
 
-    <!-- Mobile actions: Details-based menu -->
-    <div class="flex items-center gap-2 md:hidden">
-      <details class="relative" id="mobile-menu">
-        <summary class="flex cursor-pointer list-none items-center gap-2 border border-[color:color-mix(in_srgb,var(--color-mono-50)_18%,transparent)] px-3 py-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-[color:var(--color-mono-100)] transition hover:border-[color:var(--color-neon-orange)] hover:text-[color:var(--color-neon-orange)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-neon-orange)]">
+    <!-- Rechts: genau eine Instanz des Schalters (jede Breite), mobil danach das Menü -->
+    <div class="flex items-center gap-2">
+      <BauplanToggle />
+
+      <details class="relative lg:hidden" id="mobile-menu">
+        <summary class="menu-summary flex min-h-[44px] cursor-pointer list-none items-center gap-2 border border-[color:var(--ink)] px-3 font-mono text-xs tracking-[0.08em] text-[color:var(--ink)] uppercase">
           <span class="select-none">Menü</span>
-          <svg aria-hidden="true" class="h-3 w-3 transition-transform details-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          <svg aria-hidden="true" focusable="false" class="details-chevron h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="square" stroke-linejoin="miter" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
           </svg>
         </summary>
 
         <nav
-          class="absolute right-0 top-[calc(100%+0.5rem)] w-56 border border-[color:color-mix(in_srgb,var(--color-mono-50)_16%,transparent)] bg-[color:var(--color-mono-950)] shadow-[0_24px_60px_rgba(0,0,0,0.5)]"
+          class="absolute right-0 top-[calc(100%+0.5rem)] w-56 border border-[color:var(--ink)] bg-[color:var(--paper)]"
           aria-label="Mobile Navigation"
         >
           <ul>
@@ -62,7 +70,8 @@ const navItems = [
               <li>
                 <a
                   href={item.href}
-                  class="block border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_8%,transparent)] px-4 py-3 font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--color-mono-200)] transition-colors hover:bg-[color:color-mix(in_srgb,var(--color-mono-50)_6%,transparent)] hover:text-[color:var(--color-neon-orange)]"
+                  class="menu-link"
+                  aria-current={isActive(item.href) ? 'page' : undefined}
                 >
                   {item.label}
                 </a>
@@ -78,6 +87,74 @@ const navItems = [
 <style>
   details[open] .details-chevron {
     transform: rotate(180deg);
+  }
+
+  .menu-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Desktop-Navigation: Geist Sans 15 px, 400, Tinte. */
+  .nav-link {
+    position: relative;
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    color: var(--ink);
+    font-size: 0.9375rem;
+    font-weight: 400;
+    text-decoration: underline transparent 1px;
+    text-underline-offset: 6px;
+  }
+
+  @media (hover: hover) {
+    .nav-link:hover {
+      text-decoration-color: var(--accent);
+    }
+  }
+
+  /* Aktive Seite: Gewicht 700 und 2 px Balken in --accent. */
+  .nav-link[aria-current='page'] {
+    font-weight: 700;
+  }
+
+  .nav-link[aria-current='page']::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    background: var(--accent);
+  }
+
+  .brand-link:focus-visible,
+  .menu-summary:focus-visible,
+  .nav-link:focus-visible,
+  .menu-link:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+
+  .menu-link {
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+    border-bottom: 1px solid var(--line);
+    padding: 0 1rem;
+    color: var(--ink);
+    font-size: 0.9375rem;
+    font-weight: 400;
+  }
+
+  .menu-link[aria-current='page'] {
+    font-weight: 700;
+    box-shadow: inset 2px 0 0 var(--accent);
+  }
+
+  @media (hover: hover) {
+    .menu-link:hover {
+      background: color-mix(in srgb, var(--ink) 4%, var(--paper));
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

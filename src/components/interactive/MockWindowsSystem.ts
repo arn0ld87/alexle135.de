@@ -44,7 +44,7 @@ export class MockWindowsSystem {
                   'welcome.txt': {
                     type: 'file',
                     content:
-                      'Willkommen im interaktiven Terminal von alexle135.de!\r\nHier kannst du echte CMD-Befehle üben.',
+                      'Willkommen im interaktiven Terminal von alex-schneider.dev!\r\nHier kannst du echte CMD-Befehle üben.',
                   },
                   'todo.txt': {
                     type: 'file',
@@ -93,7 +93,7 @@ export class MockWindowsSystem {
       this.mode = 'diskpart';
       return {
         output:
-          'Microsoft DiskPart-Version 10.0.19041.964\r\n\r\nCopyright (C) Microsoft Corporation.\r\nAuf Computer: ALEXLE135\r\n',
+          'Microsoft DiskPart-Version 10.0.19041.964\r\n\r\nCopyright (C) Microsoft Corporation.\r\nAuf Computer: ALEX-SCHNEIDER\r\n',
       };
     }
     if (this.mode === 'powershell' && trimmed.toLowerCase() === 'exit') {
@@ -231,7 +231,7 @@ export class MockWindowsSystem {
       case 'ping':
         return this.cmdPing(args);
       case 'whoami':
-        return { output: 'alexle135\\visitor\r\n' };
+        return { output: 'alex-schneider\\visitor\r\n' };
       default:
         return {
           output: `'${command}' ist falsch geschrieben oder konnte nicht gefunden werden.\r\n`,

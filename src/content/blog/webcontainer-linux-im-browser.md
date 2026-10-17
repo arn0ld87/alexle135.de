@@ -8,7 +8,7 @@ tags:
   - Linux
   - Technologie
   - JavaScript
-heroImage: /images/blog/webcontainer-linux-im-browser.webp
+heroImage: ../../assets/blog/webcontainer-linux-im-browser.webp
 author: Alexander Schneider
 ---
 
@@ -211,7 +211,7 @@ process.output.pipeTo(
 
 - [WebContainer Docs](https://webcontainers.io/)
 - [StackBlitz](https://stackblitz.com/)
-- [Mein GitHub Repo](https://github.com/arn0ld87/alexle-vsco)
+- [Mein GitHub Repo](https://github.com/arn0ld87/alexle135.de)
 
 ## Fazit
 

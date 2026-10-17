@@ -40,17 +40,17 @@ if (prompt) {
 }
 ---
 
-<div class="ai-tutor-content text-sm text-gray-300 leading-relaxed">
+<div class="ai-tutor-content text-sm text-[color:var(--ink)] leading-relaxed">
   {error && (
-    <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
+    <div class="p-4 border border-[color:var(--danger)] text-[color:var(--danger)]">
       Error: {error}
     </div>
   )}
 
   {responseHtml ? (
-    <div class="prose prose-invert prose-sm max-w-none" set:html={responseHtml} />
+    <div class="prose prose-sm max-w-none" set:html={responseHtml} />
   ) : (
-    <div class="flex items-center justify-center p-8 text-gray-500">
+    <div class="flex items-center justify-center p-8 text-[color:var(--muted)]">
       <p>Warte auf Eingabe...</p>
     </div>
   )}

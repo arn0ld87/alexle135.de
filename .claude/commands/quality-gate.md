@@ -3,12 +3,14 @@ name: quality-gate
 description: Führt lokale Qualitäts-Gates aus (lint, test, build, secret grep) und meldet kurz den Status.
 ---
 
-1. `pnpm lint`
-2. `pnpm test:run`
-3. `pnpm build`
-4. Optional bei Formatierungsänderungen: `pnpm format:all`
+Führe `bash scripts/quality-gate.sh <scope>` aus, mit `<scope>` ∈ `quick` | `ui` | `full` (Default `quick`):
+
+1. `quick` — `pnpm lint` + `pnpm test:run`.
+2. `ui` — `quick` zusätzlich `pnpm build`, `pnpm check`, `pnpm check:dist`, `pnpm check:bundle`.
+3. `full` — `ui` zusätzlich `pnpm test:integration` und `pnpm db:verify`, nur falls `DATABASE_URL` gesetzt ist (sonst Skip mit Warnhinweis).
+4. Optional bei Formatierungsänderungen zusätzlich: `pnpm format:all`.
 5. Secret-Check über geänderte Dateien (`secret`, `api_key`, `token`, `BEGIN PRIVATE KEY`).
-6. Ergebnis als Checkliste ausgeben (pass/fail + betroffene Kommandos).
+6. Ergebnis als Checkliste ausgeben (pass/fail + betroffene Stufen).
 
 Hinweise:
 

@@ -5,7 +5,9 @@ import { optionalEnv, requireEnv } from './env';
 const betterAuthUrl = optionalEnv('BETTER_AUTH_URL');
 const trustedOrigins = [
   'https://alexle135.de',
+  'https://alex-schneider.dev',
   'https://www.alexle135.de',
+  'https://www.alex-schneider.dev',
   'http://localhost:4321',
   // Staging-/Preview-Deployments sonst blockiert Better Auth deren Origin.
   ...(betterAuthUrl ? [betterAuthUrl] : []),
@@ -21,7 +23,7 @@ export function requireAuthRuntimeEnv(): void {
 }
 
 export const auth = betterAuth({
-  appName: 'alexle135.de Admin',
+  appName: 'alex-schneider.dev Admin',
   baseURL: optionalEnv('BETTER_AUTH_URL') ?? 'http://localhost:4321',
   secret: optionalEnv('BETTER_AUTH_SECRET') ?? missingRuntimeSecret,
   database: new Pool({

@@ -8,7 +8,7 @@ tags:
   - Datenbank
   - Automatisierung
   - DevOps
-heroImage: /images/blog/postgresql-backup.webp
+heroImage: ../../assets/blog/postgresql-backup.webp
 author: Alexander Schneider
 ---
 
@@ -707,7 +707,7 @@ PostgreSQL-Backups sind keine Raketenwissenschaft – aber kritisch.
 3. Upload zu S3/Cloud
 4. Wöchentlicher Restore-Test
 
-Bei Fragen: [schneider@alexle135.de](mailto:schneider@alexle135.de)
+Bei Fragen: [schneider@alex-schneider.dev](mailto:schneider@alex-schneider.dev)
 
 ---
 

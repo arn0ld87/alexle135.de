@@ -3,18 +3,18 @@ import { describe, expect, it } from 'vitest';
 import { collectChangedUrls, mapFilePathToUrl } from '../../../scripts/indexnow.js';
 
 describe('mapFilePathToUrl', () => {
-  const siteUrl = 'https://alexle135.de';
+  const siteUrl = 'https://alex-schneider.dev';
 
   it('maps blog content files to canonical blog URLs', () => {
     expect(mapFilePathToUrl('src/content/blog/docker-compose-beispiele.md', siteUrl)).toBe(
-      'https://alexle135.de/blog/docker-compose-beispiele/'
+      'https://alex-schneider.dev/blog/docker-compose-beispiele/'
     );
   });
 
   it('maps top-level pages and nested index pages', () => {
-    expect(mapFilePathToUrl('src/pages/index.astro', siteUrl)).toBe('https://alexle135.de/');
+    expect(mapFilePathToUrl('src/pages/index.astro', siteUrl)).toBe('https://alex-schneider.dev/');
     expect(mapFilePathToUrl('src/pages/blog/index.astro', siteUrl)).toBe(
-      'https://alexle135.de/blog/'
+      'https://alex-schneider.dev/blog/'
     );
   });
 
@@ -27,7 +27,7 @@ describe('mapFilePathToUrl', () => {
 });
 
 describe('collectChangedUrls', () => {
-  const siteUrl = 'https://alexle135.de';
+  const siteUrl = 'https://alex-schneider.dev';
 
   it('deduplicates URLs and adds collection indexes for changed content', () => {
     const urls = collectChangedUrls(
@@ -41,11 +41,11 @@ describe('collectChangedUrls', () => {
     );
 
     expect(urls).toEqual([
-      'https://alexle135.de/blog/',
-      'https://alexle135.de/blog/docker-compose-beispiele/',
-      'https://alexle135.de/blog/nala-apt-alternative-debian-ubuntu/',
-      'https://alexle135.de/projekte/',
-      'https://alexle135.de/projekte/compose-builder/',
+      'https://alex-schneider.dev/blog/',
+      'https://alex-schneider.dev/blog/docker-compose-beispiele/',
+      'https://alex-schneider.dev/blog/nala-apt-alternative-debian-ubuntu/',
+      'https://alex-schneider.dev/projekte/',
+      'https://alex-schneider.dev/projekte/compose-builder/',
     ]);
   });
 });

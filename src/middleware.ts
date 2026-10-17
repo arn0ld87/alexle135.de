@@ -38,7 +38,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const host = rawHost.split(':')[0];
 
   if (host === 'studio.alexle135.de') {
-    const target = new URL(context.url.pathname, 'https://alexle135.de');
+    const target = new URL(context.url.pathname, 'https://alex-schneider.dev');
     target.search = context.url.search;
     return withSecurityHeaders(context.redirect(target.toString(), 301), pathname);
   }

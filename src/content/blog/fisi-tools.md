@@ -7,7 +7,7 @@ tags:
   - Tools
   - Produktivität
   - KI
-heroImage: /images/blog/fisi-tools.webp
+heroImage: ../../assets/blog/fisi-tools.webp
 publishedAt: 2025-11-14
 author: Alexander Schneider
 ---
@@ -118,4 +118,4 @@ Am Ende sind die besten Tools die, die du auch tatsächlich benutzt. Mein Workfl
 
 Probier es aus und finde heraus, was für dich funktioniert!
 
-Bei Fragen schreib mir gerne: [schneider@alexle135.de](mailto:schneider@alexle135.de)
+Bei Fragen schreib mir gerne: [schneider@alex-schneider.dev](mailto:schneider@alex-schneider.dev)

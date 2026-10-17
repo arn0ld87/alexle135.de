@@ -8,7 +8,7 @@ tags:
   - DevOps
   - Linux
   - Virtualisierung
-heroImage: /images/blog/docker-container-einfach-erklaert.webp
+heroImage: ../../assets/blog/docker-container-einfach-erklaert.webp
 publishedAt: 2025-11-15
 updatedAt: 2026-04-20
 faq:
@@ -408,7 +408,7 @@ Fang einfach an. Installier Docker, starte ein paar Container und experimentiere
 **Schwierigkeitsgrad:** Anfänger
 **Lohnt sich?** Definitiv. Docker ist absoluter Standard.
 
-Bei Fragen schreib mir gerne: [schneider@alexle135.de](mailto:schneider@alexle135.de)
+Bei Fragen schreib mir gerne: [schneider@alex-schneider.dev](mailto:schneider@alex-schneider.dev)
 
 ---
 

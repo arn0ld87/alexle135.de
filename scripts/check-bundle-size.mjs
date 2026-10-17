@@ -1,22 +1,40 @@
 #!/usr/bin/env node
 /**
- * CI-Gate: Client-Bundle-Größe (gzip)
+ * CI-Gate: Client-Bundle-Größe (gzip) und Bild-Budget
  *
  * Summiert alle JS-Assets unter dist/client (gzip, Level 9) und vergleicht
  * gegen die Budgets aus bundlesize.config.json:
  *   - totalJsGzipKb:        Budget für die Summe aller Client-JS-Assets
  *   - largestChunkGzipKb:   Budget für den größten Einzelchunk
  *
+ * Danach prüft es zusätzlich das Bild-Budget (D-27, Plan 02-18) gegen
+ * `budgets.images`:
+ *   - maxRasterFileKb:      Budget für die größte Rasterdatei unter dist/client
+ *   - astroRasterTotalKb:   Budget für die Summe der Rasterdateien unter _astro/
+ *   - homeRasterKb:         Budget für das Bildgewicht der Startseite
+ * Für die Startseite startet das Skript den gebauten Server auf 127.0.0.1 an einem
+ * freien Port, ruft `/` ab und beendet ihn in jedem Fall wieder.
+ *
  * Exit-Code 1 bei Überschreitung — gedacht als CI-Step nach `pnpm build`.
- * Keine externen Dependencies (nur Node-Builtins).
+ * Keine externen Dependencies (nur Node-Builtins). Kein Schalter und keine
+ * Umgebungsvariable ändert ein Budget; maßgeblich ist allein die Konfigurationsdatei.
  */
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { join, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
+import { spawn } from 'node:child_process';
+import { createServer } from 'node:net';
+import {
+  IMAGE_BUDGET_KEYS,
+  collectRasterFiles,
+  evaluateImageBudget,
+  extractImageUrls,
+} from './lib/image-budget.mjs';
 
 const projectRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 const distClient = join(projectRoot, 'dist', 'client');
+const distServerEntry = join(projectRoot, 'dist', 'server', 'entry.mjs');
 const configPath = join(projectRoot, 'bundlesize.config.json');
 
 if (!existsSync(distClient)) {
@@ -38,6 +56,17 @@ const chunkKb = config?.budgets?.largestChunkGzipKb;
 if (typeof totalKb !== 'number' || typeof chunkKb !== 'number') {
   console.error(
     'bundlesize.config.json: budgets.totalJsGzipKb und budgets.largestChunkGzipKb müssen Zahlen sein.'
+  );
+  process.exit(1);
+}
+const imageBudgets = config?.budgets?.images;
+const missingImageBudget = IMAGE_BUDGET_KEYS.find((key) => {
+  const value = imageBudgets?.[key];
+  return typeof value !== 'number' || !Number.isFinite(value) || value <= 0;
+});
+if (missingImageBudget) {
+  console.error(
+    `bundlesize.config.json: budgets.images.${missingImageBudget} fehlt oder ist keine positive Zahl.`
   );
   process.exit(1);
 }
@@ -106,6 +135,78 @@ if (largest.gzip > chunkBudget) {
 }
 
 console.log('');
+
+// ---- Bild-Budget (D-27, Plan 02-18) ----
+
+console.log('Bild-Budget\n');
+
+function freePort() {
+  return new Promise((resolve, reject) => {
+    const probe = createServer();
+    probe.on('error', reject);
+    probe.listen(0, '127.0.0.1', () => {
+      const { port } = probe.address();
+      probe.close(() => resolve(port));
+    });
+  });
+}
+
+async function waitForServer(url, child) {
+  const deadline = Date.now() + 30_000;
+  while (Date.now() < deadline) {
+    if (child.exitCode !== null) {
+      throw new Error(`Server beendet sich vorzeitig (Code ${child.exitCode})`);
+    }
+    try {
+      await fetch(url, { redirect: 'manual' });
+      return;
+    } catch {
+      /* noch nicht bereit */
+    }
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
+  throw new Error('Server antwortet nicht innerhalb von 30 Sekunden');
+}
+
+let homeStatus = 0;
+let homeUrls = { own: [], foreign: [] };
+
+if (!existsSync(distServerEntry)) {
+  failures.push(`Startseite nicht prüfbar: ${relative(projectRoot, distServerEntry)} fehlt`);
+} else {
+  const port = await freePort();
+  const origin = `http://127.0.0.1:${port}`;
+  const child = spawn(process.execPath, [distServerEntry], {
+    env: { ...process.env, HOST: '127.0.0.1', PORT: String(port) },
+    stdio: ['ignore', 'ignore', 'pipe'],
+  });
+  try {
+    await waitForServer(`${origin}/`, child);
+    const response = await fetch(`${origin}/`, { redirect: 'manual' });
+    homeStatus = response.status;
+    if (homeStatus === 200) homeUrls = extractImageUrls(await response.text(), { origin });
+  } catch (err) {
+    failures.push(`Startseite nicht erreichbar: ${String(err.message ?? err)}`);
+  } finally {
+    child.kill('SIGTERM');
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    if (child.exitCode === null) child.kill('SIGKILL');
+  }
+}
+
+if (homeStatus !== 200 && !failures.some((f) => f.startsWith('Startseite nicht'))) {
+  failures.push(`Startseite antwortet mit Status ${homeStatus} statt 200`);
+}
+
+const imageResult = evaluateImageBudget({
+  files: collectRasterFiles(distClient),
+  astroPrefix: '_astro/',
+  homeUrls,
+  budgets: imageBudgets,
+});
+for (const line of imageResult.lines) console.log(line);
+console.log('');
+for (const violation of imageResult.violations) failures.push(violation);
 
 if (failures.length > 0) {
   for (const failure of failures) {

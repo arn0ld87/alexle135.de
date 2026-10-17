@@ -58,53 +58,17 @@ function Row({ children, wrap }: { children: React.ReactNode; wrap?: boolean }) 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <h3
-      className="ds-serif"
       style={{
         fontSize: 'var(--text-h3)',
-        color: 'var(--text-primary)',
+        color: 'var(--ink)',
         marginBottom: '2rem',
         marginTop: '0',
         paddingBottom: '0.5rem',
-        borderBottom: '1px solid var(--border-subtle)',
+        borderBottom: '1px solid var(--line)',
       }}
     >
       {children}
     </h3>
-  );
-}
-
-/* ── Swatch ───────────────────────────────────────────────────── */
-function Swatch({ token, label, hex }: { token: string; label: string; hex: string }) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0.5rem',
-        minWidth: '7rem',
-      }}
-    >
-      <div
-        style={{
-          height: '3rem',
-          borderRadius: '4px',
-          background: `var(${token})`,
-          border: '1px solid var(--border-subtle)',
-        }}
-      />
-      <span
-        style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: 'var(--ds-text-micro)',
-          color: 'var(--text-secondary)',
-          lineHeight: 1.4,
-        }}
-      >
-        {label}
-        <br />
-        <span style={{ color: 'var(--text-tertiary)' }}>{hex}</span>
-      </span>
-    </div>
   );
 }
 
@@ -235,13 +199,13 @@ export function Showcase() {
       <section>
         <SectionTitle>Avatar</SectionTitle>
 
-        <Group label="// Initialen + Bild + Status">
+        <Group label="// Initialen + Status">
           <Row>
             <Avatar initials="AS" size="sm" />
             <Avatar initials="AS" size="md" />
             <Avatar initials="AS" size="lg" />
             <Avatar initials="AS" size="xl" />
-            <Avatar src="/media/alex-portrait.webp" alt="Alex Schneider" size="md" shape="round" />
+            <Avatar initials="AS" size="md" shape="round" />
             <Avatar initials="AS" size="md" status="online" />
             <Avatar initials="AS" size="md" status="offline" />
           </Row>
@@ -265,9 +229,7 @@ export function Showcase() {
               <p className="ds-kicker" style={{ marginBottom: '0.5rem' }}>
                 Default
               </p>
-              <p
-                style={{ color: 'var(--text-secondary)', fontSize: 'var(--ds-text-sm)', margin: 0 }}
-              >
+              <p style={{ color: 'var(--muted)', fontSize: 'var(--ds-text-sm)', margin: 0 }}>
                 Glas-Oberfläche mit Blur
               </p>
             </Card>
@@ -275,9 +237,7 @@ export function Showcase() {
               <p className="ds-kicker" style={{ marginBottom: '0.5rem' }}>
                 Solid
               </p>
-              <p
-                style={{ color: 'var(--text-secondary)', fontSize: 'var(--ds-text-sm)', margin: 0 }}
-              >
+              <p style={{ color: 'var(--muted)', fontSize: 'var(--ds-text-sm)', margin: 0 }}>
                 Opakes Dunkel-Surface
               </p>
             </Card>
@@ -285,9 +245,7 @@ export function Showcase() {
               <p className="ds-kicker" style={{ marginBottom: '0.5rem' }}>
                 Raised
               </p>
-              <p
-                style={{ color: 'var(--text-secondary)', fontSize: 'var(--ds-text-sm)', margin: 0 }}
-              >
+              <p style={{ color: 'var(--muted)', fontSize: 'var(--ds-text-sm)', margin: 0 }}>
                 Erhöhte Ebene
               </p>
             </Card>
@@ -295,9 +253,7 @@ export function Showcase() {
               <p className="ds-kicker" style={{ marginBottom: '0.5rem' }}>
                 Interaktiv
               </p>
-              <p
-                style={{ color: 'var(--text-secondary)', fontSize: 'var(--ds-text-sm)', margin: 0 }}
-              >
+              <p style={{ color: 'var(--muted)', fontSize: 'var(--ds-text-sm)', margin: 0 }}>
                 Hover-Lift und Cursor
               </p>
             </Card>
@@ -305,9 +261,7 @@ export function Showcase() {
               <p className="ds-kicker" style={{ marginBottom: '0.5rem' }}>
                 Reticle
               </p>
-              <p
-                style={{ color: 'var(--text-secondary)', fontSize: 'var(--ds-text-sm)', margin: 0 }}
-              >
+              <p style={{ color: 'var(--muted)', fontSize: 'var(--ds-text-sm)', margin: 0 }}>
                 Eck-Brackets via CSS
               </p>
             </Card>
@@ -375,7 +329,7 @@ export function Showcase() {
               marginTop: '1rem',
               fontFamily: 'var(--font-mono)',
               fontSize: 'var(--ds-text-xs)',
-              color: 'var(--text-tertiary)',
+              color: 'var(--muted)',
             }}
           >
             Aktiv: {activeTab}
@@ -414,9 +368,9 @@ export function Showcase() {
         <SectionTitle>Mark &amp; Wordmark</SectionTitle>
         <Group label="// Brand-Symbol in verschiedenen Grössen">
           <Row>
-            <Mark size={24} style={{ color: 'var(--text-primary)' }} />
-            <Mark size={34} style={{ color: 'var(--text-primary)' }} />
-            <Mark size={48} style={{ color: 'var(--text-primary)' }} />
+            <Mark size={24} style={{ color: 'var(--ink)' }} />
+            <Mark size={34} style={{ color: 'var(--ink)' }} />
+            <Mark size={48} style={{ color: 'var(--ink)' }} />
           </Row>
         </Group>
         <Group label="// Wortmarke">
@@ -445,7 +399,7 @@ export function Showcase() {
               style={{
                 fontFamily: 'var(--font-mono)',
                 fontSize: 'var(--ds-text-xs)',
-                color: 'var(--text-tertiary)',
+                color: 'var(--muted)',
                 letterSpacing: 'var(--ds-tracking-label)',
                 textTransform: 'uppercase',
               }}
@@ -454,39 +408,8 @@ export function Showcase() {
             </span>
           </div>
         </Group>
-        <Group label="// ds-rule — Gradient-Divider">
+        <Group label="// ds-rule — Haarlinie">
           <div className="ds-rule" />
-        </Group>
-      </section>
-
-      <div className="ds-rule" style={{ margin: '0.5rem 0 2.5rem' }} />
-
-      {/* ── Token-Swatches ───────────────────────────────────────── */}
-      <section>
-        <SectionTitle>Token-Palette</SectionTitle>
-
-        <Group label="// Akzent">
-          <Row wrap>
-            <Swatch token="--accent" label="--accent" hex="#ff6a00" />
-            <Swatch token="--clay-500" label="--clay-500" hex="#b5613a" />
-          </Row>
-        </Group>
-
-        <Group label="// Signal">
-          <Row wrap>
-            <Swatch token="--signal-success" label="--signal-success" hex="#5fa86b" />
-            <Swatch token="--signal-warn" label="--signal-warn" hex="#e0a740" />
-            <Swatch token="--signal-danger" label="--signal-danger" hex="#d9543f" />
-            <Swatch token="--signal-info" label="--signal-info" hex="#6f9bc0" />
-          </Row>
-        </Group>
-
-        <Group label="// Surfaces">
-          <Row wrap>
-            <Swatch token="--surface-1" label="--surface-1" hex="mono-50 @ 4%" />
-            <Swatch token="--surface-2" label="--surface-2" hex="mono-50 @ 6.5%" />
-            <Swatch token="--surface-3" label="--surface-3" hex="mono-50 @ 10%" />
-          </Row>
         </Group>
       </section>
     </div>

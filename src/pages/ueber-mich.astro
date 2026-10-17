@@ -1,6 +1,13 @@
 ---
+import { Picture } from 'astro:assets';
 import V2Layout from '../layouts/V2Layout.astro';
 import CTASection from '../components/site/CTASection.astro';
+import portrait from '../assets/portrait/alex-portrait.webp';
+import agoraPoster from '../assets/blog/agora-teaser-poster.jpg';
+
+// Die Seite liest weder Anfragedaten noch eine Collection. Vorab gebaut entstehen die
+// Porträt-Varianten im Build (D-25) und nicht je neuem Besucher zur Laufzeit.
+export const prerender = true;
 
 const focusAreas = [
   'Linux-Administration und Container-Betrieb, meistens auf Debian/Ubuntu',
@@ -39,15 +46,17 @@ const kiProjekte = [
     status: 'Aktiv in Entwicklung',
     preview: null,
     caption: null,
+    href: null,
   },
   {
     name: 'Agora',
-    rolle: 'Agentic Prediction Engine',
-    text: 'Ein Dokument rein, eine Welt raus. Agora baut aus Text einen Wissensgraphen, bevölkert ihn mit hunderten Agents, jeder mit eigener Biografie, Haltung und Blase, und lässt sie diskutieren, teilen, streiten. In Echtzeit sichtbar, wie sich Narrative ausbreiten und welche Stimmen den Diskurs kippen. Läuft lokal: mein Laptop, Neo4j, Ollama. Für Fälle, in denen lokale Inferenz zu langsam wird, kann Agora auf Cloud-Modelle ausweichen. Aktuell v0.2-Vorschau und die spannendste Baustelle auf dem Tisch.',
-    status: 'v0.2-Vorschau · Work in Progress',
+    rolle: 'Evidenzorientierte Multi-Agenten-Analyse',
+    text: 'Aus Dokumenten und Webseiten entsteht ein Wissensgraph. Daraus leitet Agora prüfbare Stakeholder-Personas ab, lässt sie in einer kontrollierten Simulation interagieren und trennt im Report belegte Aussagen von Hypothesen und Datenlücken. Das System läuft lokal oder kontrolliert hybrid. Es erzeugt Szenarien, keine Vorhersagen.',
+    status: 'v0.9.8 Stability Beta · AGPL-3.0',
     preview: '/media/projekte/agora-teaser.mp4',
-    poster: '/media/projekte/agora-teaser-poster.jpg',
-    caption: 'Agora · Schwarm-Engine · Offline / Open Source',
+    poster: agoraPoster.src,
+    caption: 'Agora · GraphRAG · Multi-Agenten · Evidence-Gating',
+    href: '/blog/agora-mirofish-fork-local-first/',
   },
 ] as const;
 
@@ -60,156 +69,159 @@ const searchFields = [
 
 <V2Layout
   title="Über mich – Alexander Schneider, FISI Leipzig"
-  description="Alexander Schneider aus Leipzig, angehender Fachinformatiker Systemintegration. Hands-on mit Linux, Docker, CI/CD und KI-Integration. Portfolio, Projekte und Blog."
+  description="Alexander Schneider aus Leipzig: Mein Weg zum Fachinformatiker Systemintegration, mein Homelab und praktische Projekte mit Linux, Docker und KI."
   schema={{
     "@context": "https://schema.org",
     "@type": "ProfilePage",
-    "@id": "https://alexle135.de/ueber-mich/#page",
-    "url": "https://alexle135.de/ueber-mich/",
+    "@id": "https://alex-schneider.dev/ueber-mich/#page",
+    "url": "https://alex-schneider.dev/ueber-mich/",
     "name": "Über mich – Alexander Schneider",
     "description": "Alexander Schneider aus Leipzig, angehender Fachinformatiker Systemintegration. Werdegang, Homelab und KI-Projekte (Hermes, Agora).",
     "inLanguage": "de-DE",
-    "mainEntity": { "@id": "https://alexle135.de/#person" }
+    "mainEntity": { "@id": "https://alex-schneider.dev/#person" }
   }}
 >
   <main class="v2-shell py-20 md:py-28 lg:py-36">
     <section class="grid gap-16 lg:grid-cols-[minmax(18rem,0.85fr)_minmax(0,2fr)] lg:items-start">
       <aside class="space-y-8">
-        <figure class="border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] p-2">
-          <img
-            src="/media/alex-portrait.webp"
+        <figure class="border border-[color:var(--line)] p-2">
+          <Picture
+            src={portrait}
+            formats={['avif', 'webp']}
+            fallbackFormat="webp"
+            widths={[480, 720, 1080]}
+            sizes="(min-width: 1024px) 30vw, 100vw"
             alt="Alexander Schneider – Portrait"
-            width="1334"
-            height="2000"
             class="aspect-[2/3] w-full object-cover contrast-110"
+            pictureAttributes={{ class: 'block' }}
             loading="eager"
             fetchpriority="high"
             decoding="async"
           />
         </figure>
 
-        <div class="space-y-3 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-[color:var(--color-mono-400)]">
-          <div class="flex justify-between border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pb-2">
+        <div class="space-y-3 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-[color:var(--muted)]">
+          <div class="flex justify-between border-b border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] pb-2">
             <span>Status</span>
-            <span class="text-[color:var(--color-neon-orange)]">In Ausbildung</span>
+            <span class="text-[color:var(--accent-strong)]">In Ausbildung</span>
           </div>
-          <div class="flex justify-between border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pb-2">
+          <div class="flex justify-between border-b border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] pb-2">
             <span>Fokus</span>
-            <span class="text-[color:var(--color-mono-200)]">Systemintegration</span>
+            <span class="text-[color:var(--ink)]">Systemintegration</span>
           </div>
-          <div class="flex justify-between border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pb-2">
+          <div class="flex justify-between border-b border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] pb-2">
             <span>Standort</span>
-            <span class="text-[color:var(--color-mono-200)]">Leipzig, DE</span>
+            <span class="text-[color:var(--ink)]">Leipzig, DE</span>
           </div>
-          <div class="flex justify-between border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pb-2">
+          <div class="flex justify-between border-b border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] pb-2">
             <span>Interesse</span>
-            <span class="text-[color:var(--color-mono-200)]">Praktikum / Projekte</span>
+            <span class="text-[color:var(--ink)]">Praktikum / Projekte</span>
           </div>
         </div>
       </aside>
 
       <div class="space-y-12">
-        <header class="space-y-6 border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pb-12">
-          <p class="v2-kicker">Über mich</p>
-          <h1 class="max-w-5xl font-editorial text-[clamp(3.5rem,8vw,6.5rem)] leading-[0.9] tracking-[-0.06em] text-[color:var(--color-mono-50)]">
+        <header class="ds-pagehead space-y-6 mb-12">
+          <p class="ds-kicker">Über mich</p>
+          <h1 class="max-w-5xl ds-display-xl text-[color:var(--ink)]">
             Ich komme nicht aus der klassischen IT-Laufbahn. Das zwingt mich, Sachen wirklich zu verstehen.
           </h1>
-          <p class="max-w-[60ch] text-xl leading-relaxed text-[color:var(--color-mono-200)]">
+          <p class="max-w-[60ch] text-xl leading-relaxed text-[color:var(--ink)]">
             Alexander Schneider, Leipzig. Aktuell mitten in der Umschulung zum Fachinformatiker Systemintegration. Nebenbei läuft ein Homelab, das eigentlich nie für Zuschauer gedacht war, und zwei, drei KI-Projekte, die mir selbst den Alltag interessanter machen.
           </p>
         </header>
 
-        <section class="space-y-6 border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pb-12">
-          <p class="v2-kicker">Werdegang</p>
-          <h2 class="max-w-4xl font-editorial text-[clamp(2.6rem,5vw,4.4rem)] leading-[0.94] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+        <section class="space-y-6 border-b border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] pb-12">
+          <p class="ds-kicker">Werdegang</p>
+          <h2 class="max-w-4xl ds-display-l text-[color:var(--ink)]">
             Ein paar Umwege, bevor es hier gelandet ist.
           </h2>
-          <p class="max-w-[65ch] text-base leading-8 text-[color:var(--color-mono-200)]">
+          <p class="max-w-[65ch] text-base leading-8 text-[color:var(--ink)]">
             Ich bin nicht direkt von der Schule in die IT gestolpert. Erst Bundeswehr, dann ein paar Jahre bei der Post, später Handel und ein Stück Selbstständigkeit. Dass ich am Ende hier gelandet bin, war kein Masterplan, sondern das Ergebnis aus zu vielen Servern im Regal, kaputten Setups im Keller und dem Moment, an dem ich gemerkt habe: Das hier interessiert mich wirklich.
           </p>
-          <p class="max-w-[65ch] text-sm leading-7 text-[color:var(--color-mono-300)]">
-            Seit 2025 läuft die Umschulung zum Fachinformatiker Systemintegration am BFW Leipzig. Abschluss ist für Juni 2027 geplant.
+          <p class="max-w-[65ch] text-sm leading-7 text-[color:var(--muted)]">
+            Seit 2025 läuft die Umschulung zum Fachinformatiker Systemintegration am BFW Leipzig. Abschluss ist für Juni 2027 geplant. Passende Übungen und Werkzeuge sammle ich im <a href="/fisi/" class="text-[color:var(--accent-strong)] underline underline-offset-4">FISI-Lernpfad mit Tutorials und Tools</a>.
           </p>
         </section>
 
         <section class="grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.75fr)] lg:items-start">
           <div class="space-y-5">
-            <p class="v2-kicker">Warum IT</p>
-            <h2 class="font-editorial text-[clamp(2.6rem,5vw,4.4rem)] leading-[0.94] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+            <p class="ds-kicker">Warum IT</p>
+            <h2 class="ds-display-l text-[color:var(--ink)]">
               Mich interessiert nicht die Folie, sondern das System dahinter.
             </h2>
-            <p class="text-base leading-8 text-[color:var(--color-mono-200)]">
+            <p class="text-base leading-8 text-[color:var(--ink)]">
               Mich treibt die Frage, warum ein System stabil läuft und wo genau es auseinanderfällt. Ich will verstehen, wie sich Infrastruktur so bauen lässt, dass sie nicht jede Woche Aufmerksamkeit braucht. Was als Fummelei mit ein paar Servern und einem alten Switch im Keller angefangen hat, ist heute mein Berufsweg.
             </p>
           </div>
-          <ul class="space-y-3 border-l border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pl-4 text-sm leading-7 text-[color:var(--color-mono-200)] lg:pl-6">
+          <ul class="space-y-3 border-l border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pl-4 text-sm leading-7 text-[color:var(--ink)] lg:pl-6">
             {focusAreas.map((item) => (
-              <li class="border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pb-3">{item}</li>
+              <li class="border-b border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pb-3">{item}</li>
             ))}
           </ul>
         </section>
 
-        <section class="grid gap-8 border-y border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] py-10 md:py-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.75fr)] lg:items-start">
+        <section class="grid gap-8 border-y border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] py-10 md:py-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.75fr)] lg:items-start">
           <div class="space-y-5">
-            <p class="v2-kicker">Homelab</p>
-            <h2 class="font-editorial text-[clamp(2.6rem,5vw,4.4rem)] leading-[0.94] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+            <p class="ds-kicker">Homelab</p>
+            <h2 class="ds-display-l text-[color:var(--ink)]">
               Werkstatt, kein Showroom.
             </h2>
-            <p class="text-base leading-8 text-[color:var(--color-mono-200)]">
+            <p class="text-base leading-8 text-[color:var(--ink)]">
               Im Homelab teste ich, was auf dem VPS und später im Job stabil laufen soll. Hier darf auch mal was krachen, weil es genau dafür da ist.
             </p>
           </div>
-          <ul class="space-y-3 border-l border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pl-4 text-sm leading-7 text-[color:var(--color-mono-200)] lg:pl-6">
+          <ul class="space-y-3 border-l border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pl-4 text-sm leading-7 text-[color:var(--ink)] lg:pl-6">
             {homelabItems.map((item) => (
-              <li class="border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pb-3">{item}</li>
+              <li class="border-b border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pb-3">{item}</li>
             ))}
           </ul>
         </section>
 
         <section class="space-y-8 pb-10 md:pb-12">
           <div class="space-y-5">
-            <p class="v2-kicker">Wie ich arbeite</p>
-            <h2 class="font-editorial text-[clamp(2.8rem,5vw,4.5rem)] leading-[0.94] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+            <p class="ds-kicker">Wie ich arbeite</p>
+            <h2 class="ds-display-l text-[color:var(--ink)]">
               Drei Sachen, die bei mir ziemlich konstant sind.
             </h2>
           </div>
 
           <div class="space-y-10">
             {principles.map((principle, index) => (
-              <article class="grid gap-6 border-t border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pt-8 first:border-t-0 first:pt-0 lg:grid-cols-[4.5rem_minmax(0,1fr)] lg:gap-10">
-                <p class="font-mono text-[0.82rem] leading-6 tracking-[0.18em] text-[color:var(--color-mono-400)]">{String(index + 1).padStart(2, '0')}</p>
+              <article class="grid gap-6 border-t border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pt-8 first:border-t-0 first:pt-0 lg:grid-cols-[4.5rem_minmax(0,1fr)] lg:gap-10">
+                <p class="font-mono text-[0.82rem] leading-6 tracking-[0.18em] text-[color:var(--muted)]">{String(index + 1).padStart(2, '0')}</p>
                 <div class="space-y-3">
-                  <h3 class="font-editorial text-[clamp(2rem,4vw,3.25rem)] leading-[0.96] tracking-[-0.05em] text-[color:var(--color-mono-50)]">{principle.label}</h3>
-                  <p class="max-w-[65ch] text-base leading-8 text-[color:var(--color-mono-200)]">{principle.text}</p>
+                  <h3 class="ds-display-m text-[color:var(--ink)]">{principle.label}</h3>
+                  <p class="max-w-[65ch] text-base leading-8 text-[color:var(--ink)]">{principle.text}</p>
                 </div>
               </article>
             ))}
           </div>
         </section>
 
-        <section class="space-y-10 border-y border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] py-10 md:py-12">
+        <section class="space-y-10 border-y border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] py-10 md:py-12">
           <div class="space-y-5">
-            <p class="v2-kicker">KI-Projekte</p>
-            <h2 class="max-w-4xl font-editorial text-[clamp(2.8rem,5vw,4.5rem)] leading-[0.94] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+            <p class="ds-kicker">KI-Projekte</p>
+            <h2 class="max-w-4xl ds-display-l text-[color:var(--ink)]">
               Wo ich zurzeit am tiefsten drinstecke.
             </h2>
-            <p class="max-w-[65ch] text-base leading-8 text-[color:var(--color-mono-200)]">
+            <p class="max-w-[65ch] text-base leading-8 text-[color:var(--ink)]">
               Für mich ist KI nicht das Marketing-Thema 2026, sondern Werkzeug. Am meisten lerne ich, wenn ich Systeme selbst baue statt nur APIs anzurufen. Zwei Projekte, an denen das gerade passiert:
             </p>
           </div>
 
           <div class="space-y-8">
             {kiProjekte.map((p, index) => (
-              <article class="grid gap-6 border-t border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pt-8 first:border-t-0 first:pt-0 lg:grid-cols-[4.5rem_minmax(0,1fr)] lg:gap-10">
-                <p class="font-mono text-[0.82rem] leading-6 tracking-[0.18em] text-[color:var(--color-mono-400)]">{String(index + 1).padStart(2, '0')}</p>
+              <article class="grid gap-6 border-t border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pt-8 first:border-t-0 first:pt-0 lg:grid-cols-[4.5rem_minmax(0,1fr)] lg:gap-10">
+                <p class="font-mono text-[0.82rem] leading-6 tracking-[0.18em] text-[color:var(--muted)]">{String(index + 1).padStart(2, '0')}</p>
                 <div class="space-y-4">
                   <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-                    <h3 class="font-editorial text-[clamp(2rem,4vw,3.25rem)] leading-[0.96] tracking-[-0.05em] text-[color:var(--color-mono-50)]">{p.name}</h3>
-                    <span class="font-mono text-[0.72rem] uppercase tracking-[0.18em] text-[color:var(--color-neon-orange)]">{p.rolle}</span>
+                    <h3 class="ds-display-m text-[color:var(--ink)]">{p.name}</h3>
+                    <span class="font-mono text-[0.72rem] uppercase tracking-[0.18em] text-[color:var(--accent-strong)]">{p.rolle}</span>
                   </div>
-                  <p class="max-w-[68ch] text-base leading-8 text-[color:var(--color-mono-200)]">{p.text}</p>
+                  <p class="max-w-[68ch] text-base leading-8 text-[color:var(--ink)]">{p.text}</p>
                   {p.preview && (
-                    <figure class="mt-6 space-y-3 border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] p-2">
+                    <figure class="mt-6 space-y-3 border border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] p-2">
                       <video
                         data-src={p.preview}
                         poster={p.poster}
@@ -219,16 +231,23 @@ const searchFields = [
                         playsinline
                         preload="none"
                         data-lazy-video
-                        aria-label={`Teaser: ${p.name}`}
                       ></video>
                       {p.caption && (
-                        <figcaption class="px-1 pb-1 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-[color:var(--color-mono-400)]">
+                        <figcaption class="px-1 pb-1 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-[color:var(--muted)]">
                           {p.caption}
                         </figcaption>
                       )}
                     </figure>
                   )}
-                  <p class="font-mono text-[0.72rem] uppercase tracking-[0.18em] text-[color:var(--color-mono-400)]">Status: {p.status}</p>
+                  {p.href && (
+                    <a
+                      href={p.href}
+                      class="inline-flex items-center gap-2 font-mono text-[0.72rem] uppercase tracking-[0.18em] text-[color:var(--accent-strong)] transition-colors hover:text-[color:var(--ink)]"
+                    >
+                      Feature lesen <span aria-hidden="true">→</span>
+                    </a>
+                  )}
+                  <p class="font-mono text-[0.72rem] uppercase tracking-[0.18em] text-[color:var(--muted)]">Status: {p.status}</p>
                 </div>
               </article>
             ))}
@@ -237,18 +256,18 @@ const searchFields = [
 
         <section class="grid gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(18rem,0.75fr)] lg:items-start">
           <div class="space-y-5">
-            <p class="v2-kicker">Wohin das gehen soll</p>
-            <h2 class="font-editorial text-[clamp(2.8rem,5vw,4.5rem)] leading-[0.94] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+            <p class="ds-kicker">Wohin das gehen soll</p>
+            <h2 class="ds-display-l text-[color:var(--ink)]">
               Praxis mit echter Reibung, am liebsten in Richtung KI und DevOps.
             </h2>
-            <p class="text-base leading-8 text-[color:var(--color-mono-200)]">
+            <p class="text-base leading-8 text-[color:var(--ink)]">
               Nach dem FISI-Abschluss will ich weiter in Richtung lokaler LLM-Inferenz, GraphRAG und Agent-Orchestrierung, am liebsten auf eigener Hardware. Bis dahin suche ich einen Platz, an dem ich an echter Infrastruktur mitarbeiten kann, ohne dass KI ein Fremdwort bleibt.
             </p>
           </div>
-          <ul class="space-y-4 border-l border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pl-4 font-mono text-[0.78rem] uppercase tracking-[0.12em] text-[color:var(--color-mono-300)] lg:pl-6">
+          <ul class="space-y-4 border-l border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pl-4 font-mono text-[0.78rem] uppercase tracking-[0.12em] text-[color:var(--muted)] lg:pl-6">
             {searchFields.map((field) => (
-              <li class="border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pb-4">
-                <span class="text-[color:var(--color-neon-orange)]">$</span> {field}
+              <li class="border-b border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pb-4">
+                <span class="text-[color:var(--accent-strong)]">$</span> {field}
               </li>
             ))}
           </ul>

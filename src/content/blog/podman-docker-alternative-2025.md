@@ -3,11 +3,9 @@ title: 'Podman statt Docker? Daemonless Container für mehr Security'
 summary: 'Docker-Alternative ohne Root-Rechte: Wie Podman Container sicherer macht und warum viele Admins 2025 wechseln. Praktischer Vergleich für Einsteiger.'
 publishedAt: 2025-11-27
 tags: ['Container', 'Docker', 'Podman', 'Security', 'Linux']
-heroImage: /images/blog/podman-docker-alternative-2025.webp
+heroImage: ../../assets/blog/podman-docker-alternative-2025.webp
 author: Alexander Schneider
 ---
-
-# Podman statt Docker? Daemonless Container für mehr Security
 
 Docker kennst du. Aber hast du schon von **Podman** gehört?
 
@@ -631,4 +629,6 @@ podman run -v mydata:/data nginx
 ---
 
 **Nutzt du schon Podman oder noch Docker?**
-Welche Erfahrungen hast du gemacht? Schreib mir: [schneider@alexle135.de](mailto:schneider@alexle135.de)
+Welche Erfahrungen hast du gemacht? Schreib mir: [schneider@alex-schneider.dev](mailto:schneider@alex-schneider.dev)
+
+**Weiterlesen:** [Warum Kubernetes nicht für jeden Sinn macht](/blog/kubernetes-realitaet/)

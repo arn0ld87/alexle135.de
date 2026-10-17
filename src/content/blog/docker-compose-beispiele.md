@@ -9,7 +9,7 @@ tags:
   - Docker Compose
   - DevOps
   - Tutorial
-heroImage: /images/blog/docker-compose-beispiele.webp
+heroImage: ../../assets/blog/docker-compose-beispiele.webp
 author: Alexander Schneider
 ---
 
@@ -430,3 +430,5 @@ Für FISI-Lernen, Homelab, interne Tools und viele kleine Produktionssysteme ist
 Wenn du Docker erst lernst, ist genau das der Punkt: nicht zehn Stacks kopieren, sondern einen davon wirklich verstehen.
 
 **Weiterlesen:** [Docker auf Ubuntu installieren](/blog/docker-ubuntu-setup/)
+
+**Wenn Compose nicht mehr reicht:** [Warum Kubernetes nicht für jeden Sinn macht](/blog/kubernetes-realitaet/) und [Proxmox-Heimlabor für unter 500 €](/blog/proxmox-homelab/), um Compose-Stacks auf eigener Hardware zu betreiben.

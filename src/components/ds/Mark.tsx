@@ -42,7 +42,7 @@ export function Mark({ size = 34, className = '', style }: MarkProps) {
         strokeWidth="2"
         strokeLinejoin="round"
       />
-      <circle cx="32" cy="31" r="4.2" fill="#ff6a00" />
+      <circle cx="32" cy="31" r="4.2" fill="var(--accent)" />
     </svg>
   );
 }
@@ -57,7 +57,7 @@ export function Wordmark({ size = 19, className = '' }: WordmarkProps) {
   return (
     <span
       className={className}
-      style={{ display: 'inline-flex', alignItems: 'center', gap: 10, color: 'var(--mono-50)' }}
+      style={{ display: 'inline-flex', alignItems: 'center', gap: 10, color: 'var(--ink)' }}
     >
       <Mark size={size * 1.6} />
       <span
@@ -68,7 +68,7 @@ export function Wordmark({ size = 19, className = '' }: WordmarkProps) {
           letterSpacing: '-0.03em',
         }}
       >
-        AlexLE<span style={{ color: 'var(--clay-500)' }}>135.de</span>
+        AlexLE<span style={{ color: 'var(--accent-strong)' }}>135.de</span>
       </span>
     </span>
   );

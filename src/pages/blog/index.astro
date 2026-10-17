@@ -17,18 +17,18 @@ const blogSchema = {
   '@context': 'https://schema.org',
   '@type': 'Blog',
   name: 'Logbuch',
-  url: 'https://alexle135.de/blog/',
+  url: 'https://alex-schneider.dev/blog/',
   description:
     'Notizen zu Linux, Infrastruktur, Automatisierung und technischen Entscheidungen aus echter Praxis.',
   author: {
     '@type': 'Person',
     name: 'Alexander Schneider',
-    url: 'https://alexle135.de/ueber-mich/',
+    url: 'https://alex-schneider.dev/ueber-mich/',
   },
   blogPost: posts.map((post) => ({
     '@type': 'BlogPosting',
     headline: post.data.title,
-    url: `https://alexle135.de/blog/${post.id}/`,
+    url: `https://alex-schneider.dev/blog/${post.id}/`,
     datePublished: post.data.publishedAt?.toISOString(),
     dateModified: (post.data.updatedAt ?? post.data.publishedAt)?.toISOString(),
     author: {
@@ -41,7 +41,7 @@ const blogSchema = {
 
 <V2Layout
   title="Logbuch – Architektur, Betrieb und Automation"
-  description="Logbuch zu Linux, Docker, systemd, CI/CD und dem Weg zum Fachinformatiker Systemintegration. Tutorials, Feldnotizen und technische Entscheidungen aus der Praxis."
+  description="Mein Logbuch zu Linux, Docker, systemd, CI/CD und der FISI-Umschulung: Tutorials, Feldnotizen und technische Entscheidungen aus meiner Praxis."
   schema={blogSchema}
 >
   <main class="v2-shell py-20 md:py-28">
@@ -52,25 +52,26 @@ const blogSchema = {
       aside="Der Blog bleibt bewusst schlicht. Der Inhalt soll die Arbeit machen."
     />
 
-    <section class="grid gap-8 border-y border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] py-10 md:py-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(18rem,0.7fr)] lg:items-start mt-12 md:mt-16">
+    <section class="grid gap-8 border-y border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] py-10 md:py-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(18rem,0.7fr)] lg:items-start mt-12 md:mt-16">
       <div class="space-y-5">
-        <p class="v2-kicker">Worum es hier geht</p>
-        <h2 class="font-editorial text-[clamp(2.6rem,5vw,4.4rem)] leading-[0.94] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
+        <p class="ds-kicker">Worum es hier geht</p>
+        <h2 class="ds-display-l text-[color:var(--ink)]">
           Hier steht, wie ich arbeite. Nicht nur, was ich behaupte.
         </h2>
       </div>
-      <div class="space-y-4 border-l border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pl-4 lg:pl-6 text-sm leading-7 text-[color:var(--color-mono-200)]">
+      <div class="space-y-4 border-l border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pl-4 lg:pl-6 text-sm leading-7 text-[color:var(--ink)]">
         <p>Die Einträge zeigen, wie ich Probleme zerlege, Entscheidungen begründe und Technik dokumentiere. Wer hier liest, soll danach besser verstehen, wie ich arbeite.</p>
-        <p class="text-[color:var(--color-mono-300)]">Darum bleibt die Liste schlicht und direkt. Erst der Inhalt, dann der Rest.</p>
+        <p>Für die Umschulung bündelt der <a href="/fisi/" class="text-[color:var(--accent-strong)] underline underline-offset-4">FISI-Lernpfad</a> die passenden Tutorials und Werkzeuge in einer kuratierten Reihenfolge.</p>
+        <p class="text-[color:var(--muted)]">Darum bleibt die Liste schlicht und direkt. Erst der Inhalt, dann der Rest.</p>
       </div>
     </section>
 
     <div class="pt-10 md:pt-12">
-      <div class="hidden border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pb-4 md:grid md:grid-cols-[8.5rem_minmax(0,1fr)_7rem_6rem] md:gap-6">
-        <p class="font-mono text-[0.72rem] uppercase tracking-[0.2em] text-[color:var(--color-mono-400)]">Date</p>
-        <p class="font-mono text-[0.72rem] uppercase tracking-[0.2em] text-[color:var(--color-mono-400)]">Entry</p>
-        <p class="font-mono text-[0.72rem] uppercase tracking-[0.2em] text-[color:var(--color-mono-400)]">Format</p>
-        <p class="font-mono text-[0.72rem] uppercase tracking-[0.2em] text-[color:var(--color-mono-400)]">Read</p>
+      <div class="hidden border-b border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pb-4 md:grid md:grid-cols-[8.5rem_minmax(0,1fr)_7rem_6rem] md:gap-6">
+        <p class="font-mono text-[0.72rem] uppercase tracking-[0.2em] text-[color:var(--muted)]">Date</p>
+        <p class="font-mono text-[0.72rem] uppercase tracking-[0.2em] text-[color:var(--muted)]">Entry</p>
+        <p class="font-mono text-[0.72rem] uppercase tracking-[0.2em] text-[color:var(--muted)]">Format</p>
+        <p class="font-mono text-[0.72rem] uppercase tracking-[0.2em] text-[color:var(--muted)]">Read</p>
       </div>
 
       {posts.map((post) => {
@@ -91,13 +92,13 @@ const blogSchema = {
             summary={post.data.summary}
             format={post.data.format || 'Article'}
             readingTime={post.data.readingTime || getReadingTime(post.body || '')}
-            snippet={post.data.snippet || 'cat field-notes.md'}
+            snippet={post.data.snippet || post.data.summary}
           />
         );
       })}
 
       {posts.length === 0 && (
-        <p class="pt-8 font-mono text-sm text-[color:var(--color-mono-400)]">System: Keine Einträge gefunden.</p>
+        <p class="pt-8 font-mono text-sm text-[color:var(--muted)]">System: Keine Einträge gefunden.</p>
       )}
     </div>
 

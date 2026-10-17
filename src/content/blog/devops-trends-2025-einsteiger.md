@@ -3,11 +3,9 @@ title: 'DevOps Trends 2025: Was du als Einsteiger wirklich wissen musst'
 summary: 'Keine Buzzwords: Welche DevOps-Trends 2025 relevant sind und was du als FISI-Umschüler oder DevOps-Einsteiger konkret lernen solltest.'
 publishedAt: 2025-11-23
 tags: ['DevOps', 'Linux', 'CI/CD', 'Karriere', 'Trends']
-heroImage: /images/blog/devops-trends-2025-einsteiger.webp
+heroImage: ../../assets/blog/devops-trends-2025-einsteiger.webp
 author: Alexander Schneider
 ---
-
-# DevOps Trends 2025: Was du als Einsteiger wirklich wissen musst
 
 DevOps entwickelt sich ständig weiter. Aber was bedeutet das für dich als Einsteiger, Umschüler oder Junior-Admin?
 
@@ -459,4 +457,4 @@ DevOps 2025 bringt spannende Entwicklungen:
 ---
 
 **Bist du Umschüler oder DevOps-Einsteiger?**
-Welche Skills lernst du gerade? Schreib mir: [schneider@alexle135.de](mailto:schneider@alexle135.de)
+Welche Skills lernst du gerade? Schreib mir: [schneider@alex-schneider.dev](mailto:schneider@alex-schneider.dev)

@@ -210,7 +210,7 @@ describe('withRequestLogging', () => {
   });
 
   function makeContext(method = 'POST'): { request: Request } {
-    return { request: new Request('https://alexle135.de/api/contact', { method }) };
+    return { request: new Request('https://alex-schneider.dev/api/contact', { method }) };
   }
 
   it('returns the wrapped handler response unchanged', async () => {

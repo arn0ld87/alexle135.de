@@ -11,12 +11,12 @@ interface Props {
 const { items } = Astro.props;
 ---
 
-<section aria-label="Proof points" class="border-y border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] py-6 md:py-8">
+<section aria-label="Proof points" class="border-y border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] py-6 md:py-8">
   <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4 xl:gap-6">
     {items.map((item) => (
-      <div class="space-y-2 border-l border-[color:color-mix(in_srgb,var(--color-mono-50)_10%,transparent)] pl-4 first:border-l-0 first:pl-0 md:first:border-l md:first:pl-4 xl:first:border-l-0 xl:first:pl-0">
-        <p class="font-mono text-[0.68rem] uppercase tracking-[0.22em] text-[color:var(--color-neon-orange)]">{item.label}</p>
-        <p class="text-sm leading-7 text-[color:var(--color-mono-200)]">{item.value}</p>
+      <div class="space-y-2 border-l border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pl-4 first:border-l-0 first:pl-0 md:first:border-l md:first:pl-4 xl:first:border-l-0 xl:first:pl-0">
+        <p class="font-mono text-[0.68rem] uppercase tracking-[0.22em] text-[color:var(--accent-strong)]">{item.label}</p>
+        <p class="text-sm leading-7 text-[color:var(--ink)]">{item.value}</p>
       </div>
     ))}
   </div>

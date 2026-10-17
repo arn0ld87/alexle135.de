@@ -1,7 +1,12 @@
 {
-  "$comment": "Budgets für scripts/check-bundle-size.mjs (CI-Gate, #127). Basis: Ist-Messung 2026-07-02 — 21 JS-Assets, 175,2 KB gzip gesamt, größter Chunk WebContainerTerminal 78,4 KB gzip. Budgets = Ist + ~15% Puffer.",
+  "$comment": "Budgets für scripts/check-bundle-size.mjs (CI-Gate, #127). JS-Basis: Ist-Messung 2026-07-02 — 21 JS-Assets, 175,2 KB gzip gesamt, größter Chunk WebContainerTerminal 78,4 KB gzip. JS-Budgets = Ist + ~15% Puffer. Bild-Basis (D-27): Ist-Messung 2026-10-15 nach den Löschungen aus Plan 02-18, Option c — größte Rasterdatei media/ansible_preview.png 902,5 KB, Rasterdateien unter _astro/ 10 215,6 KB, Bildgewicht der Startseite 0 KB. maxRasterFileKb und astroRasterTotalKb = Ist + 15%, aufgerundet; homeRasterKb = 60. Ausnahme Klasse B (Option c): media/ansible_preview.png (902,5 KB) bleibt liegen und ist die größte Rasterdatei des Builds; ohne sie läge maxRasterFileKb bei 754 KB. Das Budget gilt trotzdem für alle Rasterdateien, auch für die der Klasse B.",
   "budgets": {
     "totalJsGzipKb": 202,
-    "largestChunkGzipKb": 91
+    "largestChunkGzipKb": 91,
+    "images": {
+      "maxRasterFileKb": 1038,
+      "astroRasterTotalKb": 11748,
+      "homeRasterKb": 60
+    }
   }
 }

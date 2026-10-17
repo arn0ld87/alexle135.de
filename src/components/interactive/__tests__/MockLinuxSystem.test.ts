@@ -15,7 +15,7 @@ describe('MockLinuxSystem', () => {
 
     it('renders a prompt with user, hostname and the home path shortened to ~', () => {
       const prompt = system.getPrompt();
-      expect(prompt).toContain('visitor@alexle135.de');
+      expect(prompt).toContain('visitor@alex-schneider.dev');
       expect(prompt).toContain('~');
       expect(prompt).toContain('$');
     });
@@ -103,7 +103,7 @@ describe('MockLinuxSystem', () => {
     });
 
     it('reports the hostname', () => {
-      expect(system.processCommand('hostname')).toEqual({ output: 'alexle135.de\r\n' });
+      expect(system.processCommand('hostname')).toEqual({ output: 'alex-schneider.dev\r\n' });
     });
 
     it('returns a date string ending with CRLF', () => {
@@ -156,7 +156,7 @@ describe('MockLinuxSystem', () => {
 
   describe('uname', () => {
     it('handles -a', () => {
-      expect(system.processCommand('uname -a').output).toContain('Linux alexle135.de');
+      expect(system.processCommand('uname -a').output).toContain('Linux alex-schneider.dev');
     });
 
     it('handles -r', () => {
@@ -164,7 +164,7 @@ describe('MockLinuxSystem', () => {
     });
 
     it('handles -n', () => {
-      expect(system.processCommand('uname -n')).toEqual({ output: 'alexle135.de\r\n' });
+      expect(system.processCommand('uname -n')).toEqual({ output: 'alex-schneider.dev\r\n' });
     });
 
     it('defaults to the kernel name', () => {

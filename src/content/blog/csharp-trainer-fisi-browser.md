@@ -1,5 +1,6 @@
 ---
 title: 'Wie ich ein C#-Lernspiel gebaut habe – und was dabei rausgekommen ist'
+metaDescription: 'C# für die FISI-Prüfung im Browser üben: Wie aus meinem Trainer mit 30 Übungen ein Lernspiel mit Bossen, Erfahrungspunkten und Skill-Tree wurde.'
 summary: 'Ich wollte C# fuer die FiSi-Pruefung ueben. Es gab nichts, was mir gefallen hat. Also hab ich selbst was gebaut. Aus 30 Uebungen wurde ein Spiel mit Bossen, XP und Skill-Tree.'
 publishedAt: 2026-04-12
 tags:
@@ -7,7 +8,7 @@ tags:
   - Gamification
   - FiSi
   - Projekt
-heroImage: /images/projects/terminal-missionen.webp
+heroImage: ../../assets/projects/terminal-missionen.webp
 author: Alexander Schneider
 ---
 
@@ -99,7 +100,5 @@ Fuer Accounts und Leaderboard gibt es ein **Supabase**-Backend. Wer sich mit Git
 ## Ausprobieren
 
 CodeHack ist kostenlos, braucht keinen Account und laeuft in jedem modernen Browser.
-
-**[csharp.alexle135.de](https://csharp.alexle135.de)**
 
 Feedback gerne per Mail oder GitHub Issue.

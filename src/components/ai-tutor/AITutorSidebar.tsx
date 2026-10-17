@@ -172,14 +172,19 @@ export default function AITutorSidebar({ isOpen, onClose, context }: AITutorSide
   if (!isOpen) return null;
 
   return (
-    <div className="fixed right-0 top-0 h-full w-96 bg-gray-900 border-l border-gray-700 shadow-2xl z-50 flex flex-col">
+    <div className="fixed right-0 top-0 h-full w-96 bg-[var(--paper)] border-l border-[color:var(--ink)] z-50 flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-700">
+      <div className="flex items-center justify-between p-4 border-b border-[color:var(--ink)]">
         <div className="flex items-center gap-2">
           <span className="text-2xl">🤖</span>
-          <h3 className="font-semibold text-white">AI-Tutor</h3>
+          <h3 className="font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--muted)]">
+            AI-Tutor
+          </h3>
         </div>
-        <button onClick={onClose} className="text-gray-400 hover:text-white transition">
+        <button
+          onClick={onClose}
+          className="text-[color:var(--muted)] hover:text-[color:var(--ink)] transition"
+        >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
@@ -194,7 +199,7 @@ export default function AITutorSidebar({ isOpen, onClose, context }: AITutorSide
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && (
-          <div className="text-center text-gray-400 mt-8">
+          <div className="text-center text-[color:var(--muted)] mt-8">
             <p className="mb-2">👋 Hallo!</p>
             <p className="text-sm">Ich bin dein AI-Tutor. Frag mich wenn du nicht weiterkommst!</p>
           </div>
@@ -203,10 +208,10 @@ export default function AITutorSidebar({ isOpen, onClose, context }: AITutorSide
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div
-              className={`max-w-[80%] px-4 py-2 rounded-lg ${
+              className={`max-w-[80%] px-4 py-2 ${
                 msg.role === 'user'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-800 text-gray-200 border border-gray-700'
+                  ? 'bg-[color:color-mix(in_srgb,var(--ink)_4%,var(--paper))] text-[color:var(--ink)]'
+                  : 'text-[color:var(--ink)]'
               }`}
             >
               <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
@@ -219,11 +224,11 @@ export default function AITutorSidebar({ isOpen, onClose, context }: AITutorSide
 
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-gray-800 border border-gray-700 px-4 py-2 rounded-lg">
+            <div className="bg-[color:color-mix(in_srgb,var(--ink)_4%,var(--paper))] px-4 py-2">
               <div className="flex gap-2">
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse delay-100"></div>
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse delay-200"></div>
+                <div className="w-2 h-2 bg-[color:var(--muted)] rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-[color:var(--muted)] rounded-full animate-pulse delay-100"></div>
+                <div className="w-2 h-2 bg-[color:var(--muted)] rounded-full animate-pulse delay-200"></div>
               </div>
             </div>
           </div>
@@ -231,7 +236,7 @@ export default function AITutorSidebar({ isOpen, onClose, context }: AITutorSide
       </div>
 
       {/* Input */}
-      <div className="p-4 border-t border-gray-700">
+      <div className="p-4 border-t border-[color:var(--ink)]">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -244,13 +249,13 @@ export default function AITutorSidebar({ isOpen, onClose, context }: AITutorSide
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Frag den AI-Tutor..."
-            className="flex-1 px-3 py-2 bg-gray-800 border border-gray-600 rounded text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+            className="flex-1 px-3 py-2 border border-[color:var(--muted)] bg-[color:var(--paper)] text-sm text-[color:var(--ink)] placeholder-[color:var(--muted)] focus:outline-none focus-visible:border-[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--accent)] transition-colors"
             disabled={loading}
           />
           <button
             type="submit"
             disabled={!input.trim() || loading}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:cursor-not-allowed text-white rounded text-sm font-medium transition"
+            className="px-4 py-2 bg-[var(--ink)] text-[color:var(--paper)] hover:bg-[var(--accent-strong)] active:bg-[var(--accent-press)] disabled:bg-transparent disabled:text-[color:var(--muted)] disabled:cursor-not-allowed text-sm font-medium transition"
           >
             Senden
           </button>

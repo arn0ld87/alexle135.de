@@ -32,7 +32,7 @@ function createContext(
     }),
   };
 
-  const url = new URL(`https://alexle135.de${pathname}`);
+  const url = new URL(`https://alex-schneider.dev${pathname}`);
   const request = new Request(url, {
     method: requestOpts.method ?? 'GET',
     headers: requestOpts.headers,
@@ -195,7 +195,7 @@ describe('middleware', () => {
     const response = await onRequest(context as never, next);
 
     expect(response.status).toBe(301);
-    expect(response.headers.get('Location')).toBe('https://alexle135.de/admin/dashboard');
+    expect(response.headers.get('Location')).toBe('https://alex-schneider.dev/admin/dashboard');
     expect(next).not.toHaveBeenCalled();
   });
 });

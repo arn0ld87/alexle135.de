@@ -1,0 +1,643 @@
+---
+/**
+ * Agora-Karte im Abschnitt „Arbeiten“ der Startseite (Systemwerk, D-08, D-11, D-43).
+ *
+ * Agora ist kein Eintrag der Collection `projects`; Format, Datum, Link und Tags stammen aus dem
+ * Blogpost `agora-mirofish-fork-local-first` (Prop `post`). Die fünf Schritttexte des Schemas
+ * sind Sätze aus diesem Beitrag; was sich dort nicht belegen ließ, steht nicht auf der Karte
+ * (der Tag „Python“ der Skizze entfällt). Das Schema ist eine Illustration: keine Zähler,
+ * Laufzeiten oder Betriebszustände, der Hinweis darunter sagt es.
+ *
+ * Ohne JavaScript steht die Schrittliste (`ol`) mit allen fünf Texten im Markup; die Knoten sind
+ * dann deaktiviert (nicht fokussierbar, ohne Bedienwirkung). `bindSchema` schaltet sie frei und
+ * blendet auf „ein Text auf einmal“ um.
+ * Fläche: Panel mit den Panel-Tokens des Rahmens, auf ihr keine Tokens der Papierfläche.
+ */
+import type { CollectionEntry } from 'astro:content';
+import { ArrowUpRight, Asterisk, FileOutput, FileText, Network, ShieldCheck } from 'lucide-astro';
+import { formatDateDe } from '../../lib/home/works';
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+const { post } = Astro.props;
+
+const href = `/blog/${post.id}/`;
+const format = post.data.format ?? 'Beitrag';
+const publishedAt = post.data.publishedAt;
+const dateLabel = publishedAt ? formatDateDe(publishedAt) : undefined;
+
+// Nur Tags, die der Beitrag selbst führt.
+const tags = ['Multi-Agenten', 'GraphRAG', 'Neo4j'].filter((tag) => post.data.tags.includes(tag));
+
+// Sätze aus dem Beitrag (Liste „Was Agora heute ist“, tldr, Abschnitt zum Evidence-Gating).
+const steps = [
+  {
+    key: 'quellen',
+    number: '01',
+    name: 'Quellen',
+    Icon: FileText,
+    text: 'Dokumente und Webseiten werden aufgenommen und strukturiert.',
+  },
+  {
+    key: 'graph',
+    number: '02',
+    name: 'Wissensgraph',
+    Icon: Network,
+    text: 'Neo4j speichert Entitäten, Beziehungen, Quellenfragmente und Embeddings.',
+  },
+  {
+    key: 'agenten',
+    number: '03',
+    name: 'Agenten',
+    Icon: Asterisk,
+    text: 'Aus dem Graph entstehen Stakeholder-Personas, die vor dem Lauf geprüft werden können. OASIS und CAMEL orchestrieren die Interaktionen der Agenten.',
+  },
+  {
+    key: 'pruefung',
+    number: '04',
+    name: 'Prüfung',
+    Icon: ShieldCheck,
+    text: 'Der Report zerlegt Ergebnisse in Claims und prüft deren Evidenz.',
+  },
+  {
+    key: 'bericht',
+    number: '05',
+    name: 'Bericht',
+    Icon: FileOutput,
+    text: 'Der Report trennt Quellen, Simulationsergebnisse, Hypothesen und Datenlücken. Varianten lassen sich vergleichen, exportieren und später erneut untersuchen.',
+  },
+];
+
+// Zwei Verläufe durch die fünf Knotenpositionen (x = 50, 150, 250, 350, 450 bei y = 70). Die Auslenkung
+// bleibt unter der halben Knotenhöhe, damit die Beschriftungen unter den Knoten frei liegen.
+const WAVE_A = 'M50 70 C80 44 120 44 150 70 S220 96 250 70 S320 44 350 70 S420 96 450 70';
+const WAVE_B = 'M50 70 C80 96 120 96 150 70 S220 44 250 70 S320 96 350 70 S420 44 450 70';
+const LINKS = 'M100 51 V89 M200 51 V89 M300 51 V89 M400 51 V89';
+---
+
+<article class="agora" data-surface="panel" aria-labelledby="agora-title">
+  <div class="agora__info">
+    <div class="agora__meta">
+      <p class="agora__kicker">
+        <span class="agora__marker" aria-hidden="true"></span>
+        HAUPTPROJEKT
+      </p>
+      <p class="agora__format">
+        {format.toLocaleUpperCase('de-DE')}
+        {
+          publishedAt && dateLabel && (
+            <>
+              {' · '}
+              <time datetime={publishedAt.toISOString().slice(0, 10)}>{dateLabel}</time>
+            </>
+          )
+        }
+      </p>
+    </div>
+
+    <h3 id="agora-title" class="ds-display-l agora__title">
+      <a class="agora__title-link" href={href}>
+        <span>Agora</span>
+        <ArrowUpRight size={32} class="ds-icon agora__title-icon" aria-hidden="true" focusable="false" />
+      </a>
+    </h3>
+
+    <p class="ds-display-s agora__subtitle">Viele Perspektiven. Nachvollziehbare Analyse.</p>
+
+    <p class="agora__description">
+      Dokumente, Wissensgraphen und simulierte Akteure werden zu einer evidenzorientierten
+      Szenarioanalyse. Quellen bleiben sichtbar. Unsicherheit auch.
+    </p>
+
+    {
+      tags.length > 0 && (
+        <ul class="agora__tags" aria-label="Schlagworte">
+          {tags.map((tag) => (
+            <li>{tag}</li>
+          ))}
+        </ul>
+      )
+    }
+
+    <a class="agora__more" href={href}>
+      <span class="agora__more-text">{format} lesen</span>
+      <ArrowUpRight size={20} class="ds-icon agora__more-icon" aria-hidden="true" focusable="false" />
+    </a>
+  </div>
+
+  <div class="agora__schema" data-schema>
+    <div class="agora__schema-head">
+      <span>ANALYSEPFAD / SCHEMA</span>
+      <span>ILLUSTRATION</span>
+    </div>
+
+    <div class="agora__body">
+      <div class="agora__stage">
+        <svg
+          class="agora__lines"
+          viewBox="0 0 500 150"
+          aria-hidden="true"
+          focusable="false"
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <path class="agora__path agora__path--link" d={LINKS}></path>
+          <path class="agora__path agora__path--a" d={WAVE_A}></path>
+          <path class="agora__path agora__path--b" d={WAVE_B}></path>
+          <circle class="agora__dot agora__dot--a" r="4">
+            <animateMotion dur="7s" repeatCount="indefinite" path={WAVE_A}></animateMotion>
+          </circle>
+          <circle class="agora__dot agora__dot--b" r="3">
+            <animateMotion dur="9s" repeatCount="indefinite" path={WAVE_B}></animateMotion>
+          </circle>
+        </svg>
+
+        <div class="agora__nodes">
+          {
+            steps.map(({ key, name, Icon }) => (
+              <button
+                type="button"
+                class="agora__node"
+                data-schema-node={key}
+                aria-pressed="false"
+                disabled
+              >
+                <span class="agora__node-box">
+                  <Icon size={20} class="ds-icon agora__node-icon" aria-hidden="true" focusable="false" />
+                </span>
+                <span class="agora__node-label">{name}</span>
+              </button>
+            ))
+          }
+        </div>
+      </div>
+
+      <div class="agora__foot">
+        <div class="agora__detail" data-schema-detail aria-live="polite" hidden>
+          <p class="agora__step-label" data-schema-detail-label></p>
+          <p class="agora__step-text" data-schema-detail-text></p>
+        </div>
+
+        <ol class="agora__list" data-schema-list>
+          {
+            steps.map(({ key, number, name, text }) => (
+              <li data-schema-step={key}>
+                <strong class="agora__step-label" data-schema-step-label>
+                  {number} / {name}
+                </strong>
+                <span class="agora__step-text" data-schema-step-text>
+                  {text}
+                </span>
+              </li>
+            ))
+          }
+        </ol>
+
+        <p class="agora__hint">Schematische Darstellung, keine Live-Daten.</p>
+      </div>
+    </div>
+  </div>
+</article>
+
+<style>
+  .agora {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+    padding: var(--space-4);
+    /* Der Rand hält die Karte im Bauplan vom Grund getrennt, wo Panel und Papier eng liegen. */
+    border: 1px solid var(--panel-edge);
+    border-radius: 0;
+  }
+
+  @media (min-width: 768px) {
+    .agora {
+      padding: var(--space-5);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .agora {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+      gap: var(--space-8);
+      padding: var(--space-6);
+    }
+  }
+
+  /* Der Browser blendet [hidden] nur mit niedriger Priorität aus; eigene display-Regeln würden es
+     sonst überstimmen. */
+  .agora [hidden] {
+    display: none;
+  }
+
+  /* ---------- Info-Spalte ---------- */
+  .agora__info {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .agora__meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-1) var(--space-4);
+  }
+
+  .agora__kicker,
+  .agora__format,
+  .agora__schema-head,
+  .agora__hint,
+  .agora__step-label {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    line-height: 1.5;
+  }
+
+  .agora__kicker {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--panel-text);
+  }
+
+  .agora__marker {
+    display: block;
+    width: 8px;
+    height: 8px;
+    flex: none;
+    background: var(--panel-accent);
+  }
+
+  .agora__format {
+    color: var(--panel-muted);
+  }
+
+  .agora__title {
+    margin: 0;
+    color: var(--panel-text);
+  }
+
+  .agora__title-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .agora :global(.agora__title-icon) {
+    width: 0.75em;
+    height: 0.75em;
+    flex: none;
+  }
+
+  .agora__subtitle {
+    margin: 0;
+    color: var(--panel-text);
+  }
+
+  .agora__description {
+    max-width: 52ch;
+    margin: 0;
+    color: var(--panel-muted);
+    font-size: var(--ds-text-body);
+    line-height: 1.55;
+  }
+
+  .agora__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .agora__tags li {
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--panel-edge);
+    color: var(--panel-text);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    line-height: 1.5;
+  }
+
+  .agora__more {
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin-top: auto;
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--panel-rule);
+    color: var(--panel-text);
+    font-size: var(--ds-text-sm);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .agora__more-text {
+    text-decoration: underline;
+    text-decoration-color: var(--panel-accent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 6px;
+  }
+
+  .agora :global(.agora__more-icon) {
+    width: 20px;
+    height: 20px;
+    flex: none;
+  }
+
+  .agora__title-link:focus-visible,
+  .agora__more:focus-visible,
+  .agora__node:disabled {
+    cursor: default;
+  }
+
+  .agora__node:focus-visible {
+    outline: 2px solid var(--panel-accent);
+    outline-offset: 4px;
+  }
+
+  @media (hover: hover) {
+    .agora__more:hover .agora__more-text {
+      text-decoration-thickness: 2px;
+    }
+  }
+
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .agora :global(.agora__title-icon),
+    .agora :global(.agora__more-icon) {
+      transition: transform var(--dur-base) var(--ease-out);
+    }
+
+    .agora__title-link:hover :global(.agora__title-icon),
+    .agora__more:hover :global(.agora__more-icon) {
+      transform: translate(4px, -4px);
+    }
+  }
+
+  /* ---------- Schema ---------- */
+  .agora__schema {
+    min-width: 0;
+    border: 1px solid var(--panel-rule);
+  }
+
+  .agora__schema-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-1) var(--space-4);
+    padding: var(--space-2) var(--space-4);
+    border-bottom: 1px solid var(--panel-rule);
+    color: var(--panel-muted);
+  }
+
+  /* Punktraster als Hintergrund; die Breite des Rahmens entscheidet über die Anordnung. */
+  .agora__body {
+    container-type: inline-size;
+    padding: var(--space-4) var(--space-4) 0;
+    background-image: radial-gradient(circle, var(--panel-rule) 1px, transparent 1.5px);
+    background-size: 24px 24px;
+  }
+
+  .agora__lines {
+    display: none;
+  }
+
+  .agora__nodes {
+    --node-size: 44px;
+
+    position: relative;
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  /* Schmale Rahmen: eine Spalte, die Knoten liegen untereinander an einer gestrichelten Schiene.
+     Ein Überlappen ist damit nicht möglich. */
+  .agora__nodes::before {
+    content: '';
+    position: absolute;
+    top: calc(var(--node-size) / 2);
+    bottom: calc(var(--node-size) / 2);
+    left: calc(var(--node-size) / 2);
+    border-left: 1px dashed var(--panel-edge);
+  }
+
+  .agora__node {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    min-height: 44px;
+    align-items: center;
+    gap: var(--space-4);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--panel-text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .agora__node-box {
+    display: flex;
+    width: var(--node-size);
+    height: var(--node-size);
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--panel-edge);
+    background: var(--panel);
+    color: var(--panel-text);
+    transition:
+      background-color var(--dur-fast) var(--ease-out),
+      border-color var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out);
+  }
+
+  .agora :global(.agora__node-icon) {
+    width: 20px;
+    height: 20px;
+  }
+
+  .agora__node-label {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    color: var(--panel-muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    line-height: 1.5;
+  }
+
+  .agora__node[aria-pressed='true'] .agora__node-box {
+    border-color: var(--panel-accent);
+    background: var(--panel-accent);
+    color: var(--panel);
+  }
+
+  .agora__node[aria-pressed='true'] .agora__node-label {
+    color: var(--panel-text);
+  }
+
+  @media (hover: hover) {
+    .agora__node:hover .agora__node-box {
+      border-color: var(--panel-text);
+    }
+  }
+
+  @media (min-width: 768px) {
+    .agora__nodes {
+      --node-size: 52px;
+    }
+  }
+
+  /* Breite Rahmen: fünf gleich breite Spalten über zwei gekreuzten Verläufen. Die Mitte jeder
+     Spalte liegt auf einer Knotenposition der Pfade (10, 30, 50, 70, 90 Prozent, Höhe 70 von 150). */
+  @container (min-width: 34rem) {
+    .agora__stage {
+      position: relative;
+      aspect-ratio: 500 / 150;
+    }
+
+    .agora__lines {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .agora__nodes {
+      position: absolute;
+      top: calc(46.667% - var(--node-size) / 2);
+      right: 0;
+      left: 0;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 0;
+    }
+
+    .agora__nodes::before {
+      content: none;
+    }
+
+    .agora__node {
+      flex-direction: column;
+      gap: var(--space-2);
+      text-align: center;
+    }
+
+    .agora__node-label {
+      width: 100%;
+    }
+
+    .agora__detail {
+      display: grid;
+      grid-template-columns: 10rem minmax(0, 1fr);
+      gap: var(--space-4);
+    }
+  }
+
+  .agora__path {
+    fill: none;
+    stroke-width: 1.5;
+  }
+
+  .agora__path--a {
+    stroke: var(--panel-muted);
+  }
+
+  .agora__path--b {
+    stroke: var(--panel-accent);
+  }
+
+  .agora__path--link {
+    stroke: var(--panel-rule);
+    stroke-dasharray: 4 5;
+    stroke-width: 1;
+  }
+
+  .agora__dot--a {
+    fill: var(--panel-muted);
+  }
+
+  .agora__dot--b {
+    fill: var(--panel-accent);
+  }
+
+  /* Fließpunkte laufen nur ohne reduzierte Bewegung (SMIL kennt die Einstellung nicht). */
+  @media (prefers-reduced-motion: reduce) {
+    .agora__dot--a,
+    .agora__dot--b {
+      display: none;
+    }
+  }
+
+  /* ---------- Detailfeld und Schrittliste ---------- */
+  /* Fußzone mit deckender Fläche: Detailtext und Hinweis liegen nicht auf dem Punktraster. */
+  .agora__foot {
+    margin: var(--space-4) calc(-1 * var(--space-4)) 0;
+    padding: var(--space-4);
+    border-top: 1px solid var(--panel-rule);
+    background-color: var(--panel);
+  }
+
+  .agora__detail,
+  .agora__list {
+    margin: 0;
+    padding: 0;
+  }
+
+  .agora__list {
+    display: grid;
+    gap: var(--space-4);
+    list-style: none;
+  }
+
+  .agora__list li {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .agora__step-label {
+    color: var(--panel-accent);
+    text-transform: uppercase;
+  }
+
+  .agora__step-text {
+    margin: 0;
+    color: var(--panel-muted);
+    font-size: var(--ds-text-sm);
+    line-height: 1.55;
+  }
+
+  .agora__hint {
+    margin: var(--space-4) 0 0;
+    color: var(--panel-muted);
+  }
+</style>
+
+<script>
+  // Pro Schema genau einmal binden (dataset.initialized); Aufräumen in astro:before-swap.
+  import { bindSchema } from '../../lib/home/schemaSteps';
+
+  const cleanups: (() => void)[] = [];
+
+  function bindAll() {
+    document.querySelectorAll<HTMLElement>('[data-schema]').forEach((root) => {
+      cleanups.push(bindSchema(root));
+    });
+  }
+
+  document.addEventListener('astro:page-load', bindAll);
+  document.addEventListener('astro:before-swap', () => {
+    for (const cleanup of cleanups.splice(0)) cleanup();
+  });
+</script>

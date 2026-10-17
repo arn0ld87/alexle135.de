@@ -2,18 +2,18 @@
 # Rollback von alexle135-v2 auf das zuletzt gesunde Image (Tag "last-healthy").
 #
 # WICHTIG: Dieses Skript läuft AUF DEM SERVER, im Repo-Root
-# (/srv/alexle-vsco), NICHT lokal auf deiner Maschine. Es baut
+# (/home/alex/alexle-vsco-src), NICHT lokal auf deiner Maschine. Es baut
 # nichts neu — es startet nur das Image, das `deploy.yml` vor dem letzten
 # Rebuild als `alexle135-v2:last-healthy` gesichert hat (siehe #289).
 #
 # Nutzung:
 #   1) Automatisch: `.github/workflows/deploy.yml` ruft dieses Skript per SSH
 #      auf, sobald Health-Gate oder Smoke-Test nach einem Deploy rot sind.
-#   2) Manuell — 1-Befehl-Rollback von deiner Maschine aus, sofern `deploy-host`
+#   2) Manuell — 1-Befehl-Rollback von deiner Maschine aus, sofern `meinserver`
 #      als SSH-Host-Alias in deiner ~/.ssh/config konfiguriert ist (siehe
 #      docs/DEPLOY-ROLLBACK.md, Schritt 2B):
 #
-#        ssh deploy-host 'bash /srv/alexle-vsco/scripts/rollback.sh'
+#        ssh meinserver 'bash /home/alex/alexle-vsco-src/scripts/rollback.sh'
 #
 # Idempotent: mehrfacher Aufruf ist ungefährlich, solange last-healthy
 # existiert und healthy wird — das Skript verändert dabei nur den
@@ -31,7 +31,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
 if [ ! -f "${COMPOSE_FILE}" ]; then
   echo "ERROR: ${COMPOSE_FILE} nicht gefunden im aktuellen Verzeichnis ($(pwd))." >&2
-  echo "Dieses Skript muss im Repo-Root auf dem Server laufen (/srv/alexle-vsco)." >&2
+  echo "Dieses Skript muss im Repo-Root auf dem Server laufen (/home/alex/alexle-vsco-src)." >&2
   exit 1
 fi
 

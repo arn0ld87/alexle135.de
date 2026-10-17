@@ -1,0 +1,76 @@
+% This is version 1.0, dated 22 June 2009, of the GUST Font License.
+% (GUST is the Polish TeX Users Group, https://www.gust.org.pl)
+%
+% For the most recent version of this license see
+% https://www.gust.org.pl/fonts/licenses/GUST-FONT-LICENSE.txt
+% or
+% https://tug.org/fonts/licenses/GUST-FONT-LICENSE.txt
+%
+% This work may be distributed and/or modified under the conditions
+% of the LaTeX Project Public License, either version 1.3c of this
+% license or (at your option) any later version.
+% 
+% Please also observe the following clause:
+% 1) it is requested, but not legally required, that derived works be
+%    distributed only after changing the names of the fonts comprising this
+%    work and given in an accompanying "manifest", and that the
+%    files comprising the Work, as listed in the manifest, also be given
+%    new names. Any exceptions to this request are also given in the
+%    manifest.
+%    
+%    We recommend the manifest be given in a separate file named
+%    MANIFEST-<fontid>.txt, where <fontid> is some unique identification
+%    of the font family. If a separate "readme" file accompanies the Work, 
+%    we recommend a name of the form README-<fontid>.txt.
+%
+% The latest version of the LaTeX Project Public License is in
+% https://www.latex-project.org/lppl.txt and version 1.3c or later
+% is part of all distributions of LaTeX version 2006/05/20 or later.
+
+========================================================================
+Herkunftsnotiz (alexle135.de)
+========================================================================
+
+Schrift:        TeX Gyre Heros (Schnitt Bold), Version 2.609
+Quelle:         https://www.gust.org.pl/projects/e-foundry/tex-gyre/heros
+Archiv:         tg_heros-otf-2_609-31_03_2026.zip
+Originaldatei:  texgyreheros-bold.otf
+SHA-256:        6223c2d6135accaa7d11661fdb71ab21faf6b22279afa99dbc8346b2b84e5fe3
+Lizenz:         GUST Font License 1.0 (siehe oben), ein Verweis auf die LaTeX
+                Project Public License 1.3c
+
+Im Repo liegen zwei Dateien dieser Schrift:
+
+1. og/texgyreheros-bold.otf
+   Die Originaldatei, unverändert (gleicher SHA-256 wie oben). Der
+   OG-Bild-Renderer liest sie direkt; er kann kein woff2 lesen.
+
+2. TeXGyreHeros-Bold.woff2
+   Die Datei TeXGyreHeros-Bold.woff2 ist ein Subset der Originaldatei,
+   konvertiert nach woff2, ohne Änderung an Glyphen. Beim Subsetting
+   entfielen Zeichen außerhalb des verwendeten Unicode-Bereichs und
+   Layout-Features außerhalb von kern, liga, ccmp, locl, mark und mkmk.
+   Alle Name-Einträge der Originaldatei, auch die Lizenzzeile (Name-ID 13),
+   blieben erhalten.
+   Verwendeter Unicode-Bereich:
+   U+0020-007E, U+00A0-00FF, U+0131, U+0152-0153, U+2013-2014,
+   U+2018-201E, U+2022, U+2026, U+20AC, U+2122, U+2190-2193,
+   U+2197-2198, U+2212
+
+Der Familienname im Font wurde nicht geändert. Die Lizenz bittet darum,
+abgeleitete Werke umzubenennen, verlangt es aber nicht ("requested, but not
+legally required"). Der Name ist nur ein Anzeigename der Schrift; im CSS
+heißt die Familie 'TeX Gyre Heros'.
+
+Weitere Schnitte (Regular, Italic, Condensed) liegen nicht im Repo.
+
+------------------------------------------------------------------------
+GeistMono-Regular.ttf (og/)
+------------------------------------------------------------------------
+
+Quelle:   https://github.com/vercel/geist-font
+          (Pfad fonts/GeistMono/ttf/GeistMono-Regular.ttf)
+Lizenz:   SIL Open Font License 1.1, Text in LICENSE-Geist.txt
+SHA-256:  5a0de4b3d54ab272f76a1d8c84b7fb24c67bbec6591d5300e61c7bc10094b6c8
+Die Datei ist unverändert. Der OG-Bild-Renderer verwendet sie für die
+Meta-Zeile.

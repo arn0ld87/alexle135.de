@@ -4,12 +4,12 @@ summary: 'Vergiss langweilige apt-Ausgaben. Nala macht Paketverwaltung schön, s
 tldr: 'Nala ist ein Frontend für APT. Es nutzt dieselbe Paketbasis wie `apt`, zeigt Vorgänge aber deutlich lesbarer an, kann schnellere Mirror wählen und hat mit `history` eine praktische Undo-Funktion. Für den Alltag auf Debian und Ubuntu ist es oft angenehmer, für Skripte bleibe ich trotzdem meist bei klassischem `apt`.'
 publishedAt: 2024-12-04
 updatedAt: 2026-04-20
-heroImage: '/images/blog/nala-apt-alternative.webp'
+heroImage: '../../assets/blog/nala-apt-alternative.webp'
 tags: ['Linux', 'Ubuntu', 'Debian', 'Paketmanager', 'Tools', 'Terminal', 'Anfänger']
 author: Alexander Schneider
 ---
 
-# Nala: apt mit besserer Übersicht
+## Nala: apt mit besserer Übersicht
 
 Ich mag `apt`. Es ist überall da, gut dokumentiert und auf Debian oder Ubuntu einfach Standard.
 

@@ -1,19 +1,22 @@
 <div align="center">
 
-<img src="./public/media/alexle135-readme-logo.jpg" alt="AlexLE135.de – Systemintegration, Automatisierung und Infrastruktur" width="720"/>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./public/brand/as-logo-domain-on-dark.svg">
+  <img src="./public/brand/as-logo-domain.svg" alt="Alex Schneider – Systemintegration, Automatisierung und Infrastruktur" width="720"/>
+</picture>
 
-# alexle135.de
+# alex-schneider.dev
 
 **Persönliche Portfolio-, Blog- und Lernplattform für IT, Linux, DevOps und KI.**
 
 Praxiswissen dokumentieren, Projekte zeigen und technische Themen mit interaktiven
 Terminal-Missionen direkt im Browser erlebbar machen.
 
-[![Website](https://img.shields.io/badge/Website-alexle135.de-ff6b35?style=flat-square)](https://alexle135.de)
-[![Repository](https://img.shields.io/badge/GitHub-arn0ld87%2Falexle--vsco-111?style=flat-square&logo=github)](https://github.com/arn0ld87/alexle-vsco)
-[![Astro](https://img.shields.io/badge/Astro-6.4-BC52EE?style=flat-square&logo=astro&logoColor=white)](https://astro.build/)
+[![Website](https://img.shields.io/badge/Website-alex--schneider.dev-ff6b35?style=flat-square)](https://alex-schneider.dev)
+[![Repository](https://img.shields.io/badge/GitHub-arn0ld87%2Falexle135.de-111?style=flat-square&logo=github)](https://github.com/arn0ld87/alexle135.de)
+[![Astro](https://img.shields.io/badge/Astro-7.3-BC52EE?style=flat-square&logo=astro&logoColor=white)](https://astro.build/)
 [![Node.js](https://img.shields.io/badge/Node.js-22-339933?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
-[![pnpm](https://img.shields.io/badge/pnpm-10-F69220?style=flat-square&logo=pnpm&logoColor=white)](https://pnpm.io/)
+[![pnpm](https://img.shields.io/badge/pnpm-12-F69220?style=flat-square&logo=pnpm&logoColor=white)](https://pnpm.io/)
 
 [Quick Start](#quick-start) · [Funktionen](#funktionen) · [Architektur](#architektur) · [Qualität](#qualität) · [Deployment](#deployment) · [Doku](#dokumentation)
 
@@ -23,11 +26,11 @@ Terminal-Missionen direkt im Browser erlebbar machen.
 
 ## Quick Start
 
-Voraussetzung: Node.js 22 und pnpm 10.
+Voraussetzung: Node.js 22 und pnpm 12 (`corepack enable` liest die exakte Version aus `packageManager` in `package.json`).
 
 ```bash
-git clone https://github.com/arn0ld87/alexle-vsco.git
-cd alexle-vsco
+git clone https://github.com/arn0ld87/alexle135.de.git
+cd alexle135.de
 pnpm install --frozen-lockfile   # Default: Lockfile nicht neu auflösen
 pnpm dev
 ```
@@ -46,14 +49,16 @@ als Build-Args ins Image übernommen, sondern zur Laufzeit injiziert.
 
 > **Status:** Aktive Weiterentwicklung auf Astro SSR.
 >
-> Die Website ist produktiv unter [alexle135.de](https://alexle135.de)
+> Die Website ist produktiv unter [alex-schneider.dev](https://alex-schneider.dev)
 > erreichbar. Admin-, Kontakt- und Terminal-Funktionen benötigen zusätzliche
 > Runtime-Konfiguration und sollten lokal nicht ungeschützt veröffentlicht
 > werden.
+>
+> Dieses Repository ist der öffentliche Quellcode-Snapshot der Website.
 
-## Was ist alexle135.de?
+## Was ist alex-schneider.dev?
 
-alexle135.de verbindet Portfolio, Fachblog und interaktive Lernumgebung in
+alex-schneider.dev verbindet Portfolio, Fachblog und interaktive Lernumgebung in
 einer gemeinsamen Plattform. Der Schwerpunkt liegt auf praktisch
 nachvollziehbaren Inhalten rund um Fachinformatik, Linux, Container,
 Automatisierung, DevOps und künstliche Intelligenz.
@@ -67,7 +72,15 @@ ausprobierbar, ohne dafür eine lokale Laborumgebung vorbereiten zu müssen.
 - Portfolio und Projektübersicht auf Basis von Astro Content Collections
 - Fachblog mit Zod-validiertem Frontmatter und dynamischen Open-Graph-Bildern
 - globale Suche per `Cmd/Ctrl+K`
-- interaktives WebGL2-Hero-Logo
+- Hero mit Bildmarke als drehendes ASCII-Zeichenbild mit sichtbarer Tiefe: das Standbild steht als
+  Text im HTML, die Drehung lädt `src/lib/ascii-mark/rotate.ts` erst nach dem Laden nach; ziehen
+  lässt sich die Marke mit Maus und Finger, auch bei reduzierter Bewegung
+- Abschnitt „Arbeiten“ der Startseite: Agora als Hauptprojekt mit anklickbarem Schema, darunter
+  höchstens sechs Projekte aus der Collection mit Kategorie-Filter und Vorschau-Dialog; ohne
+  JavaScript bleibt jede Zeile ein Link auf die Projektseite
+- Abschnitte „Ansatz“ und „Logbuch“ der Startseite: Das Logbuch zeigt die acht neuesten Beiträge als
+  Links, mit Tag-Chips, Suchfeld und Vorschau-Dialog; Filter und Suche laufen lokal im Browser
+  (kein Suchindex, keine Anfrage), ohne JavaScript bleibt es eine Linkliste
 - browserbasierte Linux- und Windows-Terminal-Missionen mit WebContainer
 - SSR-Admin-Bereich mit HttpOnly-Cookies und CSRF-Schutz
 - Kontaktformular mit Origin-Check, Honeypot und proxy-sicherem Rate-Limit
@@ -92,7 +105,7 @@ ausprobierbar, ohne dafür eine lokale Laborumgebung vorbereiten zu müssen.
 ## Architektur
 
 ```text
-Astro 6 SSR + React 19 + Tailwind CSS 4
+Astro 7 SSR + React 19 + Tailwind CSS 4
   ├─ src/components/   Astro- und React-Komponenten
   ├─ src/content/      Blog, Projekte und strukturierte Inhalte
   ├─ src/layouts/      öffentliches V2-Layout
@@ -127,7 +140,7 @@ pnpm new:projekt  # Projekt anlegen
 pnpm test:run          # Unit- und Komponententests (Vitest)
 pnpm test:coverage     # Coverage-Report mit v8-Provider (Gate 70/60/70/70)
 pnpm test:integration  # Admin-Login-Integrationstest gegen echte Postgres
-pnpm test:e2e          # Playwright-E2E (Kontakt, Admin, CSRF, Suche, Terminal)
+pnpm test:e2e          # Playwright-E2E (Kontakt, Admin, CSRF, Suche, Terminal, Variante/Hero/Arbeiten)
 pnpm lint              # ESLint über src und scripts
 pnpm format:all        # Prettier-Check über src und scripts
 pnpm check             # astro check (TypeScript)
@@ -227,8 +240,6 @@ verantwortungsvollen Meldung von Sicherheitslücken stehen in
 - [Branch Protection](docs/ci/BRANCH-PROTECTION.md)
 - [Sicherheitsmeldeprozess](SECURITY.md)
 - [Agentenregeln](AGENTS.md)
-- [GitHub-Wiki](https://github.com/arn0ld87/alexle-vsco/wiki) – ausführliche
-  Seiten zu Architektur, Deployment, Testing, Roadmap und Chronik
 
 ## Mitwirken
 

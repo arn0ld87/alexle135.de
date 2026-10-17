@@ -1,4 +1,5 @@
 dist/
+pnpm-lock.yaml
 .astro/
 node_modules/
 vendor/
@@ -8,3 +9,11 @@ projekte/
 demos/
 netlify/
 _astro/
+
+# Generierte Artefakte: Lockfiles gehoeren dem Paketmanager, nicht Prettier.
+# Prettier formatiert YAML/JSON und schrieb pnpm-lock.yaml sonst mit ~6100
+# geaenderten Zeilen um -- ein Diff, der wie eine Dependency-Aenderung aussieht,
+# aber keine ist.
+pnpm-lock.yaml
+package-lock.json
+yarn.lock

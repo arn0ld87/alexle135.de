@@ -8,7 +8,7 @@ tags:
   - Systemadministration
   - Ubuntu
   - Basics
-heroImage: /images/blog/linux-befehle-fuer-einsteiger.webp
+heroImage: ../../assets/blog/linux-befehle-fuer-einsteiger.webp
 publishedAt: 2025-11-15
 author: Alexander Schneider
 ---
@@ -283,7 +283,7 @@ Lies das hier nicht nur durch. Öffne ein Terminal und probiere jeden Befehl aus
 
 **Kein Linux-System zur Hand?** Probier meine [Terminal Missionen](/projekte/terminal-missionen/app/) – eine Browser-Simulation, in der du alle Befehle risikofrei üben kannst.
 
-Bei Fragen schreib mir gerne: [schneider@alexle135.de](mailto:schneider@alexle135.de)
+Bei Fragen schreib mir gerne: [schneider@alex-schneider.dev](mailto:schneider@alex-schneider.dev)
 
 ---
 

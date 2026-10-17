@@ -18,7 +18,7 @@ export class MockLinuxSystem {
 
   constructor() {
     this.user = 'visitor';
-    this.hostname = 'alexle135.de';
+    this.hostname = 'alex-schneider.dev';
     this.cwd = '/home/visitor';
     this.fs = {
       '/': {
@@ -33,7 +33,7 @@ export class MockLinuxSystem {
                   'welcome.txt': {
                     type: 'file',
                     content:
-                      'Willkommen im interaktiven Terminal von alexle135.de!\nHier kannst du echte Linux-Befehle üben.',
+                      'Willkommen im interaktiven Terminal von alex-schneider.dev!\nHier kannst du echte Linux-Befehle üben.',
                   },
                   '.secret': { type: 'file', content: 'U3VwZXJTZWNyZXQxMjM=' },
                   'README.md': { type: 'file', content: '# README\nThis is a test file.' },
@@ -217,7 +217,8 @@ export class MockLinuxSystem {
     // Handle explicit binary execution for CTF
     if (command === '/usr/local/bin/backup' || command === './backup') {
       return {
-        output: 'root@alexle135.de:/# \r\nCongratulations! You have obtained root access!\r\n',
+        output:
+          'root@alex-schneider.dev:/# \r\nCongratulations! You have obtained root access!\r\n',
       };
     }
 
@@ -540,11 +541,11 @@ export class MockLinuxSystem {
       if (args.includes('.env'))
         return {
           output:
-            'commit 5d6e7f8 (HEAD -> main)\r\nAuthor: visitor <visitor@alexle135.de>\r\nDate:   Jan 28 14:00:00 2024\r\n\r\n    Remove .env file\r\n\r\ncommit 1a2b3c4\r\nAuthor: visitor <visitor@alexle135.de>\r\nDate:   Jan 28 13:00:00 2024\r\n\r\n    Add .env file\r\n',
+            'commit 5d6e7f8 (HEAD -> main)\r\nAuthor: visitor <visitor@alex-schneider.dev>\r\nDate:   Jan 28 14:00:00 2024\r\n\r\n    Remove .env file\r\n\r\ncommit 1a2b3c4\r\nAuthor: visitor <visitor@alex-schneider.dev>\r\nDate:   Jan 28 13:00:00 2024\r\n\r\n    Add .env file\r\n',
         };
       return {
         output:
-          'commit 1a2b3c4 (HEAD -> main)\r\nAuthor: visitor <visitor@alexle135.de>\r\nDate:   Jan 28 12:00:00 2024\r\n\r\n    Initial commit\r\n',
+          'commit 1a2b3c4 (HEAD -> main)\r\nAuthor: visitor <visitor@alex-schneider.dev>\r\nDate:   Jan 28 12:00:00 2024\r\n\r\n    Initial commit\r\n',
       };
     }
     if (cmd === 'branch') {
@@ -669,10 +670,10 @@ export class MockLinuxSystem {
 
   private handleUname(args: string[]): ExecutionResult {
     if (args.includes('-a')) {
-      return { output: 'Linux alexle135.de 5.15.0-generic #1 SMP x86_64 GNU/Linux\r\n' };
+      return { output: 'Linux alex-schneider.dev 5.15.0-generic #1 SMP x86_64 GNU/Linux\r\n' };
     }
     if (args.includes('-r')) return { output: '5.15.0-generic\r\n' };
-    if (args.includes('-n')) return { output: 'alexle135.de\r\n' };
+    if (args.includes('-n')) return { output: 'alex-schneider.dev\r\n' };
     return { output: 'Linux\r\n' };
   }
 }

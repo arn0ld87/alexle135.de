@@ -8,7 +8,7 @@
  * - Sortierung nach weight desc, dann publishedAt desc
  * - publishedAt als ISO-String oder null
  * - tags-Fallback auf leeres Array
- * - Kein eigenes Draft-Filtering in der Route
+ * - Publish-Regel `isPublishedBlogPost` (Entwurf + Vordatierung) fuer Blog-Eintraege
  * - 500-Fehlerfall bei getCollection-Exception
  */
 
@@ -26,6 +26,14 @@ vi.mock('astro:content', () => ({
 import { GET } from '../search.json';
 
 // --- Fixtures ---
+// Bildmetadaten wie aus `image()` im Schema; die Route gibt nur `src` weiter.
+const heroImageMeta = {
+  src: '/_astro/blog-hero.abc12345.jpg',
+  width: 1200,
+  height: 630,
+  format: 'jpg',
+};
+
 const blogEntry = {
   id: 'mein-blog-post',
   data: {
@@ -33,7 +41,8 @@ const blogEntry = {
     summary: 'Kurze Zusammenfassung',
     tags: ['astro', 'vitest'],
     publishedAt: new Date('2024-03-10T12:00:00Z'),
-    heroImage: '/images/blog-hero.jpg',
+    draft: false,
+    heroImage: heroImageMeta as typeof heroImageMeta | undefined,
   },
   body: '# Überschrift\n\n[Link](https://example.com) *Fett* normaler Text',
 };
@@ -45,7 +54,7 @@ const projectEntry = {
     summary: 'Projektbeschreibung',
     tags: ['react', 'typescript'],
     publishedAt: new Date('2024-01-20T09:00:00Z'),
-    heroImage: undefined as string | undefined,
+    heroImage: undefined as typeof heroImageMeta | undefined,
   },
   body: 'Projektinhalt ohne Markdown',
 };
@@ -123,7 +132,7 @@ describe('GET /api/search.json', () => {
         type: 'blog',
         tags: ['astro', 'vitest'],
         weight: 1.2,
-        heroImage: '/images/blog-hero.jpg',
+        heroImage: '/_astro/blog-hero.abc12345.jpg',
         publishedAt: '2024-03-10T12:00:00.000Z',
       });
     });
@@ -317,19 +326,62 @@ describe('GET /api/search.json', () => {
       expect(data).toEqual([]);
     });
 
-    it('Route filtert selbst keine Drafts — alle getCollection-Eintraege werden eingeschlossen', async () => {
-      // getCollection filtert Drafts in Astro-Produktionsbuilds selbst.
-      // Die Route hat keine eigene draft-Filterlogik — was getCollection liefert, landet im Index.
-      const draftLikeEntry = {
+    it('laesst Entwuerfe aus dem Index (Publish-Regel wie in der Blog-Detailseite)', async () => {
+      // Die Detailseite leitet einen Entwurf auf /404 um. Der Suchindex ist
+      // oeffentlich und cachebar — er muss dieselbe Regel anwenden, sonst sind
+      // Titel, Summary, Tags und Fliesstext des Entwurfs abrufbar.
+      const draftEntry = {
         ...blogEntry,
-        id: 'draft-post',
-        data: { ...blogEntry.data, title: 'Draft Post' },
+        id: 'entwurf',
+        data: { ...blogEntry.data, title: 'Entwurf', draft: true },
+        body: 'geheimer Entwurfstext',
       };
-      setupMocks({ blog: [draftLikeEntry], projects: [], services: [] });
+      setupMocks({ blog: [draftEntry], projects: [], services: [] });
+      const res = await GET({} as never);
+      const data = await res.json();
+      expect(data).toEqual([]);
+    });
+
+    it('laesst vordatierte Beitraege aus dem Index', async () => {
+      const futureEntry = {
+        ...blogEntry,
+        id: 'vordatiert',
+        data: {
+          ...blogEntry.data,
+          title: 'Vordatiert',
+          draft: false,
+          publishedAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        },
+        body: 'noch nicht oeffentlicher Text',
+      };
+      setupMocks({ blog: [futureEntry], projects: [], services: [] });
+      const res = await GET({} as never);
+      const data = await res.json();
+      expect(data).toEqual([]);
+    });
+
+    it('nimmt Entwurf und Vordatierung aus einem gemischten Bestand heraus', async () => {
+      const draftEntry = {
+        ...blogEntry,
+        id: 'entwurf',
+        data: { ...blogEntry.data, title: 'Entwurf', draft: true },
+        body: 'geheim',
+      };
+      const futureEntry = {
+        ...blogEntry,
+        id: 'vordatiert',
+        data: {
+          ...blogEntry.data,
+          title: 'Vordatiert',
+          publishedAt: new Date(Date.now() + 60_000),
+        },
+        body: 'geheim',
+      };
+      setupMocks({ blog: [draftEntry, blogEntry, futureEntry], projects: [], services: [] });
       const res = await GET({} as never);
       const data = await res.json();
       expect(data).toHaveLength(1);
-      expect(data[0].title).toBe('Draft Post');
+      expect(data[0].title).toBe('Mein Blog Post');
     });
 
     it('mehrere Collections werden zusammengefuehrt', async () => {

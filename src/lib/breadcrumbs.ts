@@ -1,4 +1,4 @@
-const SITE_ORIGIN = 'https://alexle135.de';
+const SITE_ORIGIN = 'https://alex-schneider.dev';
 
 const LABEL_MAP: Record<string, string> = {
   blog: 'Logbuch',

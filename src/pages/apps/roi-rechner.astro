@@ -6,7 +6,7 @@ import CTASection from '../../components/site/CTASection.astro';
 
 <V2Layout
   title="Automatisierungs-ROI-Rechner"
-  description="Berechne, wie viel Zeit und Geld du mit Automatisierung sparst."
+  description="Automatisierungs-ROI berechnen: Zeitersparnis, Jahreskosten und Amortisation in Tagen, mit nachvollziehbarer Formel und Einordnung."
 >
   <main class="v2-shell py-20 md:py-28">
     <PageIntro
@@ -17,31 +17,33 @@ import CTASection from '../../components/site/CTASection.astro';
 
     <!-- Calculator -->
     <div class="mt-16 max-w-3xl">
-      <div class="v2-panel rounded-sm p-6 md:p-8 space-y-6">
+      <div class="ds-card md:p-8 space-y-6">
         <div>
-          <label class="block v2-kicker mb-2" for="task-name">Was willst du automatisieren?</label>
+          <label class="block ds-meta mb-2" for="task-name">Was willst du automatisieren?</label>
           <input
             type="text"
             id="task-name"
             placeholder="z.B. Server-Backups, Deployments, Reports..."
-            class="w-full px-4 py-3 bg-transparent border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] rounded-sm text-[color:var(--color-mono-50)] placeholder-[color:var(--color-mono-500)] focus:outline-none focus:border-[color:var(--color-neon-orange)] transition-colors font-ui text-sm"
+            class="w-full border border-[color:var(--muted)] bg-[color:var(--paper)] px-4 py-3 text-[color:var(--ink)] placeholder-[color:var(--muted)] focus:outline-none focus-visible:border-[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--accent)] transition-colors font-ui text-sm"
           />
         </div>
 
         <div class="grid md:grid-cols-2 gap-6">
           <div>
-            <label class="block v2-kicker mb-2" for="manual-time">Zeit pro Durchführung (manuell)</label>
+            <label class="block ds-meta mb-2" for="manual-time"
+              >Zeit pro Durchführung (manuell)</label
+            >
             <div class="flex gap-2">
               <input
                 type="number"
                 id="manual-time"
                 min="1"
                 value="30"
-                class="flex-1 px-4 py-3 bg-transparent border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] rounded-sm text-[color:var(--color-mono-50)] focus:outline-none focus:border-[color:var(--color-neon-orange)] transition-colors font-mono text-sm"
+                class="flex-1 border border-[color:var(--muted)] bg-[color:var(--paper)] px-4 py-3 text-[color:var(--ink)] focus:outline-none focus-visible:border-[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--accent)] transition-colors font-mono text-sm"
               />
               <select
                 id="time-unit"
-                class="px-4 py-3 bg-[color:var(--color-mono-950)] border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] rounded-sm text-[color:var(--color-mono-50)] focus:outline-none focus:border-[color:var(--color-neon-orange)] transition-colors font-ui text-sm"
+                class="border border-[color:var(--muted)] bg-[color:var(--paper)] px-4 py-3 text-[color:var(--ink)] focus:outline-none focus-visible:border-[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--accent)] transition-colors font-ui text-sm"
               >
                 <option value="1">Minuten</option>
                 <option value="60">Stunden</option>
@@ -50,35 +52,37 @@ import CTASection from '../../components/site/CTASection.astro';
           </div>
 
           <div>
-            <label class="block v2-kicker mb-2" for="frequency">Wie oft pro Monat?</label>
+            <label class="block ds-meta mb-2" for="frequency">Wie oft pro Monat?</label>
             <input
               type="number"
               id="frequency"
               min="1"
               value="20"
-              class="w-full px-4 py-3 bg-transparent border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] rounded-sm text-[color:var(--color-mono-50)] focus:outline-none focus:border-[color:var(--color-neon-orange)] transition-colors font-mono text-sm"
+              class="w-full border border-[color:var(--muted)] bg-[color:var(--paper)] px-4 py-3 text-[color:var(--ink)] focus:outline-none focus-visible:border-[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--accent)] transition-colors font-mono text-sm"
             />
           </div>
 
           <div>
-            <label class="block v2-kicker mb-2" for="hourly-rate">Stundensatz</label>
+            <label class="block ds-meta mb-2" for="hourly-rate">Stundensatz</label>
             <input
               type="number"
               id="hourly-rate"
               min="1"
               value="50"
-              class="w-full px-4 py-3 bg-transparent border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] rounded-sm text-[color:var(--color-mono-50)] focus:outline-none focus:border-[color:var(--color-neon-orange)] transition-colors font-mono text-sm"
+              class="w-full border border-[color:var(--muted)] bg-[color:var(--paper)] px-4 py-3 text-[color:var(--ink)] focus:outline-none focus-visible:border-[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--accent)] transition-colors font-mono text-sm"
             />
           </div>
 
           <div>
-            <label class="block v2-kicker mb-2" for="setup-time">Einmaliger Setup-Aufwand (Stunden)</label>
+            <label class="block ds-meta mb-2" for="setup-time"
+              >Einmaliger Setup-Aufwand (Stunden)</label
+            >
             <input
               type="number"
               id="setup-time"
               min="0"
               value="4"
-              class="w-full px-4 py-3 bg-transparent border border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] rounded-sm text-[color:var(--color-mono-50)] focus:outline-none focus:border-[color:var(--color-neon-orange)] transition-colors font-mono text-sm"
+              class="w-full border border-[color:var(--muted)] bg-[color:var(--paper)] px-4 py-3 text-[color:var(--ink)] focus:outline-none focus-visible:border-[color:var(--ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--accent)] transition-colors font-mono text-sm"
             />
           </div>
         </div>
@@ -93,31 +97,46 @@ import CTASection from '../../components/site/CTASection.astro';
 
       <!-- Results -->
       <div id="results" class="mt-10 hidden">
-        <h2 class="font-editorial text-2xl tracking-[-0.03em] text-[color:var(--color-mono-50)] mb-6">Ergebnis</h2>
+        <h2 class="ds-display-m text-[color:var(--ink)] mb-6">Ergebnis</h2>
 
         <div class="grid md:grid-cols-3 gap-4 mb-8">
-          <div class="v2-panel rounded-sm p-6 text-center">
-            <p class="v2-kicker mb-2">Zeitersparnis / Jahr</p>
-            <p id="time-saved" class="font-editorial text-3xl text-[color:var(--color-neon-orange)]">0h</p>
+          <div class="ds-card text-center">
+            <p class="ds-meta mb-2">Zeitersparnis / Jahr</p>
+            <p id="time-saved" class="ds-display-m text-[color:var(--accent-strong)]">0h</p>
           </div>
 
-          <div class="v2-panel rounded-sm p-6 text-center">
-            <p class="v2-kicker mb-2">Ersparnis / Jahr</p>
-            <p id="money-saved" class="font-editorial text-3xl text-[color:var(--color-mono-50)]">0 &euro;</p>
+          <div class="ds-card text-center">
+            <p class="ds-meta mb-2">Ersparnis / Jahr</p>
+            <p id="money-saved" class="ds-display-m text-[color:var(--ink)]">0 &euro;</p>
           </div>
 
-          <div class="v2-panel rounded-sm p-6 text-center">
-            <p class="v2-kicker mb-2">ROI nach</p>
-            <p id="roi-time" class="font-editorial text-3xl text-[color:var(--color-mono-50)]">0 Tage</p>
+          <div class="ds-card text-center">
+            <p class="ds-meta mb-2">ROI nach</p>
+            <p id="roi-time" class="ds-display-m text-[color:var(--ink)]">0 Tage</p>
           </div>
         </div>
 
-        <div id="recommendation" class="v2-panel rounded-sm p-6">
-          <h3 class="font-editorial text-lg text-[color:var(--color-mono-50)] mb-2">Empfehlung</h3>
-          <p id="recommendation-text" class="text-sm leading-7 text-[color:var(--color-mono-300)]"></p>
+        <div id="recommendation" class="ds-card">
+          <h3 class="ds-display-s text-[color:var(--ink)] mb-2">Empfehlung</h3>
+          <p id="recommendation-text" class="text-sm leading-7 text-[color:var(--muted)]"></p>
         </div>
       </div>
     </div>
+
+    <section class="mt-20 max-w-3xl space-y-4 text-[color:var(--ink)] leading-relaxed" aria-labelledby="roi-formel">
+      <h2 id="roi-formel" class="ds-display-s">So rechnet der Rechner</h2>
+      <p>
+        Aus Zeit pro Durchführung und Häufigkeit pro Monat ergeben sich die Stunden pro Jahr (Minuten × Häufigkeit × 12 ÷ 60).
+        Mit dem Stundensatz wird daraus die jährliche Ersparnis. Die Einrichtungskosten ergeben sich aus den Stunden für das Setup mal Stundensatz.
+        Der ROI in Tagen ist die Zeit, bis die Ersparnis diese Kosten ausgeglichen hat.
+      </p>
+      <p>
+        Das ist eine grobe Schätzung: Pflege, Fehlerbehandlung und Monitoring sind nicht eingerechnet, und manche Aufgaben lohnen sich auch ohne schnellen ROI,
+        etwa wenn sie Fehler vermeiden. Ein Beispiel für die Praxis sind die <a href="/blog/bash-scripting-fisi-umschueler-praxis/" class="underline decoration-[color:var(--accent)] underline-offset-4">Bash-Skripte für den Alltag</a>
+        und die Liste der <a href="/blog/it-automatisierung-kleine-unternehmen/" class="underline decoration-[color:var(--accent)] underline-offset-4">fünf Prozesse für kleine Unternehmen</a>.
+        Mehr zur Idee steht auf der <a href="/projekte/roi-rechner/" class="underline decoration-[color:var(--accent)] underline-offset-4">Projektseite</a>.
+      </p>
+    </section>
 
     <!-- CTA -->
     <div class="mt-20">

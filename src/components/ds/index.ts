@@ -1,10 +1,8 @@
 /**
- * AlexLE135 "Warm Noir" design-system components.
+ * Komponenten des Systemwerk-Designs (React-Primitive auf Tokens).
  *
- * Token-driven React primitives ported from the Claude Design handoff.
- * All styling lives in `src/styles/warm-noir.css` (global, SSR-safe), so
- * these render during Astro SSR without runtime style injection. Use them
- * inside a `.warm-noir` scope (homepage <main>, design-system showcase).
+ * Alle Stile stehen in `src/styles/systemwerk.css` (global, SSR-sicher), die Tokens auf
+ * `:root`. Die Komponenten rendern deshalb ohne Scope-Wrapper und ohne Stil-Injektion.
  */
 export { Button } from './Button';
 export type { ButtonProps, ButtonVariant, ButtonSize } from './Button';

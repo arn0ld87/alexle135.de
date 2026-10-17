@@ -7,7 +7,7 @@ tags:
   - Community
   - Neuigkeiten
   - alexle135
-heroImage: /images/blog/alexle135-update-dezember-2025.webp
+heroImage: ../../assets/blog/alexle135-update-dezember-2025.webp
 author: Alexander Schneider
 ---
 
@@ -127,7 +127,7 @@ Besonderer Dank geht an:
 
 Hast du Ideen, was ich als Nächstes bauen soll? Bugs gefunden? Kritik?
 
-- **Kontakt:** [schneider@alexle135.de](mailto:schneider@alexle135.de)
+- **Kontakt:** [schneider@alex-schneider.dev](mailto:schneider@alex-schneider.dev)
 - **GitHub:** [github.com/arn0ld87](https://github.com/arn0ld87)
 - **LinkedIn:** Alexander Schneider (Leipzig)
 

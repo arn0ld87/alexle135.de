@@ -6,7 +6,7 @@ Experimente abweichende Signale liefern.
 
 ## Runtime
 
-alexle135.de läuft als Astro-SSR-Anwendung mit `@astrojs/node` im
+alex-schneider.dev läuft als Astro-SSR-Anwendung mit `@astrojs/node` im
 Standalone-Modus auf Node.js 22. Der Build erzeugt den Server-Einstieg unter
 `dist/server/entry.mjs`; lokal startet `pnpm start` genau diesen Entry.
 
@@ -20,7 +20,27 @@ Seiten. Strukturierte Inhalte liegen in Astro Content Collections und werden in
 - `src/pages/` enthält öffentliche Seiten, Admin-Routen und API-Routen.
 - `src/components/v2/` enthält den aktiven öffentlichen UI-Stack.
 - `src/components/home/` enthält Startseitenabschnitte und interaktive
-  Einstiegspunkte.
+  Einstiegspunkte. Der Hero (`Hero.astro`) zeigt die Bildmarke als ASCII-Zeichenbild
+  (`AsciiMark.astro`): das Standbild steht als Text im HTML, und `src/lib/ascii-mark/project.ts`
+  rechnet es als Körper mit Tiefe, sodass sich Fläche und Seitenwand verdecken. Das Drehmodul
+  `src/lib/ascii-mark/rotate.ts` lädt `bind.ts` nur per dynamischem `import()` nach
+  dem Laden und im Leerlauf nach, nie bei reduzierter Bewegung, damit mobile Geräte
+  keinen Dreh-Code erhalten; `bind.ts` bindet dort außerdem das Ziehen mit Maus und
+  Finger, das auch bei reduzierter Bewegung arbeitet.
+  Der Abschnitt „Arbeiten“ (`Works.astro`) zeigt die Agora-Karte (`AgoraCard.astro`,
+  Daten aus dem Blogpost) und darunter bis zu sechs Projekte aus der Collection
+  `projects`. Jede Zeile ist ein Link; Kategorie-Chips und der Vorschau-Dialog
+  (`PreviewDialog.astro`, ein natives `dialog` je Seite) kommen als Erweiterung
+  hinzu. Die Logik steht ohne React in `src/lib/home/` und läuft ohne
+  zusätzliches Framework-Bündel.
+  Auf „Arbeiten“ folgen „Ansatz“ (`Approach.astro`, vier Linkzeilen), das
+  TerminalBand und das Logbuch (`Logbook.astro`): die acht neuesten
+  veröffentlichten Beiträge als Linkzeilen mit Tag-Chips, Suchfeld und
+  Vorschau-Dialog. Chips und Suchfeld filtern nur das gerenderte Markup
+  (`listFilter.ts`, Auswahl und Textvergleich in `logbook.ts`); der Suchtext
+  verlässt den Browser nicht. Den Abschluss bildet das Kontaktformular auf
+  dem dunklen Panel; sein Versandweg ist unverändert. Die Startseite wird
+  weiterhin pro Anfrage gerendert.
 - `src/content/` enthält Blogbeiträge, Projekte, Legal-Inhalte und strukturierte
   JSON-Inhalte.
 - `src/lib/` bündelt Serverlogik für Auth, Datenbankzugriff, Rate-Limits,

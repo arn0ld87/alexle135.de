@@ -129,7 +129,7 @@ Und daraus lernen. Die besten Lektionen kommen aus gescheiterten Projekten.
 
 Du hast Fragen, Feedback oder willst über IT-Themen diskutieren?
 
-**E-Mail:** [schneider@alexle135.de](mailto:schneider@alexle135.de)
+**E-Mail:** [schneider@alex-schneider.dev](mailto:schneider@alex-schneider.dev)
 **GitHub:** [github.com/arn0ld87](https://github.com/arn0ld87)
 **Standort:** Leipzig, Deutschland
 

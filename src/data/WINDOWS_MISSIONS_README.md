@@ -367,6 +367,6 @@ describe('Windows Missions', () => {
 
 **Maintainer:** Alexander Schneider (alexle135)
 **Projekt:** Terminal Missionen
-**Website:** [alexle135.de](https://alexle135.de)
+**Website:** [alex-schneider.dev](https://alex-schneider.dev)
 
 Bei Fragen zu den Windows-Missionen: [Kontaktformular](/kontakt/)

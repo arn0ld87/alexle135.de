@@ -1,5 +1,6 @@
 ---
 title: 'CTF für Einsteiger – Was sind Capture The Flag Challenges?'
+metaDescription: 'Was ist Capture The Flag? Ein Einstieg in CTF-Challenges für Anfänger und erste praktische Aufgaben mit meinen Terminal-Missionen im Browser.'
 summary: 'Du hast von CTF gehört, aber keine Ahnung was das ist? Ich erkläre dir, was Capture The Flag Challenges sind und wie du mit meinen Terminal Missionen deine ersten CTFs löst.'
 publishedAt: 2025-12-04
 tags:
@@ -8,7 +9,7 @@ tags:
   - Security
   - Tutorial
   - Anfänger
-heroImage: /images/blog/ctf-capture-the-flag-einsteiger.webp
+heroImage: ../../assets/blog/ctf-capture-the-flag-einsteiger.webp
 author: Alexander Schneider
 ---
 

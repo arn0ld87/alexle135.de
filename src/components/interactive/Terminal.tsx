@@ -186,7 +186,11 @@ export default function Terminal({
         <div className="flex items-center gap-2">
           {/* Windows Terminal Icon */}
           <div className="w-4 h-4 flex items-center justify-center">
-            <svg viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5 text-white">
+            <svg
+              viewBox="0 0 16 16"
+              fill="currentColor"
+              className="w-3.5 h-3.5 text-[var(--terminal-fg)]"
+            >
               <path d="M2 3.5L8 2v12l-6-1.5V3.5zm7 8.5V2l5 1.25v9.5L9 12z" />
             </svg>
           </div>
@@ -199,16 +203,20 @@ export default function Terminal({
         <div className="flex items-center">
           {/* Minimize */}
           <button
-            className="w-11 h-7 flex items-center justify-center hover:bg-white/10 transition-colors"
+            className="w-11 h-7 flex items-center justify-center hover:bg-[color:color-mix(in_srgb,var(--terminal-fg)_10%,transparent)] transition-colors"
             title="Minimieren"
           >
-            <svg viewBox="0 0 12 12" fill="currentColor" className="w-3 h-3 text-white">
+            <svg
+              viewBox="0 0 12 12"
+              fill="currentColor"
+              className="w-3 h-3 text-[var(--terminal-fg)]"
+            >
               <rect x="1" y="5.5" width="10" height="1" />
             </svg>
           </button>
           {/* Maximize */}
           <button
-            className="w-11 h-7 flex items-center justify-center hover:bg-white/10 transition-colors"
+            className="w-11 h-7 flex items-center justify-center hover:bg-[color:color-mix(in_srgb,var(--terminal-fg)_10%,transparent)] transition-colors"
             title="Maximieren"
           >
             <svg
@@ -216,7 +224,7 @@ export default function Terminal({
               fill="none"
               stroke="currentColor"
               strokeWidth="1"
-              className="w-3 h-3 text-white"
+              className="w-3 h-3 text-[var(--terminal-fg)]"
             >
               <rect x="1.5" y="1.5" width="9" height="9" />
             </svg>
@@ -226,7 +234,11 @@ export default function Terminal({
             className="w-11 h-7 flex items-center justify-center hover:bg-red-600 transition-colors"
             title="Schließen"
           >
-            <svg viewBox="0 0 12 12" fill="currentColor" className="w-3 h-3 text-white">
+            <svg
+              viewBox="0 0 12 12"
+              fill="currentColor"
+              className="w-3 h-3 text-[var(--terminal-fg)]"
+            >
               <path d="M1.5 1.5l9 9M10.5 1.5l-9 9" stroke="currentColor" strokeWidth="1.5" />
             </svg>
           </button>

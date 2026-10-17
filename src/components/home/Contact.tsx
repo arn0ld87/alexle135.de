@@ -37,6 +37,7 @@ export function Contact() {
         }),
       });
       if (res.ok) {
+        window.gtag?.('event', 'generate_lead', { form: 'home_contact' });
         setStatus('sent');
         form.reset();
       } else {
@@ -51,22 +52,20 @@ export function Contact() {
   }
 
   return (
-    <section id="kontakt" className="contact-section">
+    <section id="kontakt" className="contact-section" data-surface="panel">
       <div className="ds-shell">
         <div className="contact-grid">
           <div>
-            <div className="ds-kicker contact-kicker">// Kontakt</div>
-            <h2 className="ds-serif contact-title">
-              Sprechen wir über
-              <br />
-              Ihr System.
+            <p className="contact-kicker">04 / KONTAKT</p>
+            <h2 className="ds-display-xl contact-title">
+              Schreib mir eine <span className="contact-accent">Nachricht</span>
             </h2>
             <p className="contact-lead">
               Infrastruktur, Automatisierung oder ein KI-Tooling-Projekt? Kurze Nachricht genügt —
               Antwort folgt in der Regel werktags innerhalb eines Tages.
             </p>
           </div>
-          <div className="ds-reticle contact-reticle" data-accent>
+          <div className="contact-panel">
             {status === 'sent' ? (
               <div className="contact-success">
                 <span className="contact-check">
@@ -83,7 +82,7 @@ export function Contact() {
                     <path d="M20 6 9 17l-5-5" />
                   </svg>
                 </span>
-                <div className="contact-success-title">Nachricht gesendet</div>
+                <div className="ds-display-s contact-success-title">Nachricht gesendet</div>
                 <div className="contact-success-sub">
                   Antwort folgt in der Regel innerhalb eines Tages.
                 </div>

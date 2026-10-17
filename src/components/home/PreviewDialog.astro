@@ -1,0 +1,237 @@
+---
+/**
+ * Vorschau-Dialog der Startseite (Systemwerk, D-09). Pro Seite genau ein Element, das für alle
+ * Vorschau-Buttons wiederverwendet wird (Projekte in Plan 02-07, Logbuch in Plan 02-08).
+ *
+ * Der Inhalt kommt aus dem `template` der jeweiligen Zeile und wird von `previewDialog.ts`
+ * geklont; die Klassen `preview__*` für diesen Inhalt sind unten global definiert, damit die
+ * Klone unabhängig von der Komponente aussehen, die das `template` rendert. Ohne JavaScript
+ * bleibt der Dialog geschlossen und leer, die Vorschau-Buttons sind `hidden`.
+ */
+import { X } from 'lucide-astro';
+---
+
+<dialog class="preview" data-preview-dialog>
+  <div class="preview__bar">
+    <p class="preview__kicker" data-preview-kicker></p>
+    <button type="button" class="preview__close" data-preview-close>
+      <span>Schließen</span>
+      <X size={20} class="ds-icon preview__close-icon" aria-hidden="true" focusable="false" />
+    </button>
+  </div>
+  <div class="preview__body" data-preview-body></div>
+</dialog>
+
+<style>
+  .preview {
+    width: min(44rem, calc(100% - 32px));
+    max-width: none;
+    max-height: 88dvh;
+    margin: auto;
+    padding: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+    border: 1px solid var(--ink);
+    border-radius: 0;
+    background: var(--paper);
+    color: var(--ink);
+    box-shadow: none;
+  }
+
+  /* Öffnen und Schließen als Deckkraftwechsel; ohne Unterstützung erscheint der Dialog sofort. */
+  .preview {
+    opacity: 0;
+    transition:
+      opacity var(--dur-fast) var(--ease-out),
+      overlay var(--dur-fast) allow-discrete,
+      display var(--dur-fast) allow-discrete;
+  }
+
+  .preview[open] {
+    opacity: 1;
+  }
+
+  @starting-style {
+    .preview[open] {
+      opacity: 0;
+    }
+  }
+
+  /* Hintergrund abgedunkelt, ohne Weichzeichner. */
+  .preview::backdrop {
+    background: color-mix(in srgb, var(--panel) 72%, transparent);
+    opacity: 0;
+    transition:
+      opacity var(--dur-fast) var(--ease-out),
+      overlay var(--dur-fast) allow-discrete,
+      display var(--dur-fast) allow-discrete;
+  }
+
+  .preview[open]::backdrop {
+    opacity: 1;
+  }
+
+  @starting-style {
+    .preview[open]::backdrop {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .preview,
+    .preview::backdrop {
+      transition: none;
+    }
+  }
+
+  /* Haftende Kopfzeile: Kicker links, Schließen rechts, Linie darunter. */
+  .preview__bar {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding-inline: var(--space-4);
+    border-bottom: 1px solid var(--line);
+    background: var(--paper);
+  }
+
+  .preview__kicker {
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    line-height: 1.5;
+  }
+
+  .preview__close {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0 var(--space-2);
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    font-weight: 700;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .preview__close :global(.preview__close-icon) {
+    width: 20px;
+    height: 20px;
+    flex: none;
+  }
+
+  .preview__close:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+
+  @media (hover: hover) {
+    .preview__close:hover span {
+      text-decoration: underline;
+      text-decoration-color: var(--accent);
+      text-decoration-thickness: 2px;
+      text-underline-offset: 6px;
+    }
+  }
+
+  .preview__body {
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-5) var(--space-4) var(--space-6);
+  }
+
+  @media (min-width: 768px) {
+    .preview__body {
+      padding: var(--space-6);
+    }
+  }
+
+  /* Inhalt der geklonten Vorlagen (Vertrag mit den `template`-Elementen der Zeilen). */
+  .preview :global(.preview__title) {
+    margin: 0;
+    color: var(--ink);
+  }
+
+  .preview :global(.preview__summary) {
+    max-width: 60ch;
+    margin: 0;
+    color: var(--ink);
+    font-size: var(--ds-text-body);
+    line-height: 1.55;
+  }
+
+  .preview :global(.preview__facts) {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .preview :global(.preview__fact) {
+    display: grid;
+    grid-template-columns: 6rem minmax(0, 1fr);
+    gap: var(--space-4);
+    padding-block: var(--space-2);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .preview :global(.preview__fact dt) {
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    line-height: 1.5;
+    text-transform: uppercase;
+  }
+
+  .preview :global(.preview__fact dd) {
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+    color: var(--ink);
+    font-size: var(--ds-text-sm);
+    line-height: 1.4;
+  }
+
+  .preview :global(.preview__tags) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .preview :global(.preview__tags li) {
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--line);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    line-height: 1.5;
+  }
+
+  .preview :global(.preview__actions) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+</style>
+
+<style is:global>
+  /* Hinter einem offenen modalen Dialog scrollt die Seite nicht. Die Sperre hängt am Zustand
+     des Dialogs, nicht an einer per Skript gesetzten Klasse (T-02-24). */
+  body:has(dialog[open]) {
+    overflow: hidden;
+  }
+</style>

@@ -1,20 +1,20 @@
 ---
 import V2Layout from '../../layouts/V2Layout.astro';
 
-const lastUpdated = '30. April 2026';
+const lastUpdated = '07. August 2026';
 ---
 
 <V2Layout
   title="Datenschutzerklärung – Alexander Schneider"
-  description="Datenschutzerklärung von Alexander Schneider (alexle135.de) gemäß DSGVO und BDSG: verantwortliche Stelle, verarbeitete Daten, Auftragsverarbeiter, Cookies und Betroffenenrechte."
+  description="Datenschutzerklärung von Alexander Schneider: Informationen zu Datenverarbeitung, Cookies, Auftragsverarbeitern und deinen Rechten nach DSGVO und BDSG."
 >
   <main class="v2-shell py-20 md:py-28 lg:py-36">
-    <header class="mb-16 border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pb-12">
-      <p class="font-mono text-[0.7rem] uppercase tracking-[0.3em] text-[color:var(--color-neon-orange)] mb-4">Rechtliches</p>
-      <h1 class="font-editorial text-[clamp(3.5rem,8vw,6.5rem)] leading-[0.9] tracking-[-0.06em] text-[color:var(--color-mono-50)]">
+    <header class="ds-pagehead mb-16 space-y-6">
+      <p class="ds-kicker">Rechtliches</p>
+      <h1 class="ds-display-xl text-[color:var(--ink)]">
         Datenschutz&shy;erklärung
       </h1>
-      <p class="mt-6 font-mono text-xs uppercase tracking-widest text-[color:var(--color-mono-400)]">Stand: {lastUpdated}</p>
+      <p class="ds-meta">Stand: {lastUpdated}</p>
     </header>
 
     <article class="v2-prose max-w-4xl">
@@ -27,7 +27,7 @@ const lastUpdated = '30. April 2026';
         04159 Leipzig<br />
         Deutschland
       </p>
-      <p>E-Mail: <a href="mailto:schneider@alexle135.de">schneider@alexle135.de</a></p>
+      <p>E-Mail: <a href="mailto:schneider@alex-schneider.dev">schneider@alex-schneider.dev</a></p>
 
       <h2 id="2-allgemeines-zur-datenverarbeitung">2. Allgemeines zur Datenverarbeitung</h2>
       <p>Personenbezogene Daten verarbeite ich nur, soweit dies zur Bereitstellung einer funktionsfähigen Website sowie meiner Inhalte und Leistungen erforderlich ist oder Sie eingewilligt haben. Rechtsgrundlagen sind insbesondere:</p>
@@ -73,7 +73,7 @@ const lastUpdated = '30. April 2026';
         <li><code>cookie-consent</code> (Local Storage) – speichert Ihre Cookie-Entscheidung, damit der Banner nicht erneut erscheint.</li>
         <li>Admin-Session-Cookies und <code>csrf-token</code> – nur im Admin-Bereich nach Login. Sie dienen ausschließlich der Authentifizierung und CSRF-Abwehr und werden nur gesetzt, wenn ich mich aktiv einlogge.</li>
       </ul>
-      <p><strong>Einwilligungspflichtige Cookies</strong> (Rechtsgrundlage: § 25 Abs. 1 TDDDG i.&nbsp;V.&nbsp;m. Art. 6 Abs. 1 lit. a DSGVO): Cookies und Verarbeitungen für die Reichweitenmessung (siehe Abschnitt 5.1) werden erst gesetzt, wenn Sie über den Cookie-Banner einwilligen. Sie können Ihre Einwilligung jederzeit widerrufen, indem Sie im Browser den Eintrag <code>cookie-consent</code> für diese Domain im Local Storage entfernen oder die Seite im privaten Modus öffnen.</p>
+      <p><strong>Einwilligungspflichtige Cookies</strong> (Rechtsgrundlage: § 25 Abs. 1 TDDDG i.&nbsp;V.&nbsp;m. Art. 6 Abs. 1 lit. a DSGVO): Cookies und Verarbeitungen für die Reichweitenmessung (siehe Abschnitt 5.1) werden erst gesetzt, wenn Sie über den Cookie-Banner einwilligen. Sie können Ihre Einwilligung jederzeit mit Wirkung für die Zukunft ändern oder widerrufen: über den Link „Cookie-Einstellungen“ im Seitenfuß, der den Cookie-Banner erneut öffnet (alternativ durch Entfernen des Eintrags <code>cookie-consent</code> im Local Storage).</p>
 
       <h3 id="4-3-kontaktformular">4.3 Kontaktformular</h3>
       <p>Wenn Sie das Kontaktformular auf <a href="/kontakt/">/kontakt/</a> nutzen, werden folgende Daten verarbeitet:</p>
@@ -125,7 +125,7 @@ const lastUpdated = '30. April 2026';
         <li><strong>Widerspruch</strong> gegen die Verarbeitung (Art. 21 DSGVO)</li>
         <li><strong>Widerruf erteilter Einwilligungen</strong> mit Wirkung für die Zukunft (Art. 7 Abs. 3 DSGVO)</li>
       </ul>
-      <p>Zur Ausübung Ihrer Rechte genügt eine formlose Nachricht an <a href="mailto:schneider@alexle135.de">schneider@alexle135.de</a>.</p>
+      <p>Zur Ausübung Ihrer Rechte genügt eine formlose Nachricht an <a href="mailto:schneider@alex-schneider.dev">schneider@alex-schneider.dev</a>.</p>
 
       <h3 id="7-1-widerspruchsrecht">7.1 Hinweis auf Ihr Widerspruchsrecht (Art. 21 DSGVO)</h3>
       <p>Sie haben das Recht, aus Gründen, die sich aus Ihrer besonderen Situation ergeben, jederzeit gegen die Verarbeitung Sie betreffender personenbezogener Daten Widerspruch einzulegen, die auf Grundlage von Art. 6 Abs. 1 lit. f DSGVO erfolgt.</p>

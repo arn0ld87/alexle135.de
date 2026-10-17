@@ -1,0 +1,658 @@
+---
+/**
+ * Abschnitt „Arbeiten“ der Startseite (Systemwerk, D-08, D-09, D-11).
+ *
+ * Agora als Hauptprojekt (AgoraCard, Daten aus dem Blogpost), darunter „Weitere Arbeiten“ aus der
+ * Collection `projects`. Alles ist progressive Erweiterung über echten Links: Jede Zeile ist ein
+ * Link auf die Detailseite. Chip-Filter und Vorschau-Button sind ohne JavaScript `hidden`; mit
+ * JavaScript binden `listFilter.ts` und `previewDialog.ts`. Der Vorschau-Dialog selbst liegt einmal
+ * pro Seite in `PreviewDialog.astro`; jede Zeile bringt ihren Inhalt als `template` mit.
+ */
+import type { CollectionEntry } from 'astro:content';
+import { ArrowUpRight, Eye } from 'lucide-astro';
+import AgoraCard from './AgoraCard.astro';
+import {
+  STATUS_LABELS,
+  categoriesOf,
+  projectStatusLine,
+  type ProjectRow,
+} from '../../lib/home/works';
+
+interface Props {
+  rows: ProjectRow[];
+  agora?: CollectionEntry<'blog'>;
+}
+
+const { rows, agora } = Astro.props;
+
+const categories = categoriesOf(rows);
+// Ein Filter mit nur einer Kategorie trennt nichts.
+const showChips = categories.length > 1;
+// In der Zeile genügt ein Ausschnitt; der Dialog nennt den ganzen Stack.
+const ROW_STACK_LIMIT = 4;
+---
+
+<section id="arbeiten" class="works" aria-labelledby="works-title" data-works>
+  <div class="ds-shell">
+    <div class="works__rule"></div>
+
+    <header class="works__head">
+      <p class="works__kicker">
+        <span class="works__marker" aria-hidden="true"></span>
+        01 / AUSGEWÄHLTE ARBEITEN
+      </p>
+      <h2 id="works-title" class="ds-display-l works__title">
+        Projekte aus Umschulung und <span class="works__accent">Heimlabor</span>
+      </h2>
+      <p class="works__intro">
+        Tools, Lernprodukte und Systeme aus meiner Umschulung und meinem Heimlabor.
+      </p>
+    </header>
+
+    {agora && <AgoraCard post={agora} />}
+
+    <div class="works__list" data-filter-root>
+      <div class="works__listhead">
+        <h3 class="works__eyebrow">WEITERE ARBEITEN · {rows.length}</h3>
+
+        {
+          showChips && (
+            <div class="works__chips" role="group" aria-label="Projekte filtern" hidden>
+              <button type="button" class="works__chip" data-filter-chip="" aria-pressed="true">
+                Alle
+              </button>
+              {categories.map((category) => (
+                <button
+                  type="button"
+                  class="works__chip"
+                  data-filter-chip={category}
+                  aria-pressed="false"
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
+          )
+        }
+      </div>
+
+      <p class="works__status" data-filter-status aria-live="polite">
+        {projectStatusLine(rows.length, rows.length)}
+      </p>
+
+      <ul class="works__rows">
+        {
+          rows.map((row) => (
+            <li class="works__row" data-filter-item data-category={row.category}>
+              <a class="works__link" href={row.href}>
+                <span class="works__num">{row.number}</span>
+                <span class="works__main">
+                  <span class="ds-display-s works__name">{row.title}</span>
+                  <span class="works__summary">{row.summary}</span>
+                </span>
+                {row.stack.length > 0 && (
+                  <span class="works__stack">
+                    {row.stack.slice(0, ROW_STACK_LIMIT).map((item) => (
+                      <span>{item}</span>
+                    ))}
+                  </span>
+                )}
+                <ArrowUpRight
+                  size={24}
+                  class="ds-icon works__arrow"
+                  aria-hidden="true"
+                  focusable="false"
+                />
+              </a>
+
+              <button
+                type="button"
+                class="works__preview"
+                data-preview-open
+                data-preview-template={`preview-${row.slug}`}
+                data-preview-href={row.href}
+                aria-label={`Vorschau: ${row.title}`}
+                hidden
+              >
+                <Eye size={20} class="ds-icon works__preview-icon" aria-hidden="true" focusable="false" />
+                <span class="works__preview-text">Vorschau</span>
+              </button>
+
+              <template id={`preview-${row.slug}`}>
+                <p data-preview-kicker>PROJEKT / VORSCHAU</p>
+                <h2 class="ds-display-m preview__title" id={`preview-title-${row.slug}`} data-preview-title>{row.title}</h2>
+                <p class="preview__summary">{row.summary}</p>
+                <dl class="preview__facts">
+                  {row.stack.length > 0 && (
+                    <div class="preview__fact">
+                      <dt>Stack</dt>
+                      <dd>
+                        <ul class="preview__tags">
+                          {row.stack.map((item) => (
+                            <li>{item}</li>
+                          ))}
+                        </ul>
+                      </dd>
+                    </div>
+                  )}
+                  <div class="preview__fact">
+                    <dt>Status</dt>
+                    <dd>{STATUS_LABELS[row.status]}</dd>
+                  </div>
+                  {row.role && (
+                    <div class="preview__fact">
+                      <dt>Rolle</dt>
+                      <dd>{row.role}</dd>
+                    </div>
+                  )}
+                </dl>
+                <div class="preview__actions">
+                  <a class="axb" data-variant="primary" href={row.href}>
+                    Zur Projektseite
+                  </a>
+                  <button type="button" class="axb" data-variant="secondary" data-preview-close>
+                    Schließen
+                  </button>
+                </div>
+              </template>
+            </li>
+          ))
+        }
+      </ul>
+
+      <div class="works__empty" data-filter-empty hidden>
+        <p class="ds-display-s works__empty-title">Keine Projekte in dieser Kategorie.</p>
+        <p class="works__empty-text">Wähle eine andere Kategorie oder zeige alle Projekte.</p>
+        <button type="button" class="axb" data-variant="secondary" data-filter-reset>
+          Alle anzeigen
+        </button>
+      </div>
+
+      <p class="works__more">
+        <a class="works__all" href="/projekte/">Alle Projekte ansehen</a>
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .works {
+    padding-block: var(--section-gap);
+    color: var(--ink);
+  }
+
+  /* Der Browser blendet [hidden] nur mit niedriger Priorität aus; eigene display-Regeln würden es
+     sonst überstimmen. */
+  .works [hidden] {
+    display: none;
+  }
+
+  .works__rule {
+    margin-bottom: var(--space-6);
+    border-top: 1px solid var(--line);
+  }
+
+  /* ---------- Kopf ---------- */
+  .works__head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+    margin-bottom: var(--space-8);
+  }
+
+  .works__kicker {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    line-height: 1.5;
+  }
+
+  .works__marker {
+    display: block;
+    width: 8px;
+    height: 8px;
+    flex: none;
+    background: var(--accent);
+  }
+
+  .works__title {
+    margin: 0;
+    color: var(--ink);
+  }
+
+  .works__accent {
+    color: var(--accent);
+  }
+
+  .works__intro {
+    max-width: 36ch;
+    margin: 0;
+    color: var(--muted);
+    font-size: var(--ds-text-body);
+    line-height: 1.55;
+  }
+
+  @media (min-width: 768px) {
+    .works__head {
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+      column-gap: var(--space-6);
+      align-items: end;
+    }
+
+    .works__kicker,
+    .works__title {
+      grid-column: 1;
+    }
+
+    .works__intro {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .works__head {
+      grid-template-columns: minmax(0, 0.65fr) minmax(0, 1.1fr) minmax(0, 0.75fr);
+    }
+
+    .works__kicker {
+      grid-column: 1;
+      grid-row: 1;
+      align-self: start;
+    }
+
+    .works__title {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .works__intro {
+      grid-column: 3;
+      grid-row: 1;
+    }
+  }
+
+  /* ---------- Liste ---------- */
+  .works__list {
+    margin-top: var(--space-8);
+  }
+
+  .works__listhead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-4);
+    margin-bottom: var(--space-2);
+  }
+
+  .works__eyebrow {
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    line-height: 1.5;
+  }
+
+  .works__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .works__chip {
+    position: relative;
+    min-height: 40px;
+    padding: 0 var(--space-4);
+    border: 1px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--font-sans);
+    font-size: var(--ds-text-sm);
+    line-height: 1;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      color var(--dur-fast) var(--ease-out),
+      border-color var(--dur-fast) var(--ease-out);
+  }
+
+  .works__chip[aria-pressed='true'] {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+
+  /* Aktiver Balken: 2 px Akzent am unteren Rand. */
+  .works__chip[aria-pressed='true']::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    bottom: -1px;
+    left: -1px;
+    height: 2px;
+    background: var(--accent);
+  }
+
+  @media (hover: hover) {
+    .works__chip:hover {
+      color: var(--ink);
+    }
+  }
+
+  .works__chip:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+
+  .works__status {
+    margin: 0 0 var(--space-4);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    line-height: 1.5;
+  }
+
+  .works__rows {
+    margin: 0;
+    padding: 0;
+    border-bottom: 1px solid var(--line);
+    list-style: none;
+  }
+
+  .works__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-2);
+    border-top: 1px solid var(--line);
+  }
+
+  /* Zeile = ein Link: Nummer, Titel und Kurzfassung, Stack, Pfeil. */
+  .works__link {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: 2rem minmax(0, 1fr) 24px;
+    align-items: start;
+    column-gap: var(--space-2);
+    row-gap: var(--space-2);
+    padding-block: var(--space-5);
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .works__num {
+    grid-column: 1;
+    grid-row: 1;
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    line-height: 1.5;
+    /* Auf Höhe der ersten Titelzeile. */
+    padding-top: var(--space-1);
+  }
+
+  .works__main {
+    display: grid;
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+    gap: var(--space-1);
+    padding-right: var(--space-2);
+  }
+
+  .works__name,
+  .works__summary {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  .works__name {
+    color: var(--ink);
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  .works__summary {
+    color: var(--muted);
+    font-size: var(--ds-text-sm);
+    line-height: 1.4;
+  }
+
+  .works__stack {
+    display: flex;
+    grid-column: 2;
+    grid-row: 2;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-2);
+    min-width: 0;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    line-height: 1.5;
+  }
+
+  .works__stack span:not(:last-child)::after {
+    content: ' ·';
+  }
+
+  .works :global(.works__arrow) {
+    grid-column: 3;
+    grid-row: 1;
+    width: 24px;
+    height: 24px;
+    color: var(--ink);
+  }
+
+  .works__link:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+
+  .works__link:focus-visible .works__name {
+    color: var(--accent-strong);
+  }
+
+  @media (hover: hover) {
+    .works__link:hover .works__name {
+      color: var(--accent-strong);
+    }
+  }
+
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .works__num,
+    .works__main {
+      transition: transform var(--dur-base) var(--ease-out);
+    }
+
+    .works :global(.works__arrow) {
+      transition: transform var(--dur-base) var(--ease-out);
+    }
+
+    .works__link:hover .works__num,
+    .works__link:hover .works__main {
+      transform: translateX(8px);
+    }
+
+    .works__link:hover :global(.works__arrow) {
+      transform: translate(4px, -4px);
+    }
+  }
+
+  /* Vorschau-Button: außerhalb des Links, mindestens 44 x 44 px, mobil nur das Icon. */
+  .works__preview {
+    position: relative;
+    display: inline-flex;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: 0 var(--space-2);
+    border: 1px solid var(--line);
+    border-radius: 0;
+    background: transparent;
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: var(--ds-text-sm);
+    font-weight: 700;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color var(--dur-fast) var(--ease-out);
+  }
+
+  .works :global(.works__preview-icon) {
+    width: 20px;
+    height: 20px;
+    flex: none;
+  }
+
+  .works__preview-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  @media (hover: hover) {
+    .works__preview:hover {
+      border-color: var(--ink);
+    }
+  }
+
+  .works__preview:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+
+  @media (min-width: 768px) {
+    .works__link {
+      grid-template-columns: 3rem minmax(0, 1fr) minmax(0, 12rem) 24px;
+      align-items: center;
+      column-gap: var(--space-4);
+    }
+
+    .works__stack {
+      grid-column: 3;
+      grid-row: 1;
+    }
+
+    .works :global(.works__arrow) {
+      grid-column: 4;
+    }
+
+    .works__num {
+      padding-top: 0;
+    }
+
+    .works__preview {
+      padding: 0 var(--space-4);
+    }
+
+    .works__preview-text {
+      position: static;
+      width: auto;
+      height: auto;
+      overflow: visible;
+      clip-path: none;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .works__link {
+      grid-template-columns: 48px minmax(0, 1fr) 220px 32px;
+    }
+
+    .works :global(.works__arrow) {
+      width: 32px;
+      height: 32px;
+    }
+  }
+
+  /* Leerzustand und Abschluss */
+  .works__empty {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-2);
+    padding-block: var(--space-6);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .works__empty-title,
+  .works__empty-text {
+    margin: 0;
+  }
+
+  .works__empty-text {
+    color: var(--muted);
+    font-size: var(--ds-text-sm);
+  }
+
+  .works__empty .axb {
+    margin-top: var(--space-2);
+  }
+
+  .works__more {
+    margin: var(--space-6) 0 0;
+  }
+
+  .works__all {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    color: var(--ink);
+    font-size: var(--ds-text-sm);
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 6px;
+  }
+
+  @media (hover: hover) {
+    .works__all:hover {
+      text-decoration-thickness: 2px;
+    }
+  }
+
+  .works__all:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+</style>
+
+<script>
+  // Liste und Vorschau pro Abschnitt genau einmal binden (dataset.initialized je Element);
+  // Aufräumen in astro:before-swap schließt auch einen offenen Dialog.
+  import { bindListFilter } from '../../lib/home/listFilter';
+  import { bindPreview } from '../../lib/home/previewDialog';
+  import { projectStatusLine } from '../../lib/home/works';
+
+  const cleanups: (() => void)[] = [];
+
+  function bindAll() {
+    document.querySelectorAll<HTMLElement>('[data-works]').forEach((section) => {
+      const list = section.querySelector<HTMLElement>('[data-filter-root]');
+      if (list) cleanups.push(bindListFilter(list, { statusLine: projectStatusLine }));
+      cleanups.push(bindPreview(section));
+    });
+  }
+
+  document.addEventListener('astro:page-load', bindAll);
+  document.addEventListener('astro:before-swap', () => {
+    for (const cleanup of cleanups.splice(0)) cleanup();
+  });
+</script>

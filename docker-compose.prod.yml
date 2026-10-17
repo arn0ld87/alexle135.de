@@ -51,7 +51,7 @@ services:
       # Runtime-Secrets: bleiben aus dem Client-Bundle heraus.
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL muss gesetzt sein}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET muss gesetzt sein}
-      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-https://alexle135.de}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-https://alex-schneider.dev}
       GEMINI_API_KEY: ${GEMINI_API_KEY:?GEMINI_API_KEY muss gesetzt sein}
       CONTACT_IP_SALT: ${CONTACT_IP_SALT:-}
       # Traefik ist hier GARANTIERT der einzige Hop vor diesem Container (kein
@@ -68,19 +68,21 @@ services:
     labels:
       - 'traefik.enable=true'
       - 'traefik.docker.network=proxy'
-      # Canonical router: apex domain only
-      - 'traefik.http.routers.alexle135.rule=Host(`alexle135.de`)'
+      # Canonical router: alex-schneider.dev ist die neue Primär-Domain; alexle135.de
+      # bleibt im Übergang bis zum Cloudflare-301 (Phase 3) am selben Service.
+      - 'traefik.http.routers.alexle135.rule=Host(`alex-schneider.dev`) || Host(`alexle135.de`)'
       - 'traefik.http.routers.alexle135.entrypoints=websecure'
       - 'traefik.http.routers.alexle135.tls.certresolver=letsencrypt'
       - 'traefik.http.services.alexle135.loadbalancer.server.port=3000'
-      # www → non-www 301 redirect (fixes duplicate-content risk)
-      - 'traefik.http.routers.alexle135-www.rule=Host(`www.alexle135.de`)'
+      # www → non-www 301 redirect (fixes duplicate-content risk); beide www-Hosts
+      # leiten auf die neue Primär-Domain alex-schneider.dev um.
+      - 'traefik.http.routers.alexle135-www.rule=Host(`www.alex-schneider.dev`) || Host(`www.alexle135.de`)'
       - 'traefik.http.routers.alexle135-www.entrypoints=websecure'
       - 'traefik.http.routers.alexle135-www.tls.certresolver=letsencrypt'
       - 'traefik.http.routers.alexle135-www.middlewares=alexle135-www-redirect@docker'
       - 'traefik.http.routers.alexle135-www.service=alexle135'
-      - 'traefik.http.middlewares.alexle135-www-redirect.redirectregex.regex=^https?://www\.alexle135\.de/(.*)'
-      - 'traefik.http.middlewares.alexle135-www-redirect.redirectregex.replacement=https://alexle135.de/$${1}'
+      - 'traefik.http.middlewares.alexle135-www-redirect.redirectregex.regex=^https?://www\.(alex-schneider\.dev|alexle135\.de)/(.*)'
+      - 'traefik.http.middlewares.alexle135-www-redirect.redirectregex.replacement=https://alex-schneider.dev/$${2}'
       - 'traefik.http.middlewares.alexle135-www-redirect.redirectregex.permanent=true'
       # ── CSP-Strategie (gespiegelt aus astro.config.mjs — beide synchron halten) ──
       # Default-Policy (alle Routen): strikt, OHNE unsafe-eval/wasm-unsafe-eval, OHNE
@@ -91,7 +93,7 @@ services:
       # Änderung beide Terminal-Missionen manuell testen (sonst stiller Mock-Mode-Fallback).
       #
       # Default-Header-Middleware (strikte CSP, keine COEP/COOP)
-      - "traefik.http.middlewares.alexle135-headers.headers.customResponseHeaders.Content-Security-Policy=default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.googletagmanager.com https://platform.linkedin.com; connect-src 'self' https://*.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://platform.linkedin.com; frame-src 'self' https://platform.linkedin.com https://www.linkedin.com; worker-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net; base-uri 'self'; frame-ancestors 'self'"
+      - "traefik.http.middlewares.alexle135-headers.headers.customResponseHeaders.Content-Security-Policy=default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.googletagmanager.com https://platform.linkedin.com https://static.cloudflareinsights.com; connect-src 'self' https://*.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://platform.linkedin.com https://cloudflareinsights.com; frame-src 'self' https://platform.linkedin.com https://www.linkedin.com; worker-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net; base-uri 'self'; frame-ancestors 'self'"
       - 'traefik.http.middlewares.alexle135-headers.headers.stsSeconds=63072000'
       - 'traefik.http.middlewares.alexle135-headers.headers.stsIncludeSubdomains=true'
       - 'traefik.http.middlewares.alexle135-headers.headers.stsPreload=true'
@@ -102,7 +104,7 @@ services:
       - 'traefik.http.middlewares.alexle135-headers.headers.permissionsPolicy=camera=(), microphone=(), geolocation=(), payment=(), usb=()'
       # WebContainer-Header-Middleware (lockere CSP + COEP/COOP, nur Terminal-Routen).
       # Generische Schutzheader hier dupliziert, damit die Middleware self-contained ist.
-      - "traefik.http.middlewares.alexle135-headers-wc.headers.customResponseHeaders.Content-Security-Policy=default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://*.stackblitz.io https://*.webcontainer.io https://stackblitz.com https://*.stackblitz.com https://www.googletagmanager.com https://platform.linkedin.com; connect-src 'self' ws: wss: https://*.stackblitz.io wss://*.stackblitz.io https://*.webcontainer.io wss://*.webcontainer.io https://stackblitz.com https://*.stackblitz.com https://*.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://platform.linkedin.com; frame-src 'self' https://*.stackblitz.io https://*.webcontainer.io https://stackblitz.com https://*.stackblitz.com https://platform.linkedin.com https://www.linkedin.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net; base-uri 'self'; frame-ancestors 'self'"
+      - "traefik.http.middlewares.alexle135-headers-wc.headers.customResponseHeaders.Content-Security-Policy=default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://*.stackblitz.io https://*.webcontainer.io https://stackblitz.com https://*.stackblitz.com https://www.googletagmanager.com https://platform.linkedin.com https://static.cloudflareinsights.com; connect-src 'self' ws: wss: https://*.stackblitz.io wss://*.stackblitz.io https://*.webcontainer.io wss://*.webcontainer.io https://stackblitz.com https://*.stackblitz.com https://*.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://platform.linkedin.com https://cloudflareinsights.com; frame-src 'self' https://*.stackblitz.io https://*.webcontainer.io https://stackblitz.com https://*.stackblitz.com https://platform.linkedin.com https://www.linkedin.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net; base-uri 'self'; frame-ancestors 'self'"
       - 'traefik.http.middlewares.alexle135-headers-wc.headers.customResponseHeaders.Cross-Origin-Embedder-Policy=credentialless'
       - 'traefik.http.middlewares.alexle135-headers-wc.headers.customResponseHeaders.Cross-Origin-Opener-Policy=same-origin'
       - 'traefik.http.middlewares.alexle135-headers-wc.headers.stsSeconds=63072000'
@@ -119,7 +121,7 @@ services:
       # Segmentgenau wie isWebContainerRoute() in src/middleware.ts: Path() matcht exakt,
       # PathPrefix(`…/app/`) nur echte Unterpfade — Traefiks PathPrefix ohne Slash würde
       # auch Teilwort-Geschwister wie `…/app-foo` matchen (Issue #286).
-      - 'traefik.http.routers.alexle135-wc.rule=Host(`alexle135.de`) && (Path(`/projekte/terminal-missionen/app`) || PathPrefix(`/projekte/terminal-missionen/app/`) || Path(`/projekte/windows-terminal-missionen/app`) || PathPrefix(`/projekte/windows-terminal-missionen/app/`))'
+      - 'traefik.http.routers.alexle135-wc.rule=(Host(`alex-schneider.dev`) || Host(`alexle135.de`)) && (Path(`/projekte/terminal-missionen/app`) || PathPrefix(`/projekte/terminal-missionen/app/`) || Path(`/projekte/windows-terminal-missionen/app`) || PathPrefix(`/projekte/windows-terminal-missionen/app/`))'
       - 'traefik.http.routers.alexle135-wc.priority=100'
       - 'traefik.http.routers.alexle135-wc.entrypoints=websecure'
       - 'traefik.http.routers.alexle135-wc.tls.certresolver=letsencrypt'

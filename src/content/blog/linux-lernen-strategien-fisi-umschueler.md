@@ -8,7 +8,7 @@ tags:
   - FISI
   - Umschulung
   - Produktivität
-heroImage: /images/blog/linux-lernen-strategien-fisi-umschueler.webp
+heroImage: ../../assets/blog/linux-lernen-strategien-fisi-umschueler.webp
 author: Alexander Schneider
 ---
 

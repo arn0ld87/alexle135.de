@@ -1,0 +1,225 @@
+---
+/**
+ * Hero der Startseite (Systemwerk, D-13, D-22, D-40).
+ *
+ * Kopfzeile mit Bildmarke (Inline-SVG, Körper in --ink, Keil in --accent) und Kicker,
+ * H1 in `ds-display-hero` mit genau einem Outline-Wort, Absatz, Textlink zu `#arbeiten`
+ * und daneben die Bildmarke als ASCII-Zeichenbild (Plan 02-18.1, D-48, D-49). Ein Porträt
+ * gibt es im Hero nicht mehr; es bleibt auf /ueber-mich/. Die Kreuz-Marke im Kicker ist
+ * gezeichnet (Grafik), kein Textzeichen:
+ * --accent ist für kleinen Text nicht freigegeben (D-37).
+ */
+import { ArrowDownRight } from 'lucide-astro';
+import BrandMark from '../v2/BrandMark.astro';
+import AsciiMark from './AsciiMark.astro';
+
+// Wortlaut des Nutzers aus D-50 (Nachtrag 02-18.1), bewusst als eine Zeichenfolge: so steht
+// der Absatz ohne Umbruch im HTML.
+const lead =
+  'Ich bin Alex und mache meine Umschulung zum Fachinformatiker für Systemintegration in Leipzig. Auf meinen eigenen Servern betreibe ich Linux, Container und KI-Agenten. Hier zeige ich, was ich damit baue und was ich dabei lerne.';
+---
+
+<section class="home-hero" aria-labelledby="hero-title">
+  <div class="ds-shell">
+    <div class="home-hero__top">
+      <BrandMark class="home-hero__mark" />
+      <p class="home-hero__kicker">
+        <span class="home-hero__plus" aria-hidden="true"></span>
+        SYSTEMINTEGRATION / DEVOPS / KI
+      </p>
+      <p class="home-hero__place">LEIPZIG</p>
+    </div>
+
+    <div class="home-hero__grid">
+      <div class="home-hero__copy">
+        <h1 id="hero-title" class="ds-display-hero home-hero__title">
+          Was ich baue <br />und <span class="ds-outline">betreibe</span><span
+            class="home-hero__star"
+            aria-hidden="true">*</span>
+        </h1>
+        <p class="home-hero__lead">{lead}</p>
+        <a class="home-hero__cta" href="#arbeiten">
+          <span class="home-hero__cta-text">Arbeiten ansehen</span>
+          <ArrowDownRight
+            size={20}
+            class="ds-icon home-hero__cta-icon"
+            aria-hidden="true"
+            focusable="false"
+          />
+        </a>
+      </div>
+
+      <AsciiMark />
+    </div>
+
+    <div class="home-hero__foot">
+      <span>LINUX, CONTAINER UND KI-AGENTEN AUF EIGENEN SERVERN</span>
+      <span>FISI IN UMSCHULUNG · BFW LEIPZIG</span>
+    </div>
+  </div>
+</section>
+
+<style>
+  .home-hero {
+    padding-block: var(--space-8);
+    color: var(--ink);
+  }
+
+  @media (min-width: 1024px) {
+    .home-hero {
+      padding-block: var(--space-9);
+    }
+  }
+
+  .home-hero__top {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+
+  .home-hero :global(.home-hero__mark) {
+    flex: none;
+    width: auto;
+    height: 48px;
+    color: var(--ink);
+  }
+
+  .home-hero__kicker,
+  .home-hero__place,
+  .home-hero__foot {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    line-height: 1.5;
+  }
+
+  .home-hero__kicker {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+    color: var(--ink);
+  }
+
+  .home-hero__place {
+    display: none;
+    margin-left: auto;
+    color: var(--muted);
+  }
+
+  @media (min-width: 768px) {
+    .home-hero__place {
+      display: block;
+    }
+  }
+
+  /* Kreuz-Marke als Grafik: zwei Linien in --accent statt eines Textzeichens. */
+  .home-hero__plus {
+    flex: none;
+    width: 12px;
+    height: 12px;
+    background:
+      linear-gradient(var(--accent), var(--accent)) center / 12px 2px no-repeat,
+      linear-gradient(var(--accent), var(--accent)) center / 2px 12px no-repeat;
+  }
+
+  .home-hero__grid {
+    display: grid;
+    gap: var(--space-6);
+    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
+  }
+
+  @media (min-width: 1024px) {
+    .home-hero__grid {
+      grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+    }
+  }
+
+  .home-hero__copy {
+    min-width: 0;
+  }
+
+  .home-hero__title {
+    margin: 0;
+    color: var(--ink);
+  }
+
+  .home-hero__star {
+    margin-left: 0.1em;
+    color: var(--accent);
+    font-size: 0.8em;
+    font-weight: 400;
+    vertical-align: top;
+  }
+
+  .home-hero__lead {
+    max-width: 36ch;
+    margin: var(--space-5) 0 0;
+    color: var(--ink);
+    font-size: 1.0625rem;
+    line-height: 1.55;
+  }
+
+  .home-hero__cta {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+    color: var(--ink);
+    font-size: 0.9375rem;
+    font-weight: 700;
+  }
+
+  .home-hero__cta-text {
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 6px;
+  }
+
+  .home-hero :global(.home-hero__cta-icon) {
+    flex: none;
+    width: 20px;
+    height: 20px;
+  }
+
+  @media (hover: hover) {
+    .home-hero__cta:hover .home-hero__cta-text {
+      text-decoration-thickness: 2px;
+    }
+  }
+
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .home-hero :global(.home-hero__cta-icon) {
+      transition: transform var(--dur-base) var(--ease-out);
+    }
+
+    .home-hero__cta:hover :global(.home-hero__cta-icon) {
+      transform: translate(4px, 4px);
+    }
+  }
+
+  .home-hero__cta:active {
+    color: var(--accent-press);
+  }
+
+  .home-hero__cta:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+
+  .home-hero__foot {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-1) var(--space-5);
+    margin-top: var(--space-8);
+    padding-block: var(--space-2);
+    border-block: 1px solid var(--line);
+    color: var(--muted);
+  }
+</style>

@@ -1,5 +1,6 @@
 ---
 title: 'Pangolin statt Cloudflare Tunnel: den eigenen Ingress-Pfad zurückholen'
+metaDescription: 'Pangolin statt Cloudflare Tunnel: Mein Aufbau mit eigenem VPS als Eingangstor, Installer, Traefik und Newt-Connector für die Verbindung zum Homelab.'
 summary: 'Cloudflare Tunnel ist bequem, aber dein Traffic läuft komplett über fremde Infrastruktur. Pangolin macht deinen eigenen VPS zum Eingangstor. Hier der komplette Aufbau mit Installer, Traefik und dem Newt-Connector.'
 tags:
   - Self-Hosting
@@ -9,7 +10,7 @@ tags:
   - Traefik
   - Reverse Proxy
   - Homelab
-heroImage: /images/blog/pangolin-statt-cloudflare-tunnel.webp
+heroImage: ../../assets/blog/pangolin-statt-cloudflare-tunnel.webp
 heroImageAlt: 'Schematische Darstellung eines selbstgehosteten Ingress-Pfads mit VPS, WireGuard-Tunnel und Heimserver'
 publishedAt: 2026-06-12
 draft: false

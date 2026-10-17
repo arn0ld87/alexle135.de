@@ -14,6 +14,9 @@ COPY . .
 
 ARG PUBLIC_GA_MEASUREMENT_ID
 ENV PUBLIC_GA_MEASUREMENT_ID=$PUBLIC_GA_MEASUREMENT_ID
+# Kurz-SHA des Deploys für die Betriebszeile im Footer (optional, kein Geheimnis).
+ARG PUBLIC_BUILD_SHA
+ENV PUBLIC_BUILD_SHA=$PUBLIC_BUILD_SHA
 ENV NODE_ENV=production
 
 RUN pnpm run build

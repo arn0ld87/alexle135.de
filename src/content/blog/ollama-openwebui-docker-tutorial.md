@@ -2,7 +2,7 @@
 title: 'Ollama + Open WebUI: Dein eigener ChatGPT in 10 Minuten'
 summary: 'ChatGPT-Alternative komplett lokal. Docker Setup für Ollama und Open WebUI – deine Daten bleiben bei dir. Copy & Paste ready für Linux, Mac und Windows.'
 publishedAt: 2026-01-07
-heroImage: '/images/blog/ollama-openwebui-docker-tutorial.png'
+heroImage: '../../assets/blog/ollama-openwebui-docker-tutorial.jpg'
 tags: ['Docker', 'KI', 'Selfhosted', 'Homelab', 'Linux']
 author: 'Alexander Schneider'
 faq:
@@ -296,4 +296,4 @@ Das ermöglicht Integration in eigene Scripts, n8n-Workflows oder andere Tools.
 
 ---
 
-Fragen oder Probleme? Schreib mir auf [LinkedIn](https://linkedin.com/in/alexle135) oder per [E-Mail](mailto:schneider@alexle135.de).
+Fragen oder Probleme? Schreib mir auf [LinkedIn](https://linkedin.com/in/alexle135) oder per [E-Mail](mailto:schneider@alex-schneider.dev).

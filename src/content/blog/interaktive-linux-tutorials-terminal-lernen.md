@@ -7,7 +7,7 @@ tags:
   - Tutorial
   - DevOps
   - Anfänger
-heroImage: /images/blog/interaktive-linux-tutorials-terminal-lernen.webp
+heroImage: ../../assets/blog/interaktive-linux-tutorials-terminal-lernen.webp
 author: Alexander Schneider
 ---
 
@@ -249,4 +249,4 @@ Keine Installation. Kein Risiko. Einfach loslegen.
 
 ---
 
-**Über mich:** Ich bin Alexander, mache seit Juni 2025 die FISI-Umschulung am BFW Leipzig. Ich baue Tools, die mir (und hoffentlich dir) beim Lernen helfen. Mehr Projekte: [alexle135.de](/projekte/)
+**Über mich:** Ich bin Alexander, mache seit Juni 2025 die FISI-Umschulung am BFW Leipzig. Ich baue Tools, die mir (und hoffentlich dir) beim Lernen helfen. Mehr Projekte: [alex-schneider.dev](/projekte/)

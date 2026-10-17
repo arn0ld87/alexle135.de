@@ -90,7 +90,7 @@ async function main() {
     // (src/lib/auth.ts), aber disableSignUp: false — die Prod-Instanz blockiert
     // Self-Signup bewusst, das Seed-Script braucht den Signup-Pfad einmalig.
     seedAuth = betterAuth({
-      appName: 'alexle135.de Admin Seed',
+      appName: 'alex-schneider.dev Admin Seed',
       baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:4321',
       secret: authSecret,
       database: pool,

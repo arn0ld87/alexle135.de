@@ -151,24 +151,24 @@ const categories = [...new Set(stacks.map(s => s.category))];
     <div class="mt-16 grid gap-10 lg:grid-cols-2">
       <!-- Service Selector -->
       <div class="space-y-6">
-        <h2 class="font-editorial text-2xl tracking-[-0.03em] text-[color:var(--color-mono-50)]">Services auswählen</h2>
+        <h2 class="ds-display-m text-[color:var(--ink)]">Services auswählen</h2>
 
         {categories.map(category => (
-          <div class="v2-panel rounded-sm p-5">
-            <h3 class="v2-kicker mb-4">{category}</h3>
+          <div class="ds-card">
+            <h3 class="ds-kicker mb-4">{category}</h3>
             <div class="space-y-1">
               {stacks.filter(s => s.category === category).map(stack => (
-                <label class="flex items-start gap-3 rounded-sm p-3 cursor-pointer transition-colors hover:bg-[color:color-mix(in_srgb,var(--color-mono-50)_4%,transparent)]">
+                <label class="flex items-start gap-3 p-3 cursor-pointer transition-colors hover:bg-[color:color-mix(in_srgb,var(--ink)_4%,transparent)]">
                   <input
                     type="checkbox"
                     id={stack.id}
                     data-config={stack.config}
                     data-name={stack.name}
-                    class="service-checkbox mt-1 h-4 w-4 accent-[color:var(--color-neon-orange)] bg-transparent border-[color:var(--color-mono-500)] rounded-sm"
+                    class="service-checkbox mt-1 h-4 w-4 accent-[color:var(--accent)] bg-transparent border-[color:var(--muted)]"
                   />
                   <div>
-                    <span class="text-sm font-medium text-[color:var(--color-mono-50)]">{stack.name}</span>
-                    <p class="text-xs text-[color:var(--color-mono-400)]">{stack.description}</p>
+                    <span class="text-sm font-medium text-[color:var(--ink)]">{stack.name}</span>
+                    <p class="text-xs text-[color:var(--muted)]">{stack.description}</p>
                   </div>
                 </label>
               ))}
@@ -180,7 +180,7 @@ const categories = [...new Set(stacks.map(s => s.category))];
       <!-- Output -->
       <div class="space-y-4">
         <div class="flex items-center justify-between">
-          <h2 class="font-editorial text-2xl tracking-[-0.03em] text-[color:var(--color-mono-50)]">docker-compose.yml</h2>
+          <h2 class="ds-display-m text-[color:var(--ink)]">docker-compose.yml</h2>
           <button
             id="copy-btn"
             class="v2-cta px-5! py-2!"
@@ -189,22 +189,22 @@ const categories = [...new Set(stacks.map(s => s.category))];
           </button>
         </div>
 
-        <div class="v2-panel rounded-sm overflow-hidden">
-          <pre id="output" class="p-5 font-mono text-sm leading-relaxed text-[color:var(--color-mono-200)] overflow-x-auto max-h-[600px]"><code>services:
+        <div class="ds-panel overflow-hidden" data-surface="panel">
+          <pre id="output" class="p-5 font-mono text-sm leading-relaxed text-[color:var(--panel-text)] overflow-x-auto max-h-[600px]"><code>services:
   # Wähle links die Services aus</code></pre>
         </div>
 
-        <p id="status" class="text-xs font-mono text-[color:var(--color-mono-400)]"></p>
+        <p id="status" class="text-xs font-mono text-[color:var(--muted)]"></p>
       </div>
     </div>
 
     <!-- Tips -->
-    <div class="mt-16 v2-panel rounded-sm p-6">
-      <h3 class="font-editorial text-lg text-[color:var(--color-mono-50)] mb-3">Tipps</h3>
-      <ul class="text-sm text-[color:var(--color-mono-300)] space-y-2">
-        <li class="flex items-start gap-2"><span class="text-[color:var(--color-neon-orange)]" aria-hidden="true">&bull;</span> Erstell eine <code class="text-[color:var(--color-neon-orange)] bg-[color:color-mix(in_srgb,var(--color-neon-orange)_10%,transparent)] px-1">.env</code> Datei für die Passwörter</li>
-        <li class="flex items-start gap-2"><span class="text-[color:var(--color-neon-orange)]" aria-hidden="true">&bull;</span> Starte mit <code class="text-[color:var(--color-neon-orange)] bg-[color:color-mix(in_srgb,var(--color-neon-orange)_10%,transparent)] px-1">docker compose up -d</code></li>
-        <li class="flex items-start gap-2"><span class="text-[color:var(--color-neon-orange)]" aria-hidden="true">&bull;</span> Logs anschauen: <code class="text-[color:var(--color-neon-orange)] bg-[color:color-mix(in_srgb,var(--color-neon-orange)_10%,transparent)] px-1">docker compose logs -f</code></li>
+    <div class="mt-16">
+      <h3 class="ds-display-s text-[color:var(--ink)] mb-3">Tipps</h3>
+      <ul class="text-sm text-[color:var(--muted)] space-y-2">
+        <li class="flex items-start gap-2"><span class="text-[color:var(--accent-strong)]" aria-hidden="true">&bull;</span> Erstell eine <code class="text-[color:var(--accent-strong)] bg-[color:color-mix(in_srgb,var(--accent)_10%,transparent)] px-1">.env</code> Datei für die Passwörter</li>
+        <li class="flex items-start gap-2"><span class="text-[color:var(--accent-strong)]" aria-hidden="true">&bull;</span> Starte mit <code class="text-[color:var(--accent-strong)] bg-[color:color-mix(in_srgb,var(--accent)_10%,transparent)] px-1">docker compose up -d</code></li>
+        <li class="flex items-start gap-2"><span class="text-[color:var(--accent-strong)]" aria-hidden="true">&bull;</span> Logs anschauen: <code class="text-[color:var(--accent-strong)] bg-[color:color-mix(in_srgb,var(--accent)_10%,transparent)] px-1">docker compose logs -f</code></li>
       </ul>
     </div>
   </main>
@@ -255,13 +255,13 @@ const categories = [...new Set(stacks.map(s => s.category))];
       try {
         await navigator.clipboard.writeText(text!);
         status!.textContent = 'Kopiert';
-        status!.className = 'text-xs font-mono text-[color:var(--color-neon-orange)]';
+        status!.className = 'text-xs font-mono text-[color:var(--accent-strong)]';
         setTimeout(() => {
           status!.textContent = '';
         }, 2000);
       } catch {
         status!.textContent = 'Fehler beim Kopieren';
-        status!.className = 'text-xs font-mono text-red-400';
+        status!.className = 'text-xs font-mono text-[color:var(--danger)]';
       }
     });
   </script>

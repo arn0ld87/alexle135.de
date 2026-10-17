@@ -1,5 +1,6 @@
 ---
-title: 'Context-Mode: wie ich meine Claude-Code-Token-Kosten halbiert habe, ohne weniger zu arbeiten'
+title: 'Claude-Code-Token sparen mit Context-Mode'
+metaDescription: 'Context-Mode für Claude Code: Befehle in einer Sandbox ausführen, Ergebnisse indexieren und gezielt abrufen. Mein Setup mit gemessenen Token-Zahlen.'
 summary: 'Jedes `cat`, jedes `grep`, jeder Curl-Aufruf schiebt rohe Bytes in den Agenten-Kontext. Context-Mode führt das in einer Sandbox aus, indexiert das Ergebnis und gibt dir nur, was du wirklich brauchst. Hier mein Setup und die ehrlichen Zahlen.'
 publishedAt: 2026-05-18
 tags:
@@ -8,7 +9,7 @@ tags:
   - MCP
   - Token Optimization
   - LLM
-heroImage: /images/blog/context-mode-claude-code-token-sparen.webp
+heroImage: ../../assets/blog/context-mode-claude-code-token-sparen.webp
 author: Alexander Schneider
 ---
 

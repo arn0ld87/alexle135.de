@@ -5,27 +5,34 @@ interface Props {
   lead: string;
   aside?: string;
   accentDot?: boolean;
+  /** Wort im Titel, das als Outline gesetzt wird (höchstens eines je Seite, D-14). */
+  outlineWord?: string;
 }
 
-const { kicker, title, lead, aside, accentDot = true } = Astro.props;
+const { kicker, title, lead, aside, accentDot = true, outlineWord } = Astro.props;
+
+const outlineAt = outlineWord ? title.indexOf(outlineWord) : -1;
 ---
 
-<header class="grid gap-8 border-b border-[color:color-mix(in_srgb,var(--color-mono-50)_12%,transparent)] pb-12 md:pb-14 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.7fr)] lg:items-end">
+<header class="ds-pagehead ds-linegrid grid gap-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.7fr)] lg:items-end">
   <div class="space-y-5">
-    <div class="v2-kicker flex items-center gap-3">
-      {accentDot && <span class="v2-accent-dot" aria-hidden="true"></span>}
-      <span>{kicker}</span>
-    </div>
-    <h1 class="max-w-5xl text-balance font-editorial text-[clamp(2.75rem,1.5rem_+_3.6vw,5.25rem)] leading-[0.92] tracking-[-0.05em] text-[color:var(--color-mono-50)]">
-      {title}
+    <p class="ds-kicker" data-marker={accentDot ? undefined : 'none'}>{kicker}</p>
+    <h1 class="ds-pagehead__title ds-display-xl">
+      {outlineAt === -1 || !outlineWord ? (
+        title
+      ) : (
+        <Fragment>
+          {title.slice(0, outlineAt)}<span class="ds-outline">{outlineWord}</span>{title.slice(outlineAt + outlineWord.length)}
+        </Fragment>
+      )}
     </h1>
-    <p class="max-w-3xl text-lg leading-8 text-[color:var(--color-mono-200)]">
+    <p class="ds-pagehead__lead">
       {lead}
     </p>
   </div>
 
   {aside && (
-    <p class="max-w-[34ch] text-sm leading-7 text-[color:var(--color-mono-300)] lg:justify-self-end">
+    <p class="ds-pagehead__aside lg:justify-self-end">
       {aside}
     </p>
   )}

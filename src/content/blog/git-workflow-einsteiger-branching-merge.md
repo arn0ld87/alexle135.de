@@ -8,7 +8,7 @@ tags:
   - Versionskontrolle
   - DevOps
   - Tutorial
-heroImage: /images/blog/git-workflow-einsteiger.webp
+heroImage: ../../assets/blog/git-workflow-einsteiger.webp
 author: Alexander Schneider
 ---
 
@@ -332,7 +332,7 @@ git push origin main
 
 ```bash
 git config --global user.name "Alexander Schneider"
-git config --global user.email "schneider@alexle135.de"
+git config --global user.email "schneider@alex-schneider.dev"
 ```
 
 ### Editor festlegen
@@ -484,7 +484,7 @@ Saubere Feature-Entwicklung, sichere Experimente, entspannte Teamarbeit.
 **Mein Tipp:**
 Fang klein an. Ein Feature, ein Branch. Dann steigern.
 
-Bei Fragen schreib mir: [schneider@alexle135.de](mailto:schneider@alexle135.de)
+Bei Fragen schreib mir: [schneider@alex-schneider.dev](mailto:schneider@alex-schneider.dev)
 
 ---
 

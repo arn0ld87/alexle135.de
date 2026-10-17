@@ -43,7 +43,7 @@ describe('/api/admin/messages', () => {
 
   it('lists messages through the Postgres repository', async () => {
     const res = await GET({
-      request: makeRequest('GET', 'https://alexle135.de/api/admin/messages?unhandled=1'),
+      request: makeRequest('GET', 'https://alex-schneider.dev/api/admin/messages?unhandled=1'),
     } as never);
 
     expect(res.status).toBe(200);
@@ -56,7 +56,7 @@ describe('/api/admin/messages', () => {
 
   it('filters messages by workflow status', async () => {
     const res = await GET({
-      request: makeRequest('GET', 'https://alexle135.de/api/admin/messages?status=follow_up'),
+      request: makeRequest('GET', 'https://alex-schneider.dev/api/admin/messages?status=follow_up'),
     } as never);
 
     expect(res.status).toBe(200);
@@ -70,7 +70,7 @@ describe('/api/admin/messages', () => {
     listContactMessagesMock.mockRejectedValue(new Error('db down: connection refused at 10.0.0.5'));
 
     const res = await GET({
-      request: makeRequest('GET', 'https://alexle135.de/api/admin/messages'),
+      request: makeRequest('GET', 'https://alex-schneider.dev/api/admin/messages'),
     } as never);
 
     expect(res.status).toBe(500);
@@ -84,7 +84,7 @@ describe('/api/admin/messages', () => {
 
   it('updates handled state through the Postgres repository', async () => {
     const res = await PATCH({
-      request: makeRequest('PATCH', 'https://alexle135.de/api/admin/messages', {
+      request: makeRequest('PATCH', 'https://alex-schneider.dev/api/admin/messages', {
         id: MESSAGE_ID,
         handled: false,
       }),
@@ -96,7 +96,7 @@ describe('/api/admin/messages', () => {
 
   it('defaults handled to true', async () => {
     await PATCH({
-      request: makeRequest('PATCH', 'https://alexle135.de/api/admin/messages', {
+      request: makeRequest('PATCH', 'https://alex-schneider.dev/api/admin/messages', {
         id: MESSAGE_ID,
       }),
     } as never);
@@ -106,7 +106,7 @@ describe('/api/admin/messages', () => {
 
   it('updates workflow status through the Postgres repository', async () => {
     const res = await PATCH({
-      request: makeRequest('PATCH', 'https://alexle135.de/api/admin/messages', {
+      request: makeRequest('PATCH', 'https://alex-schneider.dev/api/admin/messages', {
         id: MESSAGE_ID,
         status: 'spam',
       }),
@@ -118,7 +118,7 @@ describe('/api/admin/messages', () => {
 
   it('rejects invalid workflow status', async () => {
     const res = await PATCH({
-      request: makeRequest('PATCH', 'https://alexle135.de/api/admin/messages', {
+      request: makeRequest('PATCH', 'https://alex-schneider.dev/api/admin/messages', {
         id: MESSAGE_ID,
         status: 'done-ish',
       }),
@@ -130,7 +130,9 @@ describe('/api/admin/messages', () => {
 
   it('requires an id for updates', async () => {
     const res = await PATCH({
-      request: makeRequest('PATCH', 'https://alexle135.de/api/admin/messages', { handled: true }),
+      request: makeRequest('PATCH', 'https://alex-schneider.dev/api/admin/messages', {
+        handled: true,
+      }),
     } as never);
 
     expect(res.status).toBe(400);
@@ -139,7 +141,7 @@ describe('/api/admin/messages', () => {
 
   it('rejects updates with a malformed id', async () => {
     const res = await PATCH({
-      request: makeRequest('PATCH', 'https://alexle135.de/api/admin/messages', {
+      request: makeRequest('PATCH', 'https://alex-schneider.dev/api/admin/messages', {
         id: 'msg-1',
         handled: true,
       }),
@@ -151,7 +153,10 @@ describe('/api/admin/messages', () => {
 
   it('deletes messages through the Postgres repository', async () => {
     const res = await DELETE({
-      request: makeRequest('DELETE', `https://alexle135.de/api/admin/messages?id=${MESSAGE_ID}`),
+      request: makeRequest(
+        'DELETE',
+        `https://alex-schneider.dev/api/admin/messages?id=${MESSAGE_ID}`
+      ),
     } as never);
 
     expect(res.status).toBe(200);

@@ -7,7 +7,7 @@ tags:
   - Automatisierung
   - GitLab
   - GitHub Actions
-heroImage: /images/blog/devops-einstieg-ci-cd-praxis.webp
+heroImage: ../../assets/blog/devops-einstieg-ci-cd-praxis.webp
 publishedAt: 2025-11-15
 author: Alexander Schneider
 ---
@@ -258,7 +258,7 @@ DevOps und CI/CD sind keine leeren Buzzwords, sondern unverzichtbare Werkzeuge f
 **Mein Tipp:**
 Fang klein an. Richte erst automatische Tests ein. Wenn das läuft, wage dich an das automatische Deployment.
 
-Bei Fragen schreib mir gerne: [schneider@alexle135.de](mailto:schneider@alexle135.de)
+Bei Fragen schreib mir gerne: [schneider@alex-schneider.dev](mailto:schneider@alex-schneider.dev)
 
 ---
 
@@ -268,3 +268,5 @@ Bei Fragen schreib mir gerne: [schneider@alexle135.de](mailto:schneider@alexle13
 - [GitLab CI/CD Docs](https://docs.gitlab.com/ee/ci/)
 - [DevOps & CI/CD - Elevel.io](https://www.elevel.io/corporate-learning/devops-ci-cd-schneller-sicherer-automatisierter-deployen)
 - Eigene Praxiserfahrung
+
+**Weiterlesen:** [DevOps-Trends 2025: Was Einsteiger wirklich wissen müssen](/blog/devops-trends-2025-einsteiger/)

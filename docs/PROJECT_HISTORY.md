@@ -162,6 +162,12 @@ Der heutige Stand ist nicht "perfekt", aber deutlich weniger zufällig:
 
 Das Repo wurde damit schwerer. Aber auch ehrlicher. Eine öffentliche Codebase sieht schnell gut aus, wenn man nur die hübschen Teile zeigt. Interessant wird sie erst, wenn Build, Tests und Betrieb auch mitspielen.
 
+## Redesign und Umzug im Jahr 2026
+
+Im August 2026 folgte mit Paper Editorial die erste Stufe eines Redesigns (#328, #329): helles Papier, dunkle Tinte und ein grüner Akzent statt der bisherigen dunklen Oberfläche. Parallel zog die Seite auf die Domain `alex-schneider.dev` um (#323, #324). Im Oktober 2026 kamen der Umstieg auf Astro 7 (#332) und ein neues Logo (#333) dazu; die alten Logo-Dateien wurden in #335 entfernt.
+
+Als neue Gestaltungsrichtung wurde Systemwerk gesetzt und im Oktober 2026 umgesetzt: eckig, flach, mit Linien statt Schatten, einem Akzent und den zwei Ansichten Papier und Bauplan. `DESIGN_SYSTEM.md` beschreibt den umgesetzten Stand, ein Test hält die Token-Tabelle deckungsgleich mit dem Stylesheet.
+
 ## Warum der `docs/`-Ordner jetzt kleiner ist
 
 Vor dem Public-Release lagen im `docs/`-Ordner zu viele Dinge gleichzeitig:
@@ -177,13 +183,13 @@ Vor dem Public-Release lagen im `docs/`-Ordner zu viele Dinge gleichzeitig:
 
 Das ist für ein privates Arbeitsrepo okay. Für ein öffentliches Repo ist es unlesbar.
 
-Darum bleibt in `docs/` nur noch Doku, die langfristig erklärend ist:
+Darum bleibt in `docs/` nur noch Doku, die langfristig erklärend ist. Maßgebliche Liste ist der [Docs-Index](README.md); der aktuelle Bestand besteht aus diesen Gruppen:
 
-- [Design System](DESIGN_SYSTEM.md)
-- [Information Architecture & Navigation](IA_NAVIGATION.md)
-- [Page Goals & Strategy](PAGE_GOALS.md)
-- [Branch Protection](ci/BRANCH-PROTECTION.md)
-- diese Projektgeschichte
+- Architektur und Betrieb: `architecture.md`, `DEPLOY-ROLLBACK.md`, `ci/` (Branch Protection)
+- Design und IA: [Design System](DESIGN_SYSTEM.md), [Information Architecture & Navigation](IA_NAVIGATION.md), [Page Goals & Strategy](PAGE_GOALS.md)
+- Agenten: `agents/`
+- Entscheidungen: `adr/`
+- Pläne und Historie: `plans/` und diese Projektgeschichte
 
 Alles andere ist nicht gelöscht, sondern aus der öffentlichen Dokumentationsfläche herausgenommen. Der Anspruch ist: Wer das Repo öffnet, soll verstehen, was das Projekt ist, warum es so aussieht und welche Teile heute relevant sind.
 
@@ -203,7 +209,7 @@ Das ist vermutlich die ehrlichste Beschreibung des Projekts: erst gebaut, dann v
 
 ## Aktueller Stand
 
-Heute ist `alexle135.de` eine produktionsnahe Astro-6-Anwendung mit React, Tailwind CSS, Content Collections, PostgreSQL, Better Auth, Admin-Bereich, Blog, Projektarchiv und einem bewusst reduzierten `v2`-UI-System.
+Heute ist `alex-schneider.dev` (früher `alexle135.de`) eine produktionsnahe Astro-7-Anwendung mit React, Tailwind CSS, Content Collections, PostgreSQL, Better Auth, Admin-Bereich, Blog, Projektarchiv und einem bewusst reduzierten `v2`-UI-System.
 
 Die Seite dient weiter als Portfolio. Aber das Repo ist inzwischen auch ein Nachweis dafür, wie aus einem persönlichen Webprojekt eine wartbare Anwendung werden kann.
 
