@@ -21,7 +21,7 @@ const { number, title, href, summary, proofLine, tags = [], image, imageAlt, yea
 <article class="ds-card group grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.58fr)] xl:grid-cols-[minmax(0,1fr)_minmax(22rem,0.5fr)] lg:items-start">
   <div class="order-2 lg:order-1">
     <a href={href} class="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--accent)]">
-      <div class="relative min-h-[18rem] overflow-hidden border border-[color:var(--line)] bg-[color:color-mix(in_srgb,var(--ink)_4%,var(--paper))] md:min-h-[28rem]">
+      <div class="overflow-hidden border border-[color:var(--line)] bg-[color:color-mix(in_srgb,var(--ink)_4%,var(--paper))]">
         {image && (
           <Picture
             src={image}
@@ -30,13 +30,13 @@ const { number, title, href, summary, proofLine, tags = [], image, imageAlt, yea
             widths={[480, 800]}
             sizes="(min-width: 1024px) 40vw, 100vw"
             alt={imageAlt ?? title}
-            class="absolute inset-0 h-full w-full object-cover"
+            class="block aspect-[3/2] h-auto w-full object-contain"
             pictureAttributes={{ class: 'contents' }}
             loading="lazy"
             decoding="async"
           />
         )}
-        <div class="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 border-t border-[color:var(--line)] bg-[color:var(--paper)] px-5 py-4 md:px-6">
+        <div class="flex items-end justify-between gap-4 border-t border-[color:var(--line)] bg-[color:var(--paper)] px-5 py-4 md:px-6">
           <p class="ds-meta">Case entry</p>
           <span class="ds-meta ds-meta--ink">View project</span>
         </div>

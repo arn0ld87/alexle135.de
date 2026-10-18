@@ -7,6 +7,7 @@ tags:
   - Business
   - Tool
 heroImage: ../../assets/projects/roi-rechner.webp
+heroImageAlt: 'Konzeptioneller Zeitvergleich zwischen manueller Arbeit und Automatisierung mit markiertem Zeitgewinn.'
 publishedAt: 2025-11-19
 ---
 
