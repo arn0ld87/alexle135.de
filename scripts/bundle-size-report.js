@@ -21,13 +21,13 @@ const WARN_THRESHOLD = 0.8; // Warnung bei 80% des Limits
 const SIZE_LIMIT_OVERRIDES = [
   {
     ext: 'js',
-    pattern: /_astro\/WebContainerTerminal\..+\.js$/,
-    limit: 380 * 1024,
+    pattern: /_astro\/libv86\..+\.js$/,
+    limit: 400 * 1024,
   },
   {
     ext: 'js',
-    pattern: /_astro\/BaseMissionTerminal\..+\.js$/,
-    limit: 120 * 1024,
+    pattern: /_astro\/xterm\..+\.js$/,
+    limit: 320 * 1024,
   },
   {
     ext: 'css',
@@ -154,8 +154,8 @@ async function main() {
   console.log(`   CSS:  max ${formatSize(SIZE_LIMITS.css)}`);
   console.log(`   HTML: max ${formatSize(SIZE_LIMITS.html)}`);
   console.log('\n📐 Override-Limits:');
-  console.log(`   JS (WebContainerTerminal): max ${formatSize(380 * 1024)}`);
-  console.log(`   JS (BaseMissionTerminal): max ${formatSize(120 * 1024)}`);
+  console.log(`   JS (libv86, nur Missionsroute): max ${formatSize(400 * 1024)}`);
+  console.log(`   JS (xterm, nur Missionsroute): max ${formatSize(320 * 1024)}`);
   console.log(`   CSS (V2 layout stylesheet): max ${formatSize(220 * 1024)}`);
   console.log(`   HTML (Blogseiten): max ${formatSize(180 * 1024)}`);
 
