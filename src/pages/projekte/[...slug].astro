@@ -71,6 +71,16 @@ const schema = projectSchema;
         {project.data.summary}
       </p>
 
+      {project.data.appUrl && (
+        <a
+          href={project.data.appUrl}
+          data-astro-reload
+          class="inline-flex items-center gap-3 border border-[color:var(--ink)] bg-[color:var(--ink)] px-6 py-3 font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--paper)] transition-colors hover:border-[color:var(--accent-strong)] hover:bg-[color:var(--accent-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--accent)]"
+        >
+          Missionen starten <span aria-hidden="true">→</span>
+        </a>
+      )}
+
       {project.data.techStack && project.data.techStack.length > 0 && (
         <div class="flex flex-col gap-3">
           <p class="ds-meta">Tech Stack</p>
