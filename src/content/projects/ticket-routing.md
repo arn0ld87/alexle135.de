@@ -10,6 +10,7 @@ techStack: ['Gemini API', 'Node.js', 'Express', 'Docker']
 role: 'Workflow-Architektur, Prompt-Logik & Routing-Regeln'
 frameLabel: 'Classifier view / escalation logic'
 heroImage: ../../assets/projects/ticket-routing.webp
+heroImageAlt: 'Routing-Schema: Ein Ticket wird HW, SW oder Netzwerk zugeordnet; ein Prüfpfad führt zur manuellen Sichtung.'
 publishedAt: 2025-11-20
 featured: true
 ---
