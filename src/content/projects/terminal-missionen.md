@@ -1,92 +1,63 @@
 ---
 title: Terminal Missionen
 category: Web
-summary: Ein interaktives Lernprodukt. Linux-, Docker- und Git-Missionen als geführte Terminal-Simulation direkt im Browser, ohne lokales Setup.
+summary: Echtes Alpine Linux im Browser. Neun Missionen zu Linux und Git, geprüft wird der Zustand des Systems, nicht der getippte Befehl.
 tags:
   - Linux
   - DevOps
-  - Docker
   - Git
-techStack: ['React 19', 'TypeScript', 'WebContainer', 'Tailwind']
-role: 'Konzept, Interface-System & Browser-Learning-Flow'
-frameLabel: 'Live terminal scenes / guided steps'
+techStack: ['v86', 'Alpine Linux', 'xterm.js', 'React 19', 'TypeScript']
+role: 'Konzept, Missionsdesign & VM-Integration'
+frameLabel: 'Alpine in v86 / Missionen 00–08'
 heroImage: ../../assets/projects/terminal-missionen.webp
+heroImageAlt: 'Editorial-Grafik: Linux-Terminal mit chmod-Befehl und mehreren Lernstationen.'
 publishedAt: 2025-11-19
 featured: true
+appUrl: '/projekte/terminal-missionen/app/'
 ---
 
-<div class="grid md:grid-cols-2 gap-12 mb-12">
-  <div>
-    <h2 class="text-2xl font-bold mb-4">Lerne durch Tun</h2>
-    <p class="leading-relaxed">
-      Vergiss trockene Theorie. Mit Terminal Missionen lernst du Linux, Docker und Git direkt in der Praxis. Tippe echte Befehle in ein simuliertes Terminal – ohne Installation, direkt im Browser. Von FISI-Basics bis DevOps-Profi.
-    </p>
-  </div>
+## Was das ist
 
-  <div class="ds-card">
-    <h3 class="text-xl font-semibold mb-4">Key Features</h3>
-    <ul class="space-y-2">
-      <li class="flex items-center gap-2">
-        <span class="text-[var(--accent-strong)]">✓</span> Keine Installation nötig
-      </li>
-      <li class="flex items-center gap-2">
-        <span class="text-[var(--accent-strong)]">✓</span> Echte Befehle, echtes Feedback
-      </li>
-      <li class="flex items-center gap-2">
-        <span class="text-[var(--accent-strong)]">✓</span> Geführte Schritt-für-Schritt Missionen
-      </li>
-      <li class="flex items-center gap-2">
-        <span class="text-[var(--accent-strong)]">✓</span> 100% sicher experimentieren
-      </li>
-    </ul>
-  </div>
-</div>
+Echtes Alpine Linux im Browser. Du bist mein Azubi, ich bin im Urlaub, und der Server gehört dir. Neun Missionen führen dich von `whoami` bis zum geleakten Secret in der Git-Historie, ohne Installation und ohne Konto.
 
-<div class="grid md:grid-cols-3 gap-6 mb-16">
-  <div class="ds-card">
-    <h3 class="font-semibold mb-2">🐧 Linux</h3>
-    <p class="text-sm">
-      Navigation, Dateiverwaltung, Systeminfos – die wichtigsten Linux-Befehle lernen.
-    </p>
-  </div>
-  <div class="ds-card">
-    <h3 class="font-semibold mb-2">🐳 Docker</h3>
-    <p class="text-sm">
-      Container starten, verwalten und mit docker-compose orchestrieren.
-    </p>
-  </div>
-  <div class="ds-card">
-    <h3 class="font-semibold mb-2">📦 Git</h3>
-    <p class="text-sm">
-      Versionskontrolle meistern: Repository, Commits, Branches, Merges.
-    </p>
-  </div>
-</div>
+## Die Missionen
 
-<div class="grid md:grid-cols-2 gap-12 mb-12">
-  <div>
-    <h2 class="text-2xl font-bold mb-6">Technologie-Stack</h2>
-    <div class="flex flex-wrap gap-3">
-      <span class="ds-tag">React 19</span>
-      <span class="ds-tag">TypeScript</span>
-      <span class="ds-tag">WebContainer API</span>
-      <span class="ds-tag">Tailwind CSS</span>
-    </div>
-    <p class="mt-6 text-sm">
-      Die Terminal-Simulation läuft komplett im Browser. Keine Installation, kein Setup – einfach öffnen und loslegen. Das Filesystem wird client-seitig simuliert, du kannst risikofrei experimentieren.
-    </p>
-  </div>
+| Nr  | Titel                    | Track | Stufe           |
+| --- | ------------------------ | ----- | --------------- |
+| 00  | Erster Tag               | Linux | Einstieg        |
+| 01  | Wer bin ich hier?        | Linux | Einstieg        |
+| 02  | Alex' Downloads          | Linux | Einstieg        |
+| 03  | Versteckte Notizen       | Linux | Fortgeschritten |
+| 04  | Wer klopft an /admin?    | Linux | Profi           |
+| 05  | Alex' Rechte-Fehler      | Linux | Profi           |
+| 06  | Das Repo dieser Seite    | Git   | Einstieg        |
+| 07  | Feature-Branch für Agora | Git   | Fortgeschritten |
+| 08  | Das geleakte Secret      | Git   | Fortgeschritten |
 
-  <div class="flex flex-col justify-center items-center ds-note text-center">
-    <h3 class="text-2xl font-bold mb-4">Bereit loszulegen?</h3>
-    <p class="mb-6">
-      Starte deine erste Mission. Keine Anmeldung, keine Installation.
-    </p>
-    <a href="/projekte/terminal-missionen/app/" class="inline-flex items-center justify-center px-6 py-3 bg-[var(--ink)] text-[var(--paper)] font-medium transition-colors hover:bg-[var(--accent-strong)]">
-      Missionen starten
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
-        <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-      </svg>
-    </a>
-  </div>
-</div>
+Mission 00 bringt nur die Bedienung bei und zählt nicht zur Gesamtzeit. Alle Daten in den Missionen sind erfunden: Logs, IPs, Notizen und Secrets.
+
+## Wie es gebaut ist
+
+Im Browser läuft [v86](https://github.com/copy/v86), ein x86-Emulator in WebAssembly. Darin bootet ein eigenes Alpine-Image mit 128 MB Speicher, das ich selbst baue und selbst hoste. Damit der Start nicht jedes Mal einen kompletten Boot braucht, lädt der Browser einen fertigen Speicherstand der VM. Das Terminal ist xterm.js an der ersten seriellen Schnittstelle.
+
+An der zweiten seriellen Schnittstelle hängt ein Agent. `mission-agent` läuft in der VM als root und richtet Missionen ein, prüft Schritte und vergibt Flaggen. Im sichtbaren Terminal taucht dieser Kanal nie auf.
+
+```text
+Browser (React, xterm.js)
+  ├── ttyS0 ── Shell der lernenden Person
+  └── ttyS1 ── mission-agent (root): setup, verify, flag
+                    │
+              Alpine Linux in v86
+```
+
+Geprüft wird der Zustand, nicht der Befehl. Ob du `mkdir -p` tippst oder zwei einzelne `mkdir`, ist egal. Der Agent schaut nach, ob das Verzeichnis existiert, ob die Datei den richtigen Inhalt hat oder ob der Commit im Repo liegt. Jeder Weg zum Ziel zählt.
+
+Die VM hat kein Netzwerk, und es gibt kein Backend. Den Fortschritt speichert der Browser lokal, auf meinem Server landet nichts davon.
+
+## Was ich dabei gelernt habe
+
+Die erste Version war eine nachgebaute Shell. Jeder Befehl, den ich nicht vorhergesehen hatte, war ein Fehler, und `ls -la` statt `ls` hat schon gereicht. Ein echtes Linux nimmt mir diese Arbeit ab: Ich muss keine Befehle mehr nachbauen, nur noch Zielzustände beschreiben.
+
+Der dümmste Bug saß in einer einzigen Zeile. Der Agent hat sein Austauschverzeichnis `/run/mission` mit `1777` angelegt, also mit Sticky Bit. Seine Antwortdateien gehörten root, und in einem Sticky-Verzeichnis darf nur der Eigentümer löschen. Die Shell wollte nach jedem Befehl aufräumen und bekam jedes Mal `Operation not permitted` ins Terminal. Richtig ist `0700` mit der lernenden Person als Eigentümer: root schreibt hinein, die Shell darf löschen, sonst sieht niemand etwas. Ausgerechnet das Rechte-Thema, das Mission 05 beibringt.
+
+Das Image ist der teuerste Teil. Jedes Paket landet im Download der Besucher, also kommt nur rein, was eine Mission wirklich braucht. Und weil jeder das Image auslesen kann, enthält es nur Fiktives: IPs aus den Dokumentationsbereichen, Secrets, die schon im Namen sagen, dass sie nicht echt sind.
