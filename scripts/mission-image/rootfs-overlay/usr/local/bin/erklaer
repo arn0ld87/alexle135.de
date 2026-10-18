@@ -1,0 +1,22 @@
+#!/bin/bash
+# Erklärt einen Befehl aus dem Glossar der Missionen in einem Satz plus Beispiel.
+# Quelle: /usr/local/share/mission/glossar.tsv (im Repo: rootfs-overlay, dieselbe Datei
+# liest die Website für den Werkzeugkasten).
+readonly GLOSSAR=${MISSION_GLOSSAR:-/usr/local/share/mission/glossar.tsv}
+
+if (($# == 0)); then
+  echo 'erklaer <befehl>   erklärt einen Befehl, z. B. erklaer ls oder erklaer git log'
+  exit 2
+fi
+
+wanted="$*"
+while IFS=$'\t' read -r befehl erklaerung beispiel; do
+  [[ -z $befehl || $befehl == '#'* ]] && continue
+  if [[ $befehl == "$wanted" ]]; then
+    printf '%s: %s\n  Beispiel: %s\n' "$befehl" "$erklaerung" "$beispiel"
+    exit 0
+  fi
+done <"$GLOSSAR"
+
+printf 'Kenne ich nicht. Versuch `%s --help`.\n' "$1"
+exit 1
