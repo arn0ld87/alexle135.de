@@ -4,8 +4,33 @@ import { MockWindowsSystem } from './MockWindowsSystem';
 interface TerminalProps {
   initialPath?: string; // Kept for compatibility, but MockWindowsSystem handles its own path
   welcomeMessage?: string;
-  onCommand?: (command: string) => void;
+  /** Vorhandenes System (z. B. einer Mission); sonst legt das Terminal ein eigenes an. */
+  system?: MockWindowsSystem;
+  /** Vor dem System: Eine Antwort ersetzt die Ausführung der Zeile (z. B. `mission status`). */
+  intercept?: (input: string) => string | null;
+  /** Nach jedem ausgeführten Befehl; ein zurückgegebener Text erscheint als Ausgabe. */
+  onCommand?: (command: string) => string | void;
 }
+
+// Die 16 Konsolenfarben von `color`: Ziffer 0 bis F für Hintergrund und Text.
+const CMD_PALETTE = [
+  '#000000',
+  '#0000AA',
+  '#00AA00',
+  '#00AAAA',
+  '#AA0000',
+  '#AA00AA',
+  '#AA5500',
+  '#C0C0C0',
+  '#555555',
+  '#5555FF',
+  '#55FF55',
+  '#55FFFF',
+  '#FF5555',
+  '#FF55FF',
+  '#FFFF55',
+  '#FFFFFF',
+];
 
 interface HistoryItem {
   type: 'input' | 'output' | 'error';
@@ -15,6 +40,8 @@ interface HistoryItem {
 
 export default function Terminal({
   welcomeMessage = 'Microsoft Windows [Version 10.0.19045.3693]\n(c) Microsoft Corporation. Alle Rechte vorbehalten.',
+  system,
+  intercept,
   onCommand,
 }: TerminalProps) {
   // --- State ---
@@ -31,6 +58,8 @@ export default function Terminal({
   const systemRef = useRef<MockWindowsSystem | null>(null);
   const [prompt, setPrompt] = useState('C:\\Users\\visitor>');
   const [mode, setMode] = useState<'cmd' | 'powershell' | 'diskpart'>('cmd');
+  // Farbe und Titel setzt der Mock per `color` und `title`.
+  const [chrome, setChrome] = useState({ color: '07', title: '' });
 
   // UI Refs
   const inputRef = useRef<HTMLInputElement>(null);
@@ -39,7 +68,7 @@ export default function Terminal({
   // Initialize System
   useEffect(() => {
     if (!systemRef.current) {
-      systemRef.current = new MockWindowsSystem();
+      systemRef.current = system ?? new MockWindowsSystem();
       setPrompt(systemRef.current.getPrompt());
     }
   }, []);
@@ -110,12 +139,22 @@ export default function Terminal({
       // Clear Input
       setCurrentInput('');
 
+      // Eigene Befehle des Elternteils (z. B. `mission`) laufen nicht im System.
+      const intercepted = intercept?.(cmd);
+      if (intercepted !== undefined && intercepted !== null) {
+        if (intercepted) {
+          setHistory((prev) => [...prev, { type: 'output', content: intercepted }]);
+        }
+        return;
+      }
+
       // Process Command
       const result = systemRef.current.processCommand(cmd);
 
       // Update UI State from System
       setPrompt(systemRef.current.getPrompt());
       setMode(systemRef.current.getMode());
+      setChrome({ color: systemRef.current.getColor(), title: systemRef.current.getTitle() });
 
       // Handle Result
       if (result.clear) {
@@ -126,7 +165,10 @@ export default function Terminal({
 
       // Notify Parent
       if (onCommand && cmd.trim()) {
-        onCommand(cmd.trim());
+        const note = onCommand(cmd.trim());
+        if (note) {
+          setHistory((prev) => [...prev, { type: 'output', content: note }]);
+        }
       }
     }
   };
@@ -150,13 +192,15 @@ export default function Terminal({
         title: 'DiskPart',
       };
     } else {
-      // CMD - Windows Command Prompt
+      // CMD - Windows Command Prompt; Standard ist Hellgrau auf Schwarz (`color 07`)
+      const bg = CMD_PALETTE[parseInt(chrome.color[0], 16)] ?? '#000000';
+      const text = CMD_PALETTE[parseInt(chrome.color[1], 16)] ?? '#C0C0C0';
       return {
-        bg: '#000000', // Black
-        text: '#C0C0C0', // Light Gray (Windows CMD default)
-        promptColor: '#C0C0C0', // Same gray as text
+        bg,
+        text,
+        promptColor: text,
         titleBg: '#0078D4', // Windows blue title bar
-        title: 'Eingabeaufforderung',
+        title: chrome.title || 'Eingabeaufforderung',
       };
     }
   };
@@ -165,7 +209,7 @@ export default function Terminal({
 
   return (
     <div
-      className="w-full h-full min-h-[400px] rounded-lg overflow-hidden border transition-all duration-300 flex flex-col"
+      className="w-full h-full min-h-[400px] overflow-hidden border transition-all duration-300 flex flex-col"
       onClick={focusInput}
       style={{
         fontFamily: 'Consolas, "Courier New", monospace',
