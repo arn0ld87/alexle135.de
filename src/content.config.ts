@@ -26,6 +26,8 @@ const projects = defineCollection({
         .enum(['SoftwareApplication', 'SoftwareSourceCode', 'CreativeWork', 'TechArticle'])
         .default('SoftwareApplication'),
       status: z.enum(['planning', 'in-progress', 'completed', 'archived']).default('completed'),
+      // Interne Route einer eigenen App (z. B. Missionen); zeigt einen Start-Button im Kopf.
+      appUrl: z.string().startsWith('/').optional(),
       demoUrl: z.url().optional(),
       repoUrl: z.url().optional(),
       featured: z.boolean().default(false),
