@@ -1,0 +1,2 @@
+# Staffel 1 (#400): azubi darf Konten sperren und ihren Status ansehen, sonst nichts als root.
+azubi ALL=(root) NOPASSWD: /usr/sbin/usermod, /usr/bin/passwd
