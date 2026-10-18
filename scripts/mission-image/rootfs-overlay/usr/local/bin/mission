@@ -1,0 +1,62 @@
+#!/bin/bash
+# Befehl `mission` des Azubis. Fragt die Missions-Engine im Browser über eine
+# OSC-Sequenz auf dem Terminal (xterm zeigt sie nicht an) und liest die Antwort, die
+# die Engine über den Agenten nach /run/mission/reply.<id> schreibt.
+# Protokoll: siehe src/lib/missions/missionBridge.ts
+
+readonly DIR=/run/mission
+
+usage() {
+  cat <<'EOF'
+mission status   aktueller Schritt und Aufgabe
+mission hint     nächster Tipp (gestuft)
+mission check    Zustand jetzt prüfen
+mission solve    Lösungsweg zeigen (Flagge gilt dann als „mit Lösung“)
+mission flag     Flagge anzeigen, sobald die Mission geschafft ist
+mission next     nächste Mission starten
+
+erklaer <befehl> erklärt einen Befehl, z. B. erklaer ls
+EOF
+}
+
+cmd=${1:-status}
+case $cmd in
+  status | hint | check | flag) wait_s=15 ;;
+  # next startet die nächste Mission samt setup, das dauert länger.
+  next) wait_s=40 ;;
+  solve)
+    read -r -p 'Lösung anzeigen? Die Flagge wird dann als „mit Lösung“ markiert. [j/N] ' answer
+    [[ $answer == [jJ]* ]] || exit 0
+    wait_s=15
+    ;;
+  __prompt)
+    # Stille Prüfung nach jedem Befehl, nur während einer Mission.
+    [[ -e $DIR/active ]] || exit 0
+    wait_s=5
+    ;;
+  -h | --help | help)
+    usage
+    exit 0
+    ;;
+  *)
+    usage >&2
+    exit 2
+    ;;
+esac
+
+id="r$$x$RANDOM"
+reply="$DIR/reply.$id"
+printf '\033]7771;%s;%s\a' "$id" "$cmd" >/dev/tty
+
+for ((i = 0; i < wait_s * 20; i++)); do
+  if [[ -e $reply ]]; then
+    { read -r rc; text=$(cat); } <"$reply"
+    rm -f "$reply"
+    [[ -n $text ]] && printf '%s\n' "$text"
+    exit "${rc:-0}"
+  fi
+  sleep 0.05
+done
+
+[[ $cmd == __prompt ]] || echo 'mission: keine Antwort. Läuft gerade eine Mission?' >&2
+exit 3
