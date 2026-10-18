@@ -6,6 +6,9 @@
  * gegen die Budgets aus bundlesize.config.json:
  *   - totalJsGzipKb:        Budget für die Summe aller Client-JS-Assets
  *   - largestChunkGzipKb:   Budget für den größten Einzelchunk
+ *   - missionRoute:         Chunks, die nur die Missionsroute bei Bedarf nachlädt
+ *                           (v86, xterm). Sie zählen nicht zum Gesamt-JS, sondern
+ *                           gegen ein eigenes Budget; der Einzelchunk-Deckel gilt weiter.
  *
  * Danach prüft es zusätzlich das Bild-Budget (D-27, Plan 02-18) gegen
  * `budgets.images`:
@@ -70,7 +73,19 @@ if (missingImageBudget) {
   );
   process.exit(1);
 }
+const missionRoute = config?.budgets?.missionRoute;
+if (
+  !Array.isArray(missionRoute?.chunkPrefixes) ||
+  missionRoute.chunkPrefixes.length === 0 ||
+  typeof missionRoute?.totalJsGzipKb !== 'number'
+) {
+  console.error(
+    'bundlesize.config.json: budgets.missionRoute braucht chunkPrefixes (Liste) und totalJsGzipKb (Zahl).'
+  );
+  process.exit(1);
+}
 const totalBudget = totalKb * 1024;
+const missionBudget = missionRoute.totalJsGzipKb * 1024;
 const chunkBudget = chunkKb * 1024;
 
 function collectJsFiles(dir, files = []) {
@@ -103,7 +118,12 @@ if (assets.length === 0) {
   process.exit(1);
 }
 
-const totalGzip = assets.reduce((sum, a) => sum + a.gzip, 0);
+// Basisname ohne Hash: `_astro/libv86.BcYlRnWs.js` → `libv86`.
+const chunkName = (path) => path.split('/').pop().split('.')[0];
+const isMissionChunk = (a) => missionRoute.chunkPrefixes.includes(chunkName(a.path));
+const missionAssets = assets.filter(isMissionChunk);
+const totalGzip = assets.filter((a) => !isMissionChunk(a)).reduce((sum, a) => sum + a.gzip, 0);
+const missionGzip = missionAssets.reduce((sum, a) => sum + a.gzip, 0);
 const largest = assets[0];
 
 console.log('Bundle-Size-Gate (gzip)\n');
@@ -122,6 +142,22 @@ const totalPct = ((totalGzip / totalBudget) * 100).toFixed(0);
 console.log(`Gesamt-JS (gzip):   ${kb(totalGzip)} / Budget ${kb(totalBudget)} (${totalPct}%)`);
 if (totalGzip > totalBudget) {
   failures.push(`Gesamt-JS ${kb(totalGzip)} überschreitet Budget ${kb(totalBudget)}`);
+}
+
+const missionPct = ((missionGzip / missionBudget) * 100).toFixed(0);
+console.log(
+  `Missionsroute-JS:   ${kb(missionGzip)} / Budget ${kb(missionBudget)} (${missionPct}%)  [${missionAssets
+    .map((a) => chunkName(a.path))
+    .join(', ')}]`
+);
+if (missionGzip > missionBudget) {
+  failures.push(`Missionsroute-JS ${kb(missionGzip)} überschreitet Budget ${kb(missionBudget)}`);
+}
+// Veraltete Einträge fallen auf, statt still nichts mehr auszunehmen.
+for (const prefix of missionRoute.chunkPrefixes) {
+  if (!missionAssets.some((a) => chunkName(a.path) === prefix)) {
+    failures.push(`budgets.missionRoute: kein Chunk "${prefix}" im Build gefunden`);
+  }
 }
 
 const chunkPct = ((largest.gzip / chunkBudget) * 100).toFixed(0);

@@ -1,10 +1,9 @@
-import React from 'react';
-import BaseMissionTerminal from './BaseMissionTerminal';
+import LinuxMissions from '../missions/LinuxMissions';
 
 /**
- * Linux/Docker/Git Mission Terminal
- * Wrapper um BaseMissionTerminal für Linux-basierte Missionen
+ * Linux- und Git-Missionen auf echtem Linux im Browser (v86).
+ * Windows-Missionen laufen als Simulation über WindowsMissionTerminal.
  */
 export default function MissionTerminal() {
-  return <BaseMissionTerminal mode="linux" />;
+  return <LinuxMissions />;
 }
