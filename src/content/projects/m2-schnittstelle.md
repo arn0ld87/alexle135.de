@@ -8,6 +8,7 @@ tags:
   - Präsentation
   - IT-Grundlagen
 heroImage: ../../assets/projects/m2-schnittstelle.webp
+heroImageAlt: 'Stilisierte technische Ansicht einer M.2-SSD mit Speicherbausteinen, Steckkontakten und Formfaktor 2280.'
 ---
 
 <div class="grid md:grid-cols-2 gap-12 mb-12">
