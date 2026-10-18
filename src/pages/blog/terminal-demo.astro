@@ -1,22 +1,26 @@
 ---
 import V2Layout from '../../layouts/V2Layout.astro';
 import PageIntro from '../../components/site/PageIntro.astro';
-import MissionTerminal from '../../components/interactive/MissionTerminal.tsx';
 ---
 
 <V2Layout
   title="Terminal Demo"
-  description="Interaktive Terminal-Simulation für Tutorials."
+  description="Terminal-Missionen auf echtem Linux im Browser."
 >
   <main class="v2-shell py-20 md:py-28">
     <PageIntro
       kicker="Interactive Learning"
       title="Terminal Missionen"
-      lead="Lerne Linux-Grundlagen interaktiv. Erfülle die Aufgaben im Terminal, um die Mission abzuschließen."
+      lead="Lerne Linux und Git an einem echten Alpine-Linux, das direkt in deinem Browser läuft. Jeder Lösungsweg zählt; geprüft wird das Ergebnis."
     />
 
-    <div class="mt-12 max-w-6xl">
-      <MissionTerminal client:visible />
-    </div>
+    <!-- Die VM (v86) startet nur auf der Missionsroute: Nur dort erlaubt die CSP WASM. -->
+    <p class="mt-12">
+      <a
+        href="/projekte/terminal-missionen/app/"
+        class="inline-flex items-center justify-center px-6 py-3 bg-[var(--ink)] text-[var(--paper)] font-medium transition-colors hover:bg-[var(--accent-strong)]"
+        >Zu den Terminal-Missionen</a
+      >
+    </p>
   </main>
 </V2Layout>

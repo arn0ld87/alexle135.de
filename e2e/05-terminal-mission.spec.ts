@@ -1,51 +1,39 @@
-// Terminal-Mission-E2E (Issue #296): Seite lädt, Mission-Auswahl funktioniert,
-// und das Laden des Terminals löst sich in einen nutzbaren Zustand auf —
-// unabhängig davon, ob WebContainer.boot() im Headless-CI wirklich gelingt.
-//
-// src/components/interactive/BaseMissionTerminal.tsx rendert im
-// Linux-Modus (mode="linux", genutzt von
-// src/pages/projekte/terminal-missionen/app.astro) nach Missionsauswahl
-// LazyWebContainerTerminal (src/components/interactive/WebContainerTerminal.tsx).
-// Diese Komponente prüft canUseWebContainer() (SharedArrayBuffer /
-// crossOriginIsolated) und fällt bei fehlender Voraussetzung ODER einem
-// fehlgeschlagenen WebContainer.boot() auf einen simulierten Mock-Modus
-// zurück (initMockMode) — ohne die Seite in einem hängenden Ladezustand zu
-// belassen. xterm.js rendert seinen Inhalt auf <canvas>, daher wird hier NICHT
-// der Terminal-Text geprüft (nicht zuverlässig aus dem DOM lesbar), sondern
-// der strukturelle Übergang: Auswahl → Mission-Ansicht → Ladeindikator
-// verschwindet (isBooting=false), egal welcher Pfad (WebContainer oder Mock)
-// dahinterliegt.
+// Terminal-Mission-E2E: Die Linux-Missionen laufen auf echtem Linux im Browser (v86,
+// src/components/missions/LinuxMissions.tsx + V86Terminal.tsx). Die Assets der VM baut der
+// CI-Job vorher (scripts/mission-image/build.sh). xterm rendert hier über den DOM-Renderer,
+// der Zeilentext ist deshalb über .xterm-rows lesbar.
 import { expect, test } from '@playwright/test';
 
 test.describe('Terminal-Mission', () => {
-  test('Seite lädt, Missionsauswahl funktioniert, Terminal-Ladezustand löst sich auf', async ({
-    page,
-  }) => {
+  test('Mission wählen, Linux bootet, Shell und Befehl mission antworten', async ({ page }) => {
+    test.setTimeout(120_000);
     const pageErrors: Error[] = [];
     page.on('pageerror', (error) => pageErrors.push(error));
 
     await page.goto('/projekte/terminal-missionen/app');
-
     await expect(page.getByRole('heading', { name: 'Terminal Missionen' })).toBeVisible();
+    await expect(page.getByText(/^Linux \d+\/\d+ · Git \d+\/\d+$/)).toBeVisible();
 
-    // Missionsauswahl: mindestens eine anklickbare Mission-Karte.
-    const missionCards = page.locator('main button').filter({ hasText: /./ });
-    await expect(missionCards.first()).toBeVisible({ timeout: 15_000 });
-    await missionCards.first().click();
+    await page.getByRole('button', { name: /Linux Grundlagen/ }).click();
+    await expect(page.getByRole('heading', { name: 'Linux Grundlagen' })).toBeVisible();
 
-    // Nach der Auswahl wechselt die Ansicht in die Mission-Detailansicht
-    // (Zurück-Button + Fortschrittsanzeige, siehe BaseMissionTerminal.tsx).
-    await expect(page.getByText('Zurück zur Missionsauswahl')).toBeVisible();
-
-    // Der Boot-/Ladezustand (WebContainer ODER Mock-Fallback) muss sich
-    // innerhalb einer großzügigen Frist auflösen — die Seite darf nicht im
-    // "Initializing Linux Environment..."-Spinner hängen bleiben.
-    await expect(page.getByText('Initializing Linux Environment...')).toBeHidden({
-      timeout: 45_000,
+    // Boot aus dem Savestate und Agent bereit.
+    await expect(page.getByTestId('v86-status')).toContainText('echtes Linux', {
+      timeout: 90_000,
     });
+    // Engine hat setup ausgeführt und zeigt den ersten Schritt.
+    await expect(page.getByText(/^Schritt 1\/\d+$/)).toBeVisible({ timeout: 30_000 });
 
-    // Das Terminal-DOM-Grundgerüst (xterm) muss in jedem Fall vorhanden sein.
-    await expect(page.locator('.xterm').first()).toBeVisible();
+    const rows = page.locator('.xterm-rows').first();
+    await page.getByTestId('v86-terminal').click();
+    await page.keyboard.type('whoami');
+    await page.keyboard.press('Enter');
+    await expect(rows).toContainText(/whoami\s*azubi/, { timeout: 15_000 });
+
+    await page.keyboard.type('mission status');
+    await page.keyboard.press('Enter');
+    await expect(rows).toContainText(/Schritt 1\/\d+/, { timeout: 15_000 });
+    await expect(rows).not.toContainText('command not found');
 
     expect(
       pageErrors,
@@ -53,30 +41,35 @@ test.describe('Terminal-Mission', () => {
     ).toHaveLength(0);
   });
 
-  // Regression (Mission-Shell): Im echten WebContainer muss `whoami` die Shell der Missionen
-  // erreichen und `visitor` ausgeben (vorher startete nur das nackte jsh: "command not found").
-  // Bootet WebContainer in der Umgebung nicht (Mock-Fallback), entfällt die Prüfung.
-  test('Linux Grundlagen: whoami läuft in der Mission-Shell', async ({ page }) => {
-    test.setTimeout(90_000);
-    await page.goto('/projekte/terminal-missionen/app');
-    await page.getByText('Linux Grundlagen').first().click();
-    await expect(page.getByText('Zurück zur Missionsauswahl')).toBeVisible();
-    await expect(page.getByText('Initializing Linux Environment...')).toBeHidden({
-      timeout: 45_000,
-    });
+  // Regression (ClientRouter): Wer per Link von der Projektseite ins Terminal wechselt, muss ein
+  // frisch geladenes Dokument mit der Missions-CSP bekommen. Tauscht der ClientRouter nur das DOM,
+  // gilt die Default-CSP des alten Dokuments weiter und v86 darf sein WebAssembly nicht kompilieren.
+  test('Link-Navigation ins Terminal liefert ein frisches Dokument', async ({ page }) => {
+    await page.goto('/projekte/terminal-missionen/');
+    await page.evaluate(() => Object.assign(window, { __beforeLink: true }));
 
-    const rows = page.locator('.xterm-rows').first();
-    await expect(rows).toContainText(/Mock Mode|visitor@linux/, { timeout: 15_000 });
-    test.skip(
-      (await rows.innerText()).includes('Mock Mode'),
-      'WebContainer bootet in dieser Umgebung nicht (Mock-Fallback)'
+    const appResponse = page.waitForResponse(
+      (response) =>
+        /\/projekte\/terminal-missionen\/app\/?$/.test(new URL(response.url()).pathname) &&
+        response.request().resourceType() === 'document'
     );
+    await page.locator('a[href^="/projekte/terminal-missionen/app"]').first().click();
+    const response = await appResponse;
+    await page.waitForURL(/\/projekte\/terminal-missionen\/app\/?$/);
+    await page.waitForLoadState('load');
 
-    await page.locator('.xterm').first().click();
-    await page.keyboard.type('whoami');
-    await page.keyboard.press('Enter');
-    // Zeilen eines xterm-DOM-Renderers haben keine Zeilenumbrüche im Textinhalt.
-    await expect(rows).toContainText(/whoami\s*visitor\s*visitor@linux/);
-    await expect(rows).not.toContainText('command not found');
+    expect(response.headers()['content-security-policy']).toContain("'wasm-unsafe-eval'");
+    const state = await page.evaluate(() => ({
+      isolated: self.crossOriginIsolated,
+      freshDocument: !('__beforeLink' in window),
+    }));
+    expect(state).toEqual({ isolated: false, freshDocument: true });
+
+    // Zurück auf eine Normalseite: Die Missions-CSP darf nicht mitwandern.
+    await page.evaluate(() => Object.assign(window, { __beforeLink: true }));
+    await page.getByRole('link', { name: 'Blog' }).first().click();
+    await page.waitForURL(/\/blog\/?$/);
+    await page.waitForLoadState('load');
+    expect(await page.evaluate(() => !('__beforeLink' in window))).toBe(true);
   });
 });
