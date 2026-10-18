@@ -10,6 +10,7 @@ tags:
   - FISI
   - Interaktives Lernen
 heroImage: ../../assets/projects/windows-terminal-missionen.webp
+heroImageAlt: 'Editorial-Grafik: Bash mit ls -la und Windows Terminal mit Get-Service, verbunden durch einen Lernpfad.'
 publishedAt: 2025-11-24
 ---
 

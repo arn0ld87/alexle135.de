@@ -11,6 +11,7 @@ techStack: ['React 19', 'TypeScript', 'WebContainer', 'Tailwind']
 role: 'Konzept, Interface-System & Browser-Learning-Flow'
 frameLabel: 'Live terminal scenes / guided steps'
 heroImage: ../../assets/projects/terminal-missionen.webp
+heroImageAlt: 'Editorial-Grafik: Linux-Terminal mit chmod-Befehl und Lernstationen für Linux, Docker und Git.'
 publishedAt: 2025-11-19
 featured: true
 ---

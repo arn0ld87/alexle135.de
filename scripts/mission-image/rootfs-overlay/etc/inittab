@@ -1,0 +1,13 @@
+# /etc/inittab der Missions-VM
+::sysinit:/sbin/openrc sysinit
+::sysinit:/sbin/openrc boot
+::wait:/sbin/openrc default
+
+# Sichtbares Terminal: Autologin als lernende auf ttyS0
+ttyS0::respawn:/sbin/agetty --autologin lernende --noclear --noissue -s ttyS0 115200 xterm-256color
+
+# Versteckter Befehlskanal der Missions-Engine (nur ttyS1, nie im Terminal)
+ttyS1::respawn:/usr/local/bin/mission-agent
+
+::ctrlaltdel:/sbin/reboot
+::shutdown:/sbin/openrc shutdown
