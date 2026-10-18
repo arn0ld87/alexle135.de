@@ -1,0 +1,56 @@
+#!/bin/bash
+# Versteckter Befehlskanal der Missions-Engine. Läuft als root, liest Zeilen von
+# stdin (= ttyS1, per inittab) und antwortet auf stdout. Protokoll: siehe
+# src/lib/missions/agentProtocol.ts
+#
+#   Host -> Gast   PING <id>
+#                  RUN <id> <base64(skript)>
+#   Gast -> Host   HELLO 1                      (einmal beim Start)
+#                  RES <id> <exitcode> <base64(stdout+stderr)|->
+#                  ERR <id|-> <grund>
+
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+export HOME=/root LANG=C.UTF-8
+
+readonly TIMEOUT_SECONDS=20
+readonly MAX_OUTPUT_BYTES=65536
+readonly WORK_DIR=/run/mission-agent
+
+stty raw -echo 2>/dev/null
+mkdir -p "$WORK_DIR"
+# Antworten der Engine für den Befehl `mission` (siehe /usr/local/bin/mission).
+# Eigentümer ist azubi: root schreibt reply.<id>, `mission` löscht sie als azubi.
+# Mit Sticky-Bit (1777) darf das nur der Eigentümer der Datei (#373).
+install -d -m 0700 -o azubi -g azubi /run/mission
+
+printf 'HELLO 1\n'
+
+while IFS=' ' read -r cmd id payload extra; do
+  cmd=${cmd%$'\r'} id=${id%$'\r'} payload=${payload%$'\r'}
+
+  if [[ ! $id =~ ^[A-Za-z0-9_-]{1,32}$ ]]; then
+    printf 'ERR - bad-id\n'
+    continue
+  fi
+
+  case $cmd in
+    PING)
+      printf 'RES %s 0 -\n' "$id"
+      ;;
+    RUN)
+      script="$WORK_DIR/$id.sh"
+      if [[ -z $payload ]] || ! base64 -d <<<"$payload" >"$script" 2>/dev/null; then
+        printf 'ERR %s bad-base64\n' "$id"
+        continue
+      fi
+      timeout -k 2 "$TIMEOUT_SECONDS" bash "$script" >"$WORK_DIR/$id.out" 2>&1 </dev/null
+      rc=$?
+      out=$(head -c "$MAX_OUTPUT_BYTES" "$WORK_DIR/$id.out" | base64 -w0)
+      printf 'RES %s %d %s\n' "$id" "$rc" "${out:--}"
+      rm -f "$script" "$WORK_DIR/$id.out"
+      ;;
+    *)
+      printf 'ERR %s unknown-command\n' "$id"
+      ;;
+  esac
+done
