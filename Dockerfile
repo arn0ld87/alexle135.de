@@ -11,6 +11,10 @@ WORKDIR /app
 RUN corepack enable
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# Assets der Terminal-Missionen (v86 + i386-Alpine) baut vorher scripts/mission-image/build.sh
+# auf einem x86_64-Host (CI-Runner); der Produktionsserver kann i386 nicht ausführen.
+RUN test -f public/missions/linux/alpine-state.bin.zst \
+  || (echo 'public/missions/linux fehlt: vorher bash scripts/mission-image/build.sh' >&2; exit 1)
 
 ARG PUBLIC_GA_MEASUREMENT_ID
 ENV PUBLIC_GA_MEASUREMENT_ID=$PUBLIC_GA_MEASUREMENT_ID
