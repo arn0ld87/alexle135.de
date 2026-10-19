@@ -13,7 +13,7 @@ Praxiswissen dokumentieren, Projekte zeigen und technische Themen mit interaktiv
 Terminal-Missionen direkt im Browser erlebbar machen.
 
 [![Website](https://img.shields.io/badge/Website-alex--schneider.dev-ff6b35?style=flat-square)](https://alex-schneider.dev)
-[![Repository](https://img.shields.io/badge/GitHub-arn0ld87%2Falexle135.de-111?style=flat-square&logo=github)](https://github.com/arn0ld87/alexle135.de)
+[![Repository](https://img.shields.io/badge/GitHub-arn0ld87%2Falexle--vsco-111?style=flat-square&logo=github)](https://github.com/arn0ld87/alexle-vsco)
 [![Astro](https://img.shields.io/badge/Astro-7.3-BC52EE?style=flat-square&logo=astro&logoColor=white)](https://astro.build/)
 [![Node.js](https://img.shields.io/badge/Node.js-22-339933?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![pnpm](https://img.shields.io/badge/pnpm-12-F69220?style=flat-square&logo=pnpm&logoColor=white)](https://pnpm.io/)
@@ -29,8 +29,8 @@ Terminal-Missionen direkt im Browser erlebbar machen.
 Voraussetzung: Node.js 22 und pnpm 12 (`corepack enable` liest die exakte Version aus `packageManager` in `package.json`).
 
 ```bash
-git clone https://github.com/arn0ld87/alexle135.de.git
-cd alexle135.de
+git clone https://github.com/arn0ld87/alexle-vsco.git
+cd alexle-vsco
 pnpm install --frozen-lockfile   # Default: Lockfile nicht neu auflösen
 pnpm dev
 ```
@@ -53,8 +53,6 @@ als Build-Args ins Image übernommen, sondern zur Laufzeit injiziert.
 > erreichbar. Admin-, Kontakt- und Terminal-Funktionen benötigen zusätzliche
 > Runtime-Konfiguration und sollten lokal nicht ungeschützt veröffentlicht
 > werden.
->
-> Dieses Repository ist der öffentliche Quellcode-Snapshot der Website.
 
 ## Was ist alex-schneider.dev?
 
@@ -158,7 +156,7 @@ GitHub Actions führt diese Gates pro Pull Request und auf `main` aus:
 - **ci.yml** – Lint, Format, `astro check`, Unit- und Integrationstests mit Coverage-Gate (v8, global 70/60/70/70, Security-Leitplanken höher), Postgres-Migrationen mit Schema-Verifikation, SSR-Build, HTML-Validierung (`html-validate`), interner Link-Check, A11y-Regression (`axe-core`), `pnpm audit --audit-level=high` und Produktionsimage-Build mit Smoke-Test.
 - **bundle-size.yml** – Client-JS-Budget-Gate.
 - **lighthouse.yml** – Lighthouse-Gates für Performance, SEO, Best Practices, LCP, CLS und Byte-Budget (`unused-javascript` als hartes Gate).
-- **deploy.yml** – Build, rsync auf den VPS, Container-Neustart hinter Traefik, CSP/COEP-Header-Smoke, Health-Gate und Auto-Rollback bei rot.
+- **deploy.yml** – Image-Build (arm64) und Push nach ghcr.io, Pull auf dem VPS, Container-Neustart hinter Traefik, CSP/COEP-Header-Smoke, Health-Gate und Auto-Rollback bei rot.
 
 Zusätzlich werden E2E-Tests via Playwright ausgeführt (Kontakt, Admin-Login,
 CSRF, Suche, Terminal-Mission); sie sind nicht als Required-Gate konfiguriert.
@@ -182,15 +180,16 @@ pnpm check:hygiene
 ## Deployment
 
 Produktions-Builds entstehen über `Dockerfile` und
-`docker-compose.prod.yml`. Der Deployment-Workflow synchronisiert den
-Quellstand auf den VPS und startet den Node-Container hinter Traefik neu.
+`docker-compose.prod.yml`. Der Deployment-Workflow baut das Image einmal
+(arm64) und pusht es nach `ghcr.io/arn0ld87/alexle-vsco:<sha12>`; der VPS
+zieht es nur noch und startet den Node-Container hinter Traefik neu.
 Der Container meldet seinen Zustand über einen `/healthz`-Endpoint an einen
 Docker-HEALTHCHECK; das Deploy schlägt fehl und rollt automatisch zurück,
 wenn das Health-Gate nach dem Neustart nicht grün wird. Image-Tags sind
 SHA-basiert, ein manuelles 1-Befehl-Rollback ist dokumentiert.
 
 ```bash
-docker compose -f docker-compose.prod.yml up -d --build
+DEPLOY_SHA=<sha12> docker compose -f docker-compose.prod.yml up -d
 ```
 
 Details zum konkreten Produktionssystem sind bewusst nicht Teil der
@@ -240,6 +239,8 @@ verantwortungsvollen Meldung von Sicherheitslücken stehen in
 - [Branch Protection](docs/ci/BRANCH-PROTECTION.md)
 - [Sicherheitsmeldeprozess](SECURITY.md)
 - [Agentenregeln](AGENTS.md)
+- [GitHub-Wiki](https://github.com/arn0ld87/alexle-vsco/wiki) – ausführliche
+  Seiten zu Architektur, Deployment, Testing, Roadmap und Chronik
 
 ## Mitwirken
 
