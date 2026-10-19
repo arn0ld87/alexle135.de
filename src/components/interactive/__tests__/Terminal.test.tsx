@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Terminal from '../Terminal';
+import { MockWindowsSystem } from '../MockWindowsSystem';
 
 beforeAll(() => {
   // jsdom implements no scroll behaviour; Terminal calls it on every history update.
@@ -145,5 +146,59 @@ describe('Terminal', () => {
 
     const inputLine = screen.getByText('unknownbefehl').parentElement as HTMLElement;
     expect(within(inputLine).getByText('C:\\Users\\visitor>')).toBeInTheDocument();
+  });
+});
+
+describe('Terminal: Missionsanbindung', () => {
+  it('nutzt ein übergebenes System', async () => {
+    const user = userEvent.setup();
+    const system = new MockWindowsSystem();
+    system.processCommand('mkdir Vorbereitet');
+    render(<Terminal system={system} />);
+    await runCommand(user, 'dir');
+
+    expect(screen.getByText(/Vorbereitet/)).toBeInTheDocument();
+  });
+
+  it('lässt intercept eine Zeile beantworten, ohne sie auszuführen oder zu melden', async () => {
+    const user = userEvent.setup();
+    const system = new MockWindowsSystem();
+    const onCommand = vi.fn();
+    render(
+      <Terminal
+        system={system}
+        onCommand={onCommand}
+        intercept={(line) => (line.trim() === 'mission' ? 'Antwort der Mission' : null)}
+      />
+    );
+
+    await runCommand(user, 'mission');
+
+    expect(screen.getByText('Antwort der Mission')).toBeInTheDocument();
+    expect(onCommand).not.toHaveBeenCalled();
+    expect(system.getLog()).toHaveLength(0);
+  });
+
+  it('hängt den von onCommand zurückgegebenen Text als Ausgabe an', async () => {
+    const user = userEvent.setup();
+    render(<Terminal onCommand={() => 'Schritt erfüllt'} />);
+    await runCommand(user, 'whoami');
+
+    expect(screen.getByText(/alex-schneider\\visitor/)).toBeInTheDocument();
+    expect(screen.getByText('Schritt erfüllt')).toBeInTheDocument();
+  });
+
+  it('übernimmt Titel und Farbe aus color und title', async () => {
+    const user = userEvent.setup();
+    render(<Terminal />);
+    expect(screen.getByText('Eingabeaufforderung')).toBeInTheDocument();
+
+    await runCommand(user, 'title MeinTerminal');
+    await runCommand(user, 'color f0');
+
+    expect(screen.getByText('MeinTerminal')).toBeInTheDocument();
+    const body = screen.getByRole('textbox').closest('div[style*="font-size"]') as HTMLElement;
+    expect(body.style.backgroundColor).toBe('rgb(255, 255, 255)');
+    expect(body.style.color).toBe('rgb(0, 0, 0)');
   });
 });
