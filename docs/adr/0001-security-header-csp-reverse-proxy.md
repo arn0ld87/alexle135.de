@@ -62,8 +62,8 @@ segmentgenau (kein Treffer auf `/app-details`).
 So werden Security-Header sicher geändert:
 
 1. Konstante in `src/lib/security-headers.ts` anpassen (`CSP_DEFAULT`,
-   `CSP_DEFAULT_DEV`, `CSP_WEBCONTAINER`, `WEBCONTAINER_COEP`,
-   `WEBCONTAINER_COOP` oder `WEBCONTAINER_ROUTE_PREFIXES`).
+   `CSP_DEFAULT_DEV`, `CSP_MISSIONS` oder `MISSION_ROUTE_PREFIXES`; Stand seit
+   2026-10-18, siehe Nachtrag unten).
 2. `docker-compose.prod.yml` (Traefik `customResponseHeaders`) manuell
    synchron nachziehen — dieser Schritt wird von keinem Test automatisch
    erzwungen.
@@ -72,17 +72,16 @@ So werden Security-Header sicher geändert:
    `pnpm test:run`) laufen lassen.
 4. **Automatisierten CSP/COEP-Header-Smoke im Deploy-Workflow grün halten.**
    Der Smoke-Step in `.github/workflows/deploy.yml` prüft nach jedem Deploy
-   gegen das echte Traefik in Prod, dass die beiden WebContainer-App-Routen
+   gegen das echte Traefik in Prod, dass die beiden Missions-App-Routen
    (`/projekte/terminal-missionen/app`,
-   `/projekte/windows-terminal-missionen/app`) die gelockerte CSP
-   (`unsafe-eval`) + COEP `credentialless` liefern und ein Teilwort-Geschwister
-   (`…/app-foo`) nur die strikte Default-CSP sieht. Schlägt er fehl, greift der
-   Auto-Rollback (`#294`). Das ist die Hard Rule aus `AGENTS.md`. Der Smoke
-   deckt die Header-**Zuordnung** ab; er kann einen gebrochenen
-   WebContainer-**Boot** (SharedArrayBuffer bei gebrochener
-   Cross-Origin-Isolation, CSP-Verstoß in der Browser-Konsole) nicht
-   erkennen — bei Verdacht darauf beide Terminal-Missionen zusätzlich im
-   Browser prüfen.
+   `/projekte/windows-terminal-missionen/app`) die Missions-CSP
+   (`'wasm-unsafe-eval'`, kein `'unsafe-eval'`, keine StackBlitz-Quellen) ohne
+   COEP/COOP liefern und ein Teilwort-Geschwister (`…/app-foo`) nur die
+   strikte Default-CSP sieht. Schlägt er fehl, greift der Auto-Rollback
+   (`#294`). Das ist die Hard Rule aus `AGENTS.md`. Der Smoke deckt die
+   Header-**Zuordnung** ab; er kann einen gebrochenen v86-**Boot**
+   (CSP-Verstoß in der Browser-Konsole) nicht erkennen — bei Verdacht darauf
+   beide Terminal-Missionen zusätzlich im Browser prüfen.
 5. Bei Bedarf `docs/architecture.md` und diese ADR aktualisieren, wenn sich
    die Strategie (nicht nur ein Wert) ändert.
 
@@ -194,3 +193,65 @@ Function`/WASM-Kompilierung bleibt dort verboten.
 - `'unsafe-inline'` (script) bleibt global bestehen, solange
   `GoogleAnalytics.astro` nicht auf Nonce/Hash umgestellt ist; das ist ein
   bekannter, akzeptierter Kompromiss und kein neues Risiko durch diese ADR.
+
+## Nachtrag 2026-10-18: Missions-CSP für v86 statt WebContainer-Policy
+
+**Entscheidung.** Die Terminal-Missionen (`/projekte/terminal-missionen/app`
+und `/projekte/windows-terminal-missionen/app`, samt Unterpfaden) bekommen
+eine eigene, enge Policy `CSP_MISSIONS`. Sie ist `CSP_DEFAULT` mit genau zwei
+Lockerungen: `'wasm-unsafe-eval'` in `script-src` und `blob:` in
+`worker-src`. Die Policy ist in beiden Varianten (`dev`, `runtime`) gleich und
+steht byte-gleich in `docker-compose.prod.yml` (Middleware
+`alexle135-headers-missions`, Router `alexle135-missions`). Dieser Nachtrag
+ersetzt die Abschnitte „Sonderfall WebContainer/StackBlitz“ und die
+WebContainer-Teile von „Umgang mit unsafe-inline / unsafe-eval /
+wasm-unsafe-eval“; die übrige Struktur (Single Source of Truth, manueller
+Traefik-Abgleich, segmentgenaues Matching) gilt unverändert.
+
+**Grund.** Keine Route startet mehr einen StackBlitz-WebContainer. Die
+Linux-Mission läuft auf v86: ein echtes Linux, das als WebAssembly im Browser
+läuft. Die Windows-Mission braucht keinen Emulator, teilt aber die
+Missions-Policy, damit beide App-Routen eine Zuordnung behalten. v86 kompiliert
+WebAssembly zur Laufzeit (`'wasm-unsafe-eval'`) und startet Worker aus
+Blob-URLs (`worker-src blob:`). Seine Assets lädt es same-origin von
+`/missions/linux/` per `fetch` und die WASM-Datei aus `/_astro/` — dafür reicht
+`connect-src 'self'`. v86 braucht weder `SharedArrayBuffer` noch
+cross-origin isolation.
+
+**Was entfällt.**
+
+- `CSP_WEBCONTAINER`, `WEBCONTAINER_COEP`, `WEBCONTAINER_COOP`; an ihre
+  Stelle treten `CSP_MISSIONS`, `MISSION_ROUTE_PREFIXES` und
+  `isMissionRoute()`.
+- `'unsafe-eval'`, alle StackBlitz-/WebContainer-Quellen und `ws:`/`wss:` auf
+  den Missions-Routen.
+- COEP `credentialless` und COOP `same-origin`; keine Route setzt sie mehr.
+- Die Traefik-Middleware `alexle135-headers-wc` und der Router
+  `alexle135-wc`.
+- Der Reload-Fallback für fehlende Isolation (`reloadOnceForIsolation`); sein
+  einziger Aufrufer war die entfernte WebContainer-Komponente.
+
+Bestehen bleibt der volle Seitenaufruf beim Wechsel in eine oder aus einer
+Missions-Route (`src/lib/missionNavigation.ts`): Der ClientRouter tauscht nur
+das DOM, das Dokument behielte die CSP der vorigen Seite und v86 dürfte sein
+WebAssembly nicht kompilieren.
+
+**Verifikation.**
+
+- `src/lib/__tests__/security-headers.test.ts` vergleicht `CSP_MISSIONS`
+  byte-genau, prüft, dass sie sich von `CSP_DEFAULT` nur durch
+  `'wasm-unsafe-eval'` und `worker-src blob:` unterscheidet, und dass
+  `getSecurityHeaders()` auf Missions-Routen kein COEP/COOP liefert;
+  `src/middleware.test.ts` prüft dasselbe an der SSR-Antwort.
+- Der E2E-Test „Link-Navigation ins Terminal liefert ein frisches Dokument“
+  (`e2e/05-terminal-mission.spec.ts`) verlangt bei Link-Navigation ein
+  frisches Dokument, eine Antwort-CSP mit `'wasm-unsafe-eval'` und
+  `crossOriginIsolated === false`.
+- Der Header-Smoke in `.github/workflows/deploy.yml` prüft gegen das echte
+  Traefik, dass beide Missions-Routen `'wasm-unsafe-eval'`, kein
+  `'unsafe-eval'`, keine StackBlitz-Quellen und weder COEP noch COOP
+  bekommen, und dass `…/app-foo` nur die strikte Default-CSP ohne COEP/COOP
+  sieht. `'unsafe-eval'` wird dort mit Anführungszeichen gesucht, weil es
+  sonst als Teilwort in `'wasm-unsafe-eval'` träfe.
+- Nach dem Deploy beide Terminal-Missionen im Browser starten: v86 bootet in
+  der Linux-Mission, keine der beiden zeigt einen CSP-Verstoß in der Konsole.

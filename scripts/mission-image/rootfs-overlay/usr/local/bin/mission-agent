@@ -1,0 +1,114 @@
+#!/bin/bash
+# Versteckter Befehlskanal der Missions-Engine. Läuft als root, liest Zeilen von
+# stdin (= ttyS1, per inittab) und antwortet auf stdout. Protokoll: siehe
+# src/lib/missions/agentProtocol.ts
+#
+#   Host -> Gast   PING <id>
+#                  RUN <id> <base64(skript)> [sekunden]
+#                       Laufzeitlimit je Lauf, höchstens TIMEOUT_SECONDS (Default)
+#                  REPLY <id> <anfrage-id>:<exitcode> <text, Zeilenumbruch als \x1e>
+#   Gast -> Host   HELLO 1                      (einmal beim Start)
+#                  RES <id> <exitcode> <base64(stdout+stderr)|->
+#                  ERR <id|-> <grund>
+
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+export HOME=/root LANG=C.UTF-8
+
+# Knapp unter SETUP_TIMEOUT_MS der Engine (60 s): Beim ersten Start lädt 9p jede Datei einzeln.
+readonly TIMEOUT_SECONDS=55
+readonly MAX_OUTPUT_BYTES=65536
+readonly WORK_DIR=/run/mission-agent
+
+stty raw -echo 2>/dev/null
+mkdir -p "$WORK_DIR"
+# Antworten der Engine für den Befehl `mission` (siehe /usr/local/bin/mission).
+# Eigentümer ist azubi: root schreibt reply.<id>, `mission` löscht sie als azubi.
+# Mit Sticky-Bit (1777) darf das nur der Eigentümer der Datei (#373).
+install -d -m 0700 -o azubi -g azubi /run/mission
+
+# Eine Zeile an die Engine. RUN läuft im Hintergrund (#421), deshalb können zwei Zeilen
+# gleichzeitig entstehen; das Lock hält sie ganz. Es gilt, solange fd 9 offen ist, also bis
+# zum Ende des Aufrufs.
+emit() {
+  flock 9
+  printf '%s\n' "$1"
+} 9>"$WORK_DIR/.ausgabe"
+
+# PIDs der Läufe im Hintergrund. Die Hauptschleife nimmt das Lock nur, solange einer davon
+# lebt; sonst schreibt sie direkt, ohne Prozessstart (REPLY soll schnell bleiben, #392).
+laeufe=()
+# Läufe bleiben untereinander in Reihenfolge, auch zwischen zwei Engines (Vorfallwechsel während
+# eines setups): Jeder wartet auf die Fertig-Marke des vorigen (eine PID könnte nach dessen Ende
+# neu vergeben sein). Gewartet wird mit `read -t` an einer FIFO, die nie Daten bekommt, statt
+# mit `sleep`: kein Prozessstart je Takt.
+rm -f "$WORK_DIR"/*.fertig
+mkfifo -m 600 "$WORK_DIR/.takt" 2>/dev/null
+exec 8<>"$WORK_DIR/.takt"
+vorher=
+say() {
+  local pid lebend=()
+  for pid in "${laeufe[@]}"; do kill -0 "$pid" 2>/dev/null && lebend+=("$pid"); done
+  laeufe=("${lebend[@]}")
+  if ((${#laeufe[@]})); then emit "$1"; else printf '%s\n' "$1"; fi
+}
+
+printf 'HELLO 1\n'
+
+while IFS=' ' read -r cmd id payload extra; do
+  cmd=${cmd%$'\r'} id=${id%$'\r'} payload=${payload%$'\r'}
+
+  if [[ ! $id =~ ^[A-Za-z0-9_-]{1,32}$ ]]; then
+    say 'ERR - bad-id'
+    continue
+  fi
+
+  case $cmd in
+    PING)
+      say "RES $id 0 -"
+      ;;
+    RUN)
+      script="$WORK_DIR/$id.sh"
+      if [[ -z $payload ]] || ! base64 -d <<<"$payload" >"$script" 2>/dev/null; then
+        say "ERR $id bad-base64"
+        continue
+      fi
+      # Limit der Anfrage (Prüfungen kurz, setup lang), sonst und höchstens TIMEOUT_SECONDS:
+      # Ein hängender Lauf hält den Agenten nicht länger fest, als die Engine auf ihn wartet.
+      limit=${extra%$'\r'}
+      [[ $limit =~ ^[0-9]{1,3}$ ]] && ((limit >= 1 && limit <= TIMEOUT_SECONDS)) || limit=$TIMEOUT_SECONDS
+      # Im Hintergrund (#421): Eine Antwort an `mission` (REPLY) wartet sonst, bis ein langes
+      # setup oder eine Prüfung fertig ist. Die Läufe selbst bleiben nacheinander (siehe oben).
+      (
+        while [[ -n $vorher && ! -e $WORK_DIR/$vorher.fertig ]]; do read -r -t 0.05 -u 8 _; done
+        [[ -n $vorher ]] && rm -f "$WORK_DIR/$vorher.fertig"
+        timeout -k 2 "$limit" bash "$script" >"$WORK_DIR/$id.out" 2>&1 </dev/null
+        rc=$?
+        out=$(head -c "$MAX_OUTPUT_BYTES" "$WORK_DIR/$id.out" | base64 -w0)
+        rm -f "$script" "$WORK_DIR/$id.out"
+        : >"$WORK_DIR/$id.fertig"
+        emit "RES $id $rc ${out:--}"
+      ) &
+      vorher=$id
+      laeufe+=("$!")
+      ;;
+    REPLY)
+      # Antwort an `mission` (#392), nur mit Builtins: In v86 kostet jeder Prozessstart Zeit.
+      # Die FIFO lesend und schreibend öffnen, dann blockiert das Öffnen nie, auch nicht ohne
+      # Leser (abgebrochenes `mission`); der Text bleibt dann ungelesen im Puffer.
+      # Die FIFO gehört zur Shell, nicht zum Aufruf: reply.r<pid> für die Anfrage r<pid>x<n>.
+      rid=${payload%%:*} rc=${payload#*:} text=${extra%$'\r'}
+      f=/run/mission/reply.${rid%%x*}
+      if [[ $rid =~ ^r[0-9]+x[0-9]+$ && $rc =~ ^[0-9]{1,3}$ && -p $f ]]; then
+        exec 4<>"$f"
+        printf '%s %s %s\n' "$rid" "$rc" "$text" >&4
+        exec 4>&-
+        say "RES $id 0 -"
+      else
+        say "ERR $id bad-reply"
+      fi
+      ;;
+    *)
+      say "ERR $id unknown-command"
+      ;;
+  esac
+done
