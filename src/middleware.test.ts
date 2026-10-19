@@ -85,7 +85,7 @@ describe('middleware', () => {
   });
 
   it.each(['/projekte/terminal-missionen/app/', '/projekte/windows-terminal-missionen/app/'])(
-    'sets WebContainer isolation headers for %s',
+    'sets the mission CSP without isolation headers for %s',
     async (pathname) => {
       const { context } = createContext(pathname);
       const next = vi.fn().mockResolvedValue(new Response('ok', { status: 200 }));
@@ -93,10 +93,11 @@ describe('middleware', () => {
       const response = await onRequest(context as never, next);
 
       expect(response.status).toBe(200);
-      expect(response.headers.get('Cross-Origin-Opener-Policy')).toBe('same-origin');
-      expect(response.headers.get('Cross-Origin-Embedder-Policy')).toBe('credentialless');
-      expect(response.headers.get('Content-Security-Policy')).toContain('stackblitz');
-      expect(response.headers.get('Content-Security-Policy')).toContain('webcontainer');
+      expect(response.headers.get('Cross-Origin-Opener-Policy')).toBeNull();
+      expect(response.headers.get('Cross-Origin-Embedder-Policy')).toBeNull();
+      expect(response.headers.get('Content-Security-Policy')).toContain("'wasm-unsafe-eval'");
+      expect(response.headers.get('Content-Security-Policy')).not.toContain("'unsafe-eval'");
+      expect(response.headers.get('Content-Security-Policy')).not.toContain('stackblitz');
       expect(response.headers.get('Content-Security-Policy')).not.toContain('supabase');
     }
   );

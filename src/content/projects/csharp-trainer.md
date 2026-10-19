@@ -7,7 +7,8 @@ tags:
   - Gamification
   - Interaktives Lernen
   - FiSi
-heroImage: ../../assets/projects/terminal-missionen.webp
+heroImage: ../../assets/projects/csharp-trainer.webp
+heroImageAlt: 'Editorial-Grafik: C# zwischen geschweiften Klammern und einem stufenförmigen Lernpfad.'
 publishedAt: 2026-04-12
 ---
 
