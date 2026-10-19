@@ -7,6 +7,7 @@ tags:
   - Lernen
   - Tracker
 heroImage: ../../assets/projects/ihk-radar.webp
+heroImageAlt: 'Konzeptionelle Lernübersicht: Themenfelder im Kreis und eine Checkliste für Lernen, Prüfen und Abhaken.'
 publishedAt: 2025-11-19
 ---
 
