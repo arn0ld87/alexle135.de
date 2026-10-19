@@ -1,0 +1,159 @@
+// Stand der Staffeln im Browser (localStorage): Akte, Abzeichen, rote Prompts. Kein Konto, keine
+// Rangliste. Fehlender oder gesperrter Speicher ist kein Fehler: Lesen liefert einen leeren Stand,
+// Schreiben wird still übersprungen. Aus dem alten Missionsstand (`missionen:v1`) entfernt der Store
+// beim Anlegen nur die Linux- und Git-Missionen, die die Staffel ablöst; derselbe Schlüssel hält
+// weiter den Fortschritt der Windows-Missionen (Codex-Finding zu #396).
+import {
+  leererStand,
+  neueAbzeichen,
+  type Akte,
+  type AkteEintrag,
+  type StaffelStand,
+} from './staffel';
+import type { Staffel } from './staffelTypes';
+
+export const STAFFEL_STORE_KEY = 'staffeln:v1';
+export const LEGACY_STORE_KEY = 'missionen:v1';
+/** Die Missionen 01–08, die Staffel 1 ersetzt. */
+export const ABGELOESTE_MISSIONEN = [
+  'linux-basics-1',
+  'linux-files-1',
+  'linux-ctf-hidden-treasure',
+  'linux-ctf-log-detective',
+  'linux-ctf-privesc',
+  'git-basics-1',
+  'git-branching-1',
+  'git-ctf-rewind',
+];
+
+export type StaffelEreignis =
+  | { type: 'beweisstueck'; vorfallId: string; beweisstueckId: string; code: string }
+  | { type: 'abzeichen'; abzeichenId: string };
+
+type StorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
+
+function defaultStorage(): StorageLike | null {
+  try {
+    return typeof window === 'undefined' ? null : window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
+const isObject = (v: unknown): v is Record<string, unknown> =>
+  !!v && typeof v === 'object' && !Array.isArray(v);
+
+function isEintrag(v: unknown): v is AkteEintrag {
+  return (
+    isObject(v) &&
+    typeof v.durationMs === 'number' &&
+    typeof v.withSolution === 'boolean' &&
+    typeof v.hintsUsed === 'number' &&
+    typeof v.finishedAt === 'number'
+  );
+}
+
+// Unbekanntes oder kaputtes JSON fällt feldweise auf den leeren Stand zurück.
+function parseStand(v: unknown): StaffelStand {
+  if (!isObject(v)) return leererStand();
+  const akte: Akte = {};
+  if (isObject(v.akte)) {
+    for (const [id, e] of Object.entries(v.akte)) if (isEintrag(e)) akte[id] = e;
+  }
+  const abzeichen = Array.isArray(v.abzeichen)
+    ? v.abzeichen.filter((a): a is string => typeof a === 'string')
+    : [];
+  const rotePrompts =
+    typeof v.rotePrompts === 'number' && v.rotePrompts >= 0 ? Math.floor(v.rotePrompts) : 0;
+  return { akte, abzeichen, rotePrompts };
+}
+
+export function createStaffelStore(storage: StorageLike | null = defaultStorage()) {
+  try {
+    const raw = storage?.getItem(LEGACY_STORE_KEY);
+    if (raw) {
+      const legacy: unknown = JSON.parse(raw);
+      if (isObject(legacy) && ABGELOESTE_MISSIONEN.some((id) => id in legacy)) {
+        const rest = Object.fromEntries(
+          Object.entries(legacy).filter(([id]) => !ABGELOESTE_MISSIONEN.includes(id))
+        );
+        if (Object.keys(rest).length) storage?.setItem(LEGACY_STORE_KEY, JSON.stringify(rest));
+        else storage?.removeItem(LEGACY_STORE_KEY);
+      }
+    }
+  } catch {
+    // kaputt oder gesperrt: dann bleibt der alte Schlüssel unverändert liegen
+  }
+
+  function readAll(): Record<string, unknown> {
+    try {
+      const parsed: unknown = JSON.parse(storage?.getItem(STAFFEL_STORE_KEY) ?? '{}');
+      return isObject(parsed) ? parsed : {};
+    } catch {
+      return {};
+    }
+  }
+
+  // Der Stand lebt im Speicher und wird nach localStorage gespiegelt. Fehlt localStorage oder ist
+  // er voll, gilt er so wenigstens für diese Sitzung (Codex-Finding zu #399): Die Akte füllt sich
+  // weiter, das Finale schaltet frei.
+  const memory = readAll();
+
+  function read(staffelId: string): StaffelStand {
+    return parseStand(memory[staffelId]);
+  }
+
+  function write(staffelId: string, stand: StaffelStand) {
+    memory[staffelId] = stand;
+    try {
+      storage?.setItem(STAFFEL_STORE_KEY, JSON.stringify({ ...readAll(), [staffelId]: stand }));
+    } catch {
+      // Speicher voll oder gesperrt: Der Stand bleibt im Speicher.
+    }
+  }
+
+  // Neue Abzeichen vergeben und als Ereignisse melden.
+  function award(staffel: Staffel, stand: StaffelStand, lauf?: AkteEintrag): StaffelEreignis[] {
+    const neu = neueAbzeichen(staffel, stand, lauf);
+    stand.abzeichen.push(...neu);
+    return neu.map((abzeichenId) => ({ type: 'abzeichen', abzeichenId }));
+  }
+
+  return {
+    read,
+    /**
+     * Trägt einen gelösten Vorfall in die Akte ein. Ein Lauf ohne Lösung ersetzt einen mit Lösung,
+     * sonst zählt der schnellere. Das Beweisstück meldet nur der erste Eintrag.
+     */
+    loese(staffel: Staffel, vorfallId: string, eintrag: AkteEintrag): StaffelEreignis[] {
+      const vorfall = staffel.vorfaelle.find((v) => v.id === vorfallId);
+      if (!vorfall) return [];
+      const stand = read(staffel.id);
+      const previous = stand.akte[vorfallId];
+      const events: StaffelEreignis[] = [];
+      if (!previous) {
+        const { id, code } = vorfall.beweisstueck;
+        events.push({ type: 'beweisstueck', vorfallId, beweisstueckId: id, code });
+      }
+      const better =
+        !previous ||
+        (previous.withSolution && !eintrag.withSolution) ||
+        (previous.withSolution === eintrag.withSolution &&
+          eintrag.durationMs < previous.durationMs);
+      if (better) stand.akte[vorfallId] = eintrag;
+      events.push(...award(staffel, stand, eintrag));
+      write(staffel.id, stand);
+      return events;
+    },
+    /** Ein Befehl endete mit Exit ≠ 0 (roter Prompt). */
+    roterPrompt(staffel: Staffel): StaffelEreignis[] {
+      const stand = read(staffel.id);
+      stand.rotePrompts += 1;
+      const events = award(staffel, stand);
+      write(staffel.id, stand);
+      return events;
+    },
+  };
+}
+
+export type StaffelStore = ReturnType<typeof createStaffelStore>;
