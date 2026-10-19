@@ -12,11 +12,11 @@ import rehypeTaskListLabels from './src/lib/rehypeTaskListLabels.mjs';
 import { getSecurityHeaders } from './src/lib/security-headers.ts';
 import { sitemapFilter } from './src/lib/sitemapFilter.ts';
 
-// --- Security headers (CSP / COEP / COOP) ---------------------------------
+// --- Security headers (CSP) -------------------------------------------------
 // Werte kommen aus src/lib/security-headers.ts (Single Source of Truth).
 // Produktion spiegelt diese Werte zusätzlich in docker-compose.prod.yml
 // (Traefik) — bei Änderungen alle drei synchron halten.
-// getSecurityHeaders/isWebContainerRoute parsen die rohe _req.url selbst.
+// getSecurityHeaders/isMissionRoute parsen die rohe _req.url selbst.
 
 // Build a pathname → ISO-lastmod lookup from content-collection frontmatter.
 // Used by the sitemap serializer so <lastmod> reflects content freshness

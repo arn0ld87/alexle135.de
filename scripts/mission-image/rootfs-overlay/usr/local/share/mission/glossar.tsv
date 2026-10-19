@@ -1,0 +1,55 @@
+# Glossar für `erklaer` und den Werkzeugkasten der Missionen.
+# Befehl<TAB>ein Satz in Alex' Ausbilder-Ton<TAB>Beispiel, das keine Aufgabe direkt löst.
+mission	Dein Draht zu mir: zeigt Aufgabe, Tipps und Flagge der aktuellen Mission.	mission status
+erklaer	Erklärt einen Befehl in einem Satz, so wie hier.	erklaer ls
+whoami	Gibt aus, als welcher Benutzer du gerade angemeldet bist.	whoami
+hostname	Zeigt den Namen des Rechners, mit -f den vollen Namen samt Domain.	hostname -f
+pwd	Zeigt, in welchem Verzeichnis du gerade stehst.	pwd
+ls	Listet die Dateien im aktuellen Verzeichnis auf.	ls /etc
+ls -a	Zeigt auch versteckte Dateien, also alles, was mit einem Punkt beginnt.	ls -a /tmp
+ls -l	Zeigt Dateien mit Rechten, Eigentümer, Größe und Datum.	ls -l /etc/hostname
+cd	Wechselt das Verzeichnis; ohne Ziel geht es zurück nach Hause.	cd /tmp
+mkdir	Legt ein neues Verzeichnis an.	mkdir urlaubsfotos
+mkdir -p	Legt ein Verzeichnis samt aller fehlenden Zwischenordner an und meckert nicht, wenn es schon da ist.	mkdir -p a/b/c
+cat	Gibt den Inhalt einer Datei im Terminal aus.	cat /etc/hostname
+echo	Gibt den Text aus, den du ihm mitgibst.	echo Hallo
+>	Schreibt die Ausgabe eines Befehls in eine Datei und überschreibt, was vorher drinstand.	date > heute.txt
+>>	Hängt die Ausgabe eines Befehls hinten an eine Datei an.	date >> log.txt
+touch	Legt eine leere Datei an oder aktualisiert ihr Datum.	touch notiz.txt
+mv	Verschiebt oder benennt eine Datei um; das Original ist danach weg.	mv alt.txt neu.txt
+cp	Kopiert eine Datei; das Original bleibt liegen.	cp notiz.txt notiz-kopie.txt
+rm	Löscht Dateien endgültig, einen Papierkorb gibt es nicht.	rm notiz-kopie.txt
+*	Platzhalter für beliebig viele Zeichen im Dateinamen; die Shell setzt alle Treffer ein.	ls *.txt
+find	Sucht Dateien nach Name, Typ oder anderen Merkmalen, auch in Unterordnern.	find /etc -name '*.conf'
+grep	Sucht Zeilen, in denen ein bestimmter Text vorkommt.	grep root /etc/passwd
+|	Die Pipe gibt die Ausgabe des einen Befehls als Eingabe an den nächsten weiter.	ls /etc | wc -l
+sort	Sortiert Zeilen, mit -n nach Zahlen und mit -r rückwärts.	sort -r namen.txt
+uniq -c	Zählt gleiche Zeilen, die direkt untereinander stehen; deshalb vorher sortieren.	sort farben.txt | uniq -c
+wc -l	Zählt die Zeilen einer Datei oder einer Ausgabe.	wc -l /etc/passwd
+head	Zeigt die ersten Zeilen, mit -n die gewünschte Anzahl.	head -n 3 /etc/passwd
+tail	Zeigt die letzten Zeilen einer Datei.	tail -n 3 /etc/passwd
+chmod	Ändert die Rechte einer Datei, zum Beispiel wer sie lesen, schreiben oder ausführen darf.	chmod 600 notiz.txt
+stat	Zeigt alle Details einer Datei: Rechte, Eigentümer, Größe, Zeitstempel.	stat /etc/hostname
+id	Zeigt deinen Benutzer und die Gruppen, in denen du bist.	id
+nano	Ein einfacher Texteditor im Terminal; Strg+O speichert, Strg+X beendet.	nano notiz.txt
+less	Blättert durch lange Dateien; q beendet.	less /etc/passwd
+git init	Macht aus dem aktuellen Ordner ein Git-Repository.	git init rezepte
+git status	Zeigt, was sich geändert hat und was schon für den nächsten Commit vorgemerkt ist.	git status
+git add	Merkt Änderungen für den nächsten Commit vor.	git add notiz.txt
+git commit	Speichert die vorgemerkten Änderungen als Commit, mit -m samt Nachricht.	git commit -m "docs: Notiz ergänzt"
+git log	Zeigt die Commit-Historie, mit --oneline eine Zeile pro Commit.	git log --oneline
+git log -p	Zeigt die Historie samt der Änderungen jedes Commits.	git log -p -- notiz.txt
+git show	Zeigt einen einzelnen Commit oder eine Datei aus einem Commit.	git show HEAD
+git diff	Zeigt die Unterschiede, die noch nicht committet sind.	git diff
+git branch	Listet Branches auf oder legt einen neuen an.	git branch experiment
+git switch	Wechselt auf einen anderen Branch, mit -c legt es ihn gleich an.	git switch experiment
+git merge	Holt die Commits eines anderen Branches in den aktuellen.	git merge experiment
+cut	Schneidet Teile aus jeder Zeile, etwa mit -d und -f eine Spalte zwischen Trennzeichen.	cut -d: -f1 /etc/passwd
+sed	Bearbeitet Text Zeile für Zeile, meist zum Ersetzen mit s/alt/neu/.	echo Hallo Welt | sed 's/Welt/Alex/'
+base64	Kodiert Daten in lesbare Zeichen oder mit -d wieder zurück; das ist keine Verschlüsselung.	echo Moin | base64
+git checkout	Holt einen älteren Stand oder einen anderen Branch ins Arbeitsverzeichnis.	git checkout HEAD~1 -- notiz.txt
+git rm	Löscht eine Datei und merkt das Löschen gleich für den nächsten Commit vor.	git rm alt.txt
+du	Zeigt, wie viel Platz Ordner und Dateien belegen; mit -sh als eine lesbare Summe.	du -sh /etc
+./	Startet ein Programm oder Skript aus dem aktuellen Ordner; ohne ./ sucht die Shell nur im PATH.	./hallo.sh
+sudo	Führt einen einzelnen Befehl als root aus, wenn du das darfst; sudo -l zeigt, was erlaubt ist.	sudo -l
+usermod	Ändert ein Benutzerkonto, etwa Gruppen, Shell oder ob es gesperrt ist.	usermod --help
