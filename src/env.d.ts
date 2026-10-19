@@ -30,6 +30,8 @@ interface ImportMetaEnv {
   readonly PUBLIC_GA_MEASUREMENT_ID?: string;
   /** Kurz-SHA des Deploys, optionales Docker-Build-Arg (kein Geheimnis); Footer-Betriebszeile. */
   readonly PUBLIC_BUILD_SHA?: string;
+  /** Inhalts-Hash der Missions-Assets (VERSION aus scripts/mission-image/build.sh, #388). */
+  readonly PUBLIC_MISSION_ASSETS_VERSION?: string;
   /** Build-Datum (JJJJ-MM-TT), zur Build-Zeit über vite.define aus astro.config.mjs gesetzt. */
   readonly PUBLIC_BUILD_DATE?: string;
 }
