@@ -144,6 +144,11 @@ const breadcrumbSchema = buildBreadcrumbSchema(Astro.url.pathname);
     {breadcrumbSchema && <script type="application/ld+json" set:html={safeJsonLd(breadcrumbSchema)} />}
 
     <ClientRouter />
+    <script>
+      // Missions-Routen brauchen ein frisch geladenes Dokument mit ihrer eigenen CSP.
+      import { installMissionNavigationGuard } from '../lib/missionNavigation';
+      installMissionNavigationGuard(document);
+    </script>
     <GoogleAnalytics />
   </head>
 
