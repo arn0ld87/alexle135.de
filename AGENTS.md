@@ -12,7 +12,7 @@ Projektregeln für KI-Agenten. Bei Widersprüchen gilt diese Datei als aktuelle 
 - **YOU MUST** vor klassischer Code-Exploration das passende Tool wählen:
   - `code-review-graph` für Architektur, Beziehungen, Impact und Review-Kontext.
   - `context-mode` für Datei-/Shell-/Web-Ausgaben über 20 Zeilen.
-  - `docfork` für aktuelle Library-, Framework- und SDK-Dokumentation.
+  - `Context7` für aktuelle Library-, Framework- und SDK-Dokumentation.
   - `sequential-thinking` für mehrstufige, ambige oder architektonische Entscheidungen.
 - Skills werden vor Rückfragen und Code-Lesen geladen, sobald sie zur Aufgabe passen.
 - Vier Prozess-Skills unter `.claude/skills/` (`explore-codebase`, `debug-issue`, `refactor-safely`, `review-changes`) steuern den Ablauf unabhängig vom gewählten Agenten.
@@ -26,16 +26,6 @@ Projektregeln für KI-Agenten. Bei Widersprüchen gilt diese Datei als aktuelle 
 - Produktion: Docker-Container `alexle135-v2` hinter Traefik; Deploy über `.github/workflows/deploy.yml`.
 
 ## Kritische Befehle
-
-```bash
-pnpm install
-pnpm dev
-pnpm build
-pnpm test:run
-pnpm lint
-pnpm format:all
-pnpm start
-```
 
 Quality-Gates (CI-Parität, vor Merge lokal ausführen): `pnpm check` (astro check), `pnpm test:integration` (Admin-Login gegen echte Postgres), `pnpm check:dist` (html-validate + Link-Check + axe-core), `pnpm check:bundle` (Client-JS- und Bildbudget), `pnpm db:migrate` und `pnpm db:verify` (Postgres-Migrationen).
 
@@ -51,15 +41,13 @@ Für einzelne Tests: `pnpm exec vitest run path/to/test`. Content-Helper: `pnpm 
 - Bildquellen liegen einmal unter `src/assets/`; Varianten erzeugt der Build über `astro:assets` nur auf vorab gebauten Seiten. Feste Bildadressen bleiben in `public/`.
 - `src/middleware.ts` schützt `/admin/*` und `/api/admin/*`; Admin-Mutationen laufen über `src/lib/adminClient.ts`.
 - `src/pages/api/contact.ts` schreibt nach `contact_messages`; Origin-Check, Rate-Limit und Honeypot nicht abschwächen.
-- `src/lib/og.ts` und `/og/{slug}.png` erzeugen dynamische Blog-OG-Bilder.
-- `astro.config.mjs` enthält CSP/COEP/COOP für WebContainer-Seiten.
-- `Dockerfile` und `docker-compose.prod.yml` bilden die aktive Docker-/Traefik-Produktion ab.
+- `astro.config.mjs` setzt im Dev-Server die CSP aus `src/lib/security-headers.ts`, auch die Missions-CSP der Terminal-Missionen.
 
 ## Hard Rules
 
 - **NIE** `.env`, Tokens oder Service-Role-Keys committen oder ausgeben.
 - **NIE** Dateien in `dist/` bearbeiten.
-- **NIE** CSP/COEP/COOP ändern, ohne den automatisierten Header-Smoke im Deploy-Workflow grün zu haben: Er prüft gegen das echte Traefik in Prod, dass die beiden WebContainer-App-Routen die gelockerte CSP + COEP `credentialless` bekommen und Nicht-WC-Routen nur die strikte Default-CSP. Bei Verdacht auf gebrochenes WebContainer-Verhalten (StackBlitz-Boot) zusätzlich beide Terminal-Missionen im Browser prüfen. Source of Truth und Änderungsprozess: `docs/adr/0001-security-header-csp-reverse-proxy.md`.
+- **NIE** CSP/COEP/COOP ändern, ohne den automatisierten Header-Smoke im Deploy-Workflow grün zu haben: Er prüft gegen das echte Traefik in Prod, dass die beiden Missions-App-Routen die Missions-CSP (`'wasm-unsafe-eval'`, kein `'unsafe-eval'`) ohne COEP/COOP bekommen und alle anderen Routen nur die strikte Default-CSP. Bei Verdacht auf einen gebrochenen v86-Boot zusätzlich beide Terminal-Missionen im Browser prüfen. Source of Truth und Änderungsprozess: `docs/adr/0001-security-header-csp-reverse-proxy.md`.
 - **NIE** Admin-Writes am CSRF-geschützten API-Pfad vorbeiführen.
 - **NIE** `--no-verify`, `--force` oder `--no-gpg-sign` ohne explizite Anweisung.
 - **NIE** private Tool-Session-URLs, Tokens, Debug- oder temporäre Artefakt-Links in Commits oder dauerhafter Doku — stattdessen Issues/PRs/ADRs referenzieren. Durchgesetzt via `.githooks/commit-msg` (Aktivierung: `git config core.hooksPath .githooks`).
