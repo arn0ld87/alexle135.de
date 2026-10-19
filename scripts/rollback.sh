@@ -4,7 +4,7 @@
 # WICHTIG: Dieses Skript läuft AUF DEM SERVER, im Repo-Root
 # (/home/alex/alexle-vsco-src), NICHT lokal auf deiner Maschine. Es baut
 # nichts neu — es startet nur das Image, das `deploy.yml` vor dem letzten
-# Rebuild als `alexle135-v2:last-healthy` gesichert hat (siehe #289).
+# Neustart als `ghcr.io/arn0ld87/alexle-vsco:last-healthy` gesichert hat (siehe #289).
 #
 # Nutzung:
 #   1) Automatisch: `.github/workflows/deploy.yml` ruft dieses Skript per SSH
@@ -22,7 +22,7 @@ set -euo pipefail
 
 COMPOSE_FILE="docker-compose.prod.yml"
 CONTAINER="alexle135-v2"
-IMAGE_REPO="alexle135-v2"
+IMAGE_REPO="ghcr.io/arn0ld87/alexle-vsco"
 ROLLBACK_TAG="last-healthy"
 MAX_ATTEMPTS="${ROLLBACK_MAX_ATTEMPTS:-24}"
 INTERVAL="${ROLLBACK_INTERVAL:-5}"
@@ -56,7 +56,7 @@ else
 fi
 
 echo "--- docker compose up (last-healthy, kein Rebuild)"
-DEPLOY_SHA="${ROLLBACK_TAG}" docker compose -f "${COMPOSE_FILE}" up -d --no-build "${CONTAINER}"
+DEPLOY_SHA="${ROLLBACK_TAG}" docker compose -f "${COMPOSE_FILE}" up -d --pull never "${CONTAINER}"
 
 echo "--- Healthcheck nach Rollback"
 # running + health.status in EINEM docker inspect abfragen (weniger Latenz).
