@@ -26,14 +26,15 @@ services:
       start_period: 10s
 
   alexle135-v2:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    # Immutable Tag pro Deploy (#289): deploy.yml setzt DEPLOY_SHA vor
-    # build/up auf den kurzen Commit-SHA. Ohne gesetztes DEPLOY_SHA (lokale
-    # Entwicklung, `docker compose up --build`) fällt der Tag auf "latest"
-    # zurück — Alex' lokaler Workflow bleibt unverändert.
-    image: alexle135-v2:${DEPLOY_SHA:-latest}
+    # Fertiges Image aus ghcr.io, gebaut vom Job `image` in deploy.yml; der
+    # Server baut nicht mehr. Immutable Tag pro Deploy (#289): deploy.yml setzt
+    # DEPLOY_SHA auf den kurzen Commit-SHA (<sha12>). Rollback: rollback.sh
+    # setzt DEPLOY_SHA=last-healthy (lokaler Tag, nie gepusht) bzw. einen
+    # älteren SHA-Tag. Ohne DEPLOY_SHA gilt "latest".
+    image: ghcr.io/arn0ld87/alexle-vsco:${DEPLOY_SHA:-latest}
+    # Nur ziehen, wenn der Tag lokal fehlt: deploy.yml zieht explizit vorher,
+    # last-healthy existiert nur lokal.
+    pull_policy: missing
     container_name: alexle135-v2
     restart: unless-stopped
     depends_on:
@@ -86,11 +87,12 @@ services:
       - 'traefik.http.middlewares.alexle135-www-redirect.redirectregex.permanent=true'
       # ── CSP-Strategie (gespiegelt aus astro.config.mjs — beide synchron halten) ──
       # Default-Policy (alle Routen): strikt, OHNE unsafe-eval/wasm-unsafe-eval, OHNE
-      # StackBlitz/WebContainer-Quellen, OHNE COEP/COOP. unsafe-inline (script) bleibt,
-      # weil GoogleAnalytics.astro ein define:vars-Inline-Script auf jeder Seite ist.
-      # WebContainer-Policy: nur für die zwei Terminal-app-Routen (eigener Router unten).
+      # COEP/COOP. unsafe-inline (script) bleibt, weil GoogleAnalytics.astro ein
+      # define:vars-Inline-Script auf jeder Seite ist.
+      # Missions-Policy (CSP_MISSIONS): Default plus wasm-unsafe-eval und worker-src blob:
+      # für v86, nur für die zwei Terminal-app-Routen (eigener Router unten), ohne COEP/COOP.
       # Vor Änderungen IMMER csp-header-guard-Agent prüfen lassen. HARD-RULE: nach jeder
-      # Änderung beide Terminal-Missionen manuell testen (sonst stiller Mock-Mode-Fallback).
+      # Änderung beide Terminal-Missionen manuell testen (v86 bootet sonst nicht).
       #
       # Default-Header-Middleware (strikte CSP, keine COEP/COOP)
       - "traefik.http.middlewares.alexle135-headers.headers.customResponseHeaders.Content-Security-Policy=default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.googletagmanager.com https://platform.linkedin.com https://static.cloudflareinsights.com; connect-src 'self' https://*.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://platform.linkedin.com https://cloudflareinsights.com; frame-src 'self' https://platform.linkedin.com https://www.linkedin.com; worker-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net; base-uri 'self'; frame-ancestors 'self'"
@@ -102,31 +104,31 @@ services:
       - 'traefik.http.middlewares.alexle135-headers.headers.referrerPolicy=strict-origin-when-cross-origin'
       - 'traefik.http.middlewares.alexle135-headers.headers.customFrameOptionsValue=SAMEORIGIN'
       - 'traefik.http.middlewares.alexle135-headers.headers.permissionsPolicy=camera=(), microphone=(), geolocation=(), payment=(), usb=()'
-      # WebContainer-Header-Middleware (lockere CSP + COEP/COOP, nur Terminal-Routen).
+      # Missions-Header-Middleware (CSP_MISSIONS, keine COEP/COOP, nur Terminal-Routen).
       # Generische Schutzheader hier dupliziert, damit die Middleware self-contained ist.
-      - "traefik.http.middlewares.alexle135-headers-wc.headers.customResponseHeaders.Content-Security-Policy=default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://*.stackblitz.io https://*.webcontainer.io https://stackblitz.com https://*.stackblitz.com https://www.googletagmanager.com https://platform.linkedin.com https://static.cloudflareinsights.com; connect-src 'self' ws: wss: https://*.stackblitz.io wss://*.stackblitz.io https://*.webcontainer.io wss://*.webcontainer.io https://stackblitz.com https://*.stackblitz.com https://*.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://platform.linkedin.com https://cloudflareinsights.com; frame-src 'self' https://*.stackblitz.io https://*.webcontainer.io https://stackblitz.com https://*.stackblitz.com https://platform.linkedin.com https://www.linkedin.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net; base-uri 'self'; frame-ancestors 'self'"
-      - 'traefik.http.middlewares.alexle135-headers-wc.headers.customResponseHeaders.Cross-Origin-Embedder-Policy=credentialless'
-      - 'traefik.http.middlewares.alexle135-headers-wc.headers.customResponseHeaders.Cross-Origin-Opener-Policy=same-origin'
-      - 'traefik.http.middlewares.alexle135-headers-wc.headers.stsSeconds=63072000'
-      - 'traefik.http.middlewares.alexle135-headers-wc.headers.stsIncludeSubdomains=true'
-      - 'traefik.http.middlewares.alexle135-headers-wc.headers.stsPreload=true'
-      - 'traefik.http.middlewares.alexle135-headers-wc.headers.forceSTSHeader=true'
-      - 'traefik.http.middlewares.alexle135-headers-wc.headers.contentTypeNosniff=true'
-      - 'traefik.http.middlewares.alexle135-headers-wc.headers.referrerPolicy=strict-origin-when-cross-origin'
-      - 'traefik.http.middlewares.alexle135-headers-wc.headers.customFrameOptionsValue=SAMEORIGIN'
-      - 'traefik.http.middlewares.alexle135-headers-wc.headers.permissionsPolicy=camera=(), microphone=(), geolocation=(), payment=(), usb=()'
-      - 'traefik.http.routers.alexle135.middlewares=alexle135-headers@docker'
-      # WebContainer-Router: höhere Priority als der Default-Router (Host-only),
-      # damit die zwei Terminal-app-Routen die lockere CSP + COEP/COOP bekommen.
-      # Segmentgenau wie isWebContainerRoute() in src/middleware.ts: Path() matcht exakt,
+      - "traefik.http.middlewares.alexle135-headers-missions.headers.customResponseHeaders.Content-Security-Policy=default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://www.googletagmanager.com https://platform.linkedin.com https://static.cloudflareinsights.com; connect-src 'self' https://*.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://platform.linkedin.com https://cloudflareinsights.com; frame-src 'self' https://platform.linkedin.com https://www.linkedin.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net; base-uri 'self'; frame-ancestors 'self'"
+      - 'traefik.http.middlewares.alexle135-headers-missions.headers.stsSeconds=63072000'
+      - 'traefik.http.middlewares.alexle135-headers-missions.headers.stsIncludeSubdomains=true'
+      - 'traefik.http.middlewares.alexle135-headers-missions.headers.stsPreload=true'
+      - 'traefik.http.middlewares.alexle135-headers-missions.headers.forceSTSHeader=true'
+      - 'traefik.http.middlewares.alexle135-headers-missions.headers.contentTypeNosniff=true'
+      - 'traefik.http.middlewares.alexle135-headers-missions.headers.referrerPolicy=strict-origin-when-cross-origin'
+      - 'traefik.http.middlewares.alexle135-headers-missions.headers.customFrameOptionsValue=SAMEORIGIN'
+      - 'traefik.http.middlewares.alexle135-headers-missions.headers.permissionsPolicy=camera=(), microphone=(), geolocation=(), payment=(), usb=()'
+      # Compression-Middleware (PERF-05): Traefik komprimiert HTTP-Antworten (gzip/brotli) für alle Clients
+      - 'traefik.http.middlewares.alexle135-compress.compress=true'
+      - 'traefik.http.routers.alexle135.middlewares=alexle135-compress@docker,alexle135-headers@docker'
+      # Missions-Router: höhere Priority als der Default-Router (Host-only),
+      # damit die zwei Terminal-app-Routen CSP_MISSIONS bekommen.
+      # Segmentgenau wie isMissionRoute() in src/lib/security-headers.ts: Path() matcht exakt,
       # PathPrefix(`…/app/`) nur echte Unterpfade — Traefiks PathPrefix ohne Slash würde
       # auch Teilwort-Geschwister wie `…/app-foo` matchen (Issue #286).
-      - 'traefik.http.routers.alexle135-wc.rule=(Host(`alex-schneider.dev`) || Host(`alexle135.de`)) && (Path(`/projekte/terminal-missionen/app`) || PathPrefix(`/projekte/terminal-missionen/app/`) || Path(`/projekte/windows-terminal-missionen/app`) || PathPrefix(`/projekte/windows-terminal-missionen/app/`))'
-      - 'traefik.http.routers.alexle135-wc.priority=100'
-      - 'traefik.http.routers.alexle135-wc.entrypoints=websecure'
-      - 'traefik.http.routers.alexle135-wc.tls.certresolver=letsencrypt'
-      - 'traefik.http.routers.alexle135-wc.service=alexle135'
-      - 'traefik.http.routers.alexle135-wc.middlewares=alexle135-headers-wc@docker'
+      - 'traefik.http.routers.alexle135-missions.rule=(Host(`alex-schneider.dev`) || Host(`alexle135.de`)) && (Path(`/projekte/terminal-missionen/app`) || PathPrefix(`/projekte/terminal-missionen/app/`) || Path(`/projekte/windows-terminal-missionen/app`) || PathPrefix(`/projekte/windows-terminal-missionen/app/`))'
+      - 'traefik.http.routers.alexle135-missions.priority=100'
+      - 'traefik.http.routers.alexle135-missions.entrypoints=websecure'
+      - 'traefik.http.routers.alexle135-missions.tls.certresolver=letsencrypt'
+      - 'traefik.http.routers.alexle135-missions.service=alexle135'
+      - 'traefik.http.routers.alexle135-missions.middlewares=alexle135-compress@docker,alexle135-headers-missions@docker'
 
 networks:
   proxy:
