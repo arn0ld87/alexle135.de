@@ -1,0 +1,6 @@
+#!/bin/bash
+# Befehl `mission` für nicht-interaktive Aufrufe. Die eigentliche Logik steht als Funktion in
+# /usr/local/lib/mission.sh; die interaktive Shell des Azubis nutzt sie direkt (#392).
+. /usr/local/lib/mission.sh
+trap 'rm -f "/run/mission/reply.r$$"' EXIT
+mission "$@"

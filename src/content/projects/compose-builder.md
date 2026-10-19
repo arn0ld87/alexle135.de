@@ -10,6 +10,7 @@ techStack: ['Astro', 'TypeScript', 'Docker Compose', 'UI Logic']
 role: 'Produktidee, YAML-Generator & Build-to-copy UX'
 frameLabel: 'Stack editor / generated compose output'
 heroImage: ../../assets/projects/compose-builder.webp
+heroImageAlt: 'Editorial-Grafik: NGINX, Anwendung und PostgreSQL als gestaffelte Dienste neben einem YAML-Ausschnitt.'
 publishedAt: 2025-11-21
 featured: true
 ---
