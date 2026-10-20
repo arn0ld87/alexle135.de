@@ -4,59 +4,30 @@ import MissionTerminal from '../../../components/interactive/MissionTerminal.tsx
 ---
 
 <V2Layout
-  title="Terminal Missionen – Interaktive Linux & DevOps Tutorials"
+  title="Ein Linux-Krimi · Staffel 1 · Fall Kehrwoche"
   canonical="/projekte/terminal-missionen/"
   robots="noindex, follow"
-  description="Lerne Linux, Docker und Git spielerisch mit interaktiven Terminal-Simulationen. Geführte Missionen mit Echtzeit-Feedback."
+  image="/missions/trailer/titelkarte-og-d5e9bbfa.jpg"
+  imageAlt="Ein Linux-Krimi · Staffel 1 · Fall Kehrwoche"
+  description="Echtes Linux im Browser: Alex ist im Urlaub, und auf seinem Server räumt jemand auf, der das nicht soll. Löse acht Episoden mit echten Admin-Handgriffen."
 >
-  <main class="v2-shell py-20 md:py-28">
-    <header class="ds-pagehead ds-linegrid space-y-6 mb-12">
-      <p class="ds-kicker">Interactive Learning Platform</p>
-
-      <h1 class="ds-pagehead__title ds-display-xl">
-        Terminal Missionen
+  <!-- Auf dem Desktop füllt die Seite genau das Fenster unter der Navigation (72px + 1px Linie):
+       Das Terminal steht ganz im Bild, ohne dass der Titel unter die Navigation scrollt (#411). -->
+  <main class="v2-shell pt-5 pb-4 lg:flex lg:h-[calc(100dvh-73px)] lg:flex-col">
+    <header class="mb-3 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+      <h1 class="ds-display-s text-[color:var(--ink)]">
+        Ein Linux-Krimi <span class="text-[color:var(--muted)]">· Staffel 1 · Fall Kehrwoche</span>
       </h1>
-
-      <p class="ds-pagehead__lead">
-        Lerne Linux, Docker und Git durch praktische Übungen im simulierten Terminal.
-      </p>
-    </header>
-
-    <div class="mb-20">
-      <MissionTerminal client:visible />
-    </div>
-
-    <section class="border-t border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] pt-16">
-      <div class="grid md:grid-cols-3 gap-12">
-        <div class="space-y-3">
-          <span class="ds-meta">01</span>
-          <h3 class="ds-display-s text-[color:var(--ink)]">Learning by Doing</h3>
-          <p class="text-sm leading-relaxed text-[color:var(--muted)]">
-            Tippe echte Befehle und lerne praktisch — keine Installation nötig.
-          </p>
-        </div>
-        <div class="space-y-3">
-          <span class="ds-meta">02</span>
-          <h3 class="ds-display-s text-[color:var(--ink)]">Geführte Tutorials</h3>
-          <p class="text-sm leading-relaxed text-[color:var(--muted)]">
-            Schritt-für-Schritt Anleitungen mit Hints und Echtzeit-Validierung.
-          </p>
-        </div>
-        <div class="space-y-3">
-          <span class="ds-meta">03</span>
-          <h3 class="ds-display-s text-[color:var(--ink)]">6 Tutorial-Tracks</h3>
-          <p class="text-sm leading-relaxed text-[color:var(--muted)]">
-            Von Linux-Basics bis Docker Compose — für Beginner bis Advanced.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <footer class="mt-20 border-t border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] pt-12">
-      <a href="/projekte/terminal-missionen/" class="group inline-flex items-center gap-3 font-mono text-sm uppercase tracking-[0.2em] text-[color:var(--muted)] hover:text-[color:var(--accent-strong)] transition-colors">
-        <span class="text-[color:var(--accent-strong)] group-hover:-translate-x-1 transition-transform">&larr;</span>
-        Projekt-Übersicht
+      <a
+        href="/projekte/terminal-missionen/"
+        class="group inline-flex items-center gap-2 font-mono text-xs tracking-[0.2em] text-[color:var(--muted)] uppercase transition-colors hover:text-[color:var(--accent-strong)]"
+      >
+        <span class="text-[color:var(--accent-strong)] transition-transform group-hover:-translate-x-1"
+          >&larr;</span
+        >
+        Zur Projektseite
       </a>
-    </footer>
+    </header>
+    <MissionTerminal client:visible />
   </main>
 </V2Layout>
