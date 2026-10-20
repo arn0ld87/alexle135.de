@@ -2,11 +2,13 @@
 title: IHK Radar – FISI Prüfungstracker
 category: Web
 summary: 60 IHK-Prüfungsthemen zum Abhaken. Behalte den Überblick, was du kannst und was noch fehlt.
+meinTeil: 'Ich habe 60 Prüfungsthemen in sechs Kategorien sortiert und einen Tracker dazu gebaut, der den Fortschritt je Kategorie zeigt und lokal auf dem Gerät speichert.'
 tags:
   - FISI
   - Lernen
   - Tracker
 heroImage: ../../assets/projects/ihk-radar.webp
+heroImageAlt: 'Konzeptionelle Lernübersicht: Themenfelder im Kreis und eine Checkliste für Lernen, Prüfen und Abhaken.'
 publishedAt: 2025-11-19
 ---
 
@@ -14,10 +16,10 @@ publishedAt: 2025-11-19
   <div>
     <h2 class="text-2xl font-bold mb-4">Warum der Tracker?</h2>
     <p class="leading-relaxed">
-      Die FISI-Prüfung hat unzählige Themen. Irgendwann verlierst du den Überblick: Was kann ich schon? Was muss ich noch lernen?
+      Die FISI-Prüfung hat viele Themen, IHK Radar führt 60 davon auf. Irgendwann verlierst du den Überblick: Was kann ich schon? Was muss ich noch lernen?
     </p>
     <p class="leading-relaxed mt-4">
-      IHK Radar zeigt dir alle Themen sortiert nach Kategorien. Hake ab was du drauf hast, sieh deinen Fortschritt. Dein Stand wird lokal gespeichert – du kannst jederzeit weitermachen.
+      IHK Radar sortiert die 60 Themen in sechs Kategorien. Hake ab was du drauf hast, sieh deinen Fortschritt. Dein Stand wird lokal gespeichert – du kannst jederzeit weitermachen.
     </p>
   </div>
 

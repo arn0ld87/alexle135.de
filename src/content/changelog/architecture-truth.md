@@ -6,6 +6,6 @@ publishedAt: 2026-07-02
 links: []
 ---
 
-Die oeffentliche Doku trennt jetzt klar zwischen aktivem Produktionspfad und
+Die öffentliche Doku trennt jetzt klar zwischen aktivem Produktionspfad und
 alten oder extern vermuteten Deploy-Varianten. Das reduziert Review-Reibung und
 macht den aktuellen Betriebszustand besser nachvollziehbar.

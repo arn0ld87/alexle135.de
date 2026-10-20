@@ -29,11 +29,11 @@ export const optionalUrlSchema = z.preprocess(
 );
 
 export const contactMessageStatusSchema = z.enum(['open', 'answered', 'spam', 'follow_up'], {
-  message: 'ungueltiger status.',
+  message: 'Ungültiger Status.',
 });
 
 export const projectStatusSchema = z.enum(['planning', 'in-progress', 'completed', 'archived'], {
-  message: 'ungueltiger status.',
+  message: 'Ungültiger Status.',
 });
 
 const postFieldsSchema = z.object({

@@ -6,6 +6,6 @@ publishedAt: 2026-07-02
 links: []
 ---
 
-Die Testabdeckung war im Repo bereits deutlich staerker vorhanden, als ein
-externer Blick vermuten liess. Die README zeigt nun direkt, welche Tests fuer
+Die Testabdeckung war im Repo bereits deutlich stärker vorhanden, als ein
+externer Blick vermuten ließ. Die README zeigt nun direkt, welche Tests für
 die riskanten Pfade relevant sind.

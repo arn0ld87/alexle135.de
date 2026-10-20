@@ -9,8 +9,8 @@ Stand 2026-10-15 (abgeglichen mit src/pages/ und src/components/v2/).
 /leistungen/            „Was ich kann" — Kompetenzprofil
 /projekte/              Projektliste (Case-Einträge)
 /projekte/[slug]/       Projekt-Detail (Content Collection)
-/projekte/terminal-missionen/app/          Linux-Terminal-Lernapp (WebContainer)
-/projekte/windows-terminal-missionen/app/  Windows-Terminal-Lernapp (WebContainer)
+/projekte/terminal-missionen/app/          „Ein Linux-Krimi“: Lernspiel auf echtem Alpine Linux im Browser (v86)
+/projekte/windows-terminal-missionen/app/  Windows-Terminal-Lernapp: Simulation von CMD/PowerShell im Browser (kein echtes Windows)
 /blog/                  Logbuch (Liste)
 /blog/[slug]/           Artikel (MDX, OG-Bild via /og/{slug}.png)
 /ueber-mich/            Person, Werdegang, Arbeitsweise

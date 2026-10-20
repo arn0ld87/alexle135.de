@@ -8,8 +8,10 @@ tags:
   - DevOps
 techStack: ['Gemini API', 'Node.js', 'Express', 'Docker']
 role: 'Workflow-Architektur, Prompt-Logik & Routing-Regeln'
+meinTeil: 'Ich habe den Workflow entworfen und den Prompt getestet: Gemini ordnet ein Ticket Hardware, Software oder Netzwerk zu, und bei niedrigem Confidence Score geht es an einen menschlichen Dispatcher.'
 frameLabel: 'Classifier view / escalation logic'
 heroImage: ../../assets/projects/ticket-routing.webp
+heroImageAlt: 'Routing-Schema: Ein Ticket wird HW, SW oder Netzwerk zugeordnet; ein Prüfpfad führt zur manuellen Sichtung.'
 publishedAt: 2025-11-20
 featured: true
 ---
@@ -22,7 +24,7 @@ featured: true
     </p>
     <h2 class="text-2xl font-bold mb-4">Die Lösung</h2>
     <p class="leading-relaxed">
-      Ein intelligentes KI-Agent-System, das eingehende Tickets analysiert, den Kontext versteht und sie automatisch der richtigen Fachabteilung zuweist – inklusive Priorisierung.
+      Ein Workflow auf Basis der Gemini API: Er liest eingehende Tickets, ordnet sie Hardware, Software oder Netzwerk zu und leitet sie mit einer Priorität an die passende Fachabteilung weiter.
     </p>
   </div>
   
@@ -36,7 +38,7 @@ featured: true
         <span class="text-[var(--accent-strong)]">✓</span> Erkennung von Kategorien (HW/SW/Netzwerk)
       </li>
       <li class="flex items-center gap-2">
-        <span class="text-[var(--accent-strong)]">✓</span> Intelligente Priorisierung
+        <span class="text-[var(--accent-strong)]">✓</span> Priorisierung
       </li>
       <li class="flex items-center gap-2">
         <span class="text-[var(--accent-strong)]">✓</span> Routing an Fachabteilungen
@@ -49,7 +51,7 @@ featured: true
   <div class="ds-card">
     <h3 class="font-semibold mb-2">1. Prompt Engineering</h3>
     <p class="text-sm">
-      Die Qualität der Kategorisierung hängt stark vom Prompt ab. Iteratives Testen war nötig, um die KI auf spezifische IT-Probleme zu trainieren.
+      Die Qualität der Kategorisierung hängt stark vom Prompt ab. Ich habe ihn iterativ getestet, bis die Kategorien zu typischen IT-Problemen passten.
     </p>
   </div>
   <div class="ds-card">

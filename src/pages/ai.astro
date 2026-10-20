@@ -16,9 +16,9 @@ const useCases = [
   },
   {
     name: 'Agora',
-    role: 'Agentic Prediction Engine',
-    text: 'One document in, one world out. Agora turns text into a knowledge graph, populates it with hundreds of agents that each carry a biography, an attitude and a filter bubble, and lets them discuss, share and argue. You watch in real time how narratives spread and which voices tip the discourse. Runs locally on Neo4j and Ollama; when local inference gets too slow, it falls back to cloud models.',
-    status: 'v0.2 preview',
+    role: 'Rehearsal Room for Decisions',
+    text: 'Agora is a rehearsal room for decisions. You load documents and a question; Agora builds a knowledge graph in Neo4j, derives stakeholder personas you can review before anything runs, lets an OASIS/CAMEL simulation play out how they might react, and writes a report that tags each claim with an evidence level and keeps what the sources support apart from hypotheses and data gaps. It does not predict human behaviour; personas and simulation are model output. I maintain it as an AGPL-3.0 fork of MiroFish-Offline, which builds on MiroFish. It can run on Neo4j, Redis and Ollama, but no fully local reference run is documented yet.',
+    status: 'Open-source beta (0.9.x, October 2026), single-user, no 1.0 release',
   },
   {
     name: 'Hermes',
@@ -39,13 +39,13 @@ const stack = [
 const qwenPlan = [
   'Bulk embedding of larger repositories, where a laptop GPU becomes the bottleneck',
   'Summarisation passes over graph communities in code-review-graph',
-  'Burst inference for Agora simulations with hundreds of concurrent agents',
+  'Burst inference for Agora simulation and report runs, which are capped by per-run token, cost and time budgets',
 ] as const;
 ---
 
 <V2Layout
   title="AI Use Cases – Alexander Schneider"
-  description="How I build with AI: a code knowledge graph, an agentic prediction engine and a self-hosted agent framework. Local-first with Ollama, Neo4j and Qwen."
+  description="How I build with AI: a code knowledge graph, a rehearsal room for decisions and a self-hosted agent framework. Local-first with Ollama, Neo4j and Qwen."
   noindex={true}
   schema={{
     "@context": "https://schema.org",
@@ -53,7 +53,7 @@ const qwenPlan = [
     "@id": "https://alex-schneider.dev/ai/#page",
     "url": "https://alex-schneider.dev/ai/",
     "name": "AI Use Cases – Alexander Schneider",
-    "description": "How Alexander Schneider builds with AI: code knowledge graph, agentic prediction engine, self-hosted agent framework.",
+    "description": "How Alexander Schneider builds with AI: code knowledge graph, rehearsal room for decisions, self-hosted agent framework.",
     "inLanguage": "en",
     "mainEntity": { "@id": "https://alex-schneider.dev/#person" }
   }}
@@ -62,7 +62,7 @@ const qwenPlan = [
     <PageIntro
       kicker="AI at alex-schneider.dev"
       title="AI is not a feature here. It is the workbench."
-      lead="I am a one-person shop building self-hosted AI tooling: a code knowledge graph, an agent swarm engine and the infrastructure underneath. Everything on this page exists, runs, and was built on hardware I can touch."
+      lead="I am a one-person shop building self-hosted AI tooling: a code knowledge graph, a multi-agent simulation platform and the infrastructure underneath. Everything on this page exists, runs, and was built on hardware I can touch."
       aside="One page instead of a company deck: what I build with AI, what it runs on, and where cloud inference fits in. Updated July 2026."
     />
 

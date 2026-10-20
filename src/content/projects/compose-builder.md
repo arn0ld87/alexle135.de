@@ -1,15 +1,17 @@
 ---
 title: Docker Compose Builder
 category: Infrastruktur
-summary: Ein visueller Generator für Compose-Stacks. Services auswählen, Abhängigkeiten injecten und sofort das fertige YAML kopieren.
+summary: Ein visueller Generator für Compose-Stacks. Services auswählen, Abhängigkeiten einbinden und sofort das fertige YAML kopieren.
 tags:
   - Docker
   - DevOps
   - Tool
 techStack: ['Astro', 'TypeScript', 'Docker Compose', 'UI Logic']
 role: 'Produktidee, YAML-Generator & Build-to-copy UX'
+meinTeil: 'Ich habe den Generator selbst gebaut: Er setzt aus neun Services in sechs Kategorien live eine docker-compose.yml zusammen, ergänzt die Volumes und kopiert das Ergebnis mit einem Klick.'
 frameLabel: 'Stack editor / generated compose output'
 heroImage: ../../assets/projects/compose-builder.webp
+heroImageAlt: 'Editorial-Grafik: NGINX, Anwendung und PostgreSQL als gestaffelte Dienste neben einem YAML-Ausschnitt.'
 publishedAt: 2025-11-21
 featured: true
 ---

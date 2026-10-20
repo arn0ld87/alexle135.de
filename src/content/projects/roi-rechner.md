@@ -2,11 +2,13 @@
 title: ROI-Rechner – Lohnt sich Automatisierung?
 category: Web
 summary: Berechne, wie viel Zeit und Geld du mit Automatisierung sparst. Mit konkreten Zahlen statt Bauchgefühl.
+meinTeil: 'Ich habe die Rechnung gebaut: Aus Dauer, Häufigkeit, Stundensatz und Setup-Stunden ergibt sich, nach wie vielen Tagen oder Monaten sich eine Automatisierung bezahlt macht.'
 tags:
   - Kalkulator
   - Business
   - Tool
 heroImage: ../../assets/projects/roi-rechner.webp
+heroImageAlt: 'Konzeptioneller Zeitvergleich zwischen manueller Arbeit und Automatisierung mit markiertem Zeitgewinn.'
 publishedAt: 2025-11-19
 ---
 
@@ -34,7 +36,7 @@ publishedAt: 2025-11-19
         <span class="text-[var(--accent-strong)]">✓</span> ROI-Zeitraum (Tage/Monate)
       </li>
       <li class="flex items-center gap-2">
-        <span class="text-[var(--accent-strong)]">✓</span> Persönliche Empfehlung
+        <span class="text-[var(--accent-strong)]">✓</span> Empfehlung, ob sich die Automatisierung lohnt
       </li>
     </ul>
   </div>

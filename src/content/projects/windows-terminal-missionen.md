@@ -2,6 +2,7 @@
 title: Windows Terminal Missionen – CMD & PowerShell lernen
 category: Web
 summary: Lerne Windows CMD und PowerShell spielerisch mit interaktiven Terminal-Simulationen. Von Basics bis Expert-Level.
+meinTeil: 'Ich habe ein Windows-Terminal im Browser simuliert, damit man diskpart und wmic üben kann, ohne einen echten Rechner zu riskieren, und sechs Missionen mit sofortiger Prüfung dazu geschrieben.'
 tags:
   - Windows
   - CMD
@@ -10,7 +11,9 @@ tags:
   - FISI
   - Interaktives Lernen
 heroImage: ../../assets/projects/windows-terminal-missionen.webp
+heroImageAlt: 'Editorial-Grafik: Bash mit ls -la und Windows Terminal mit Get-Service, verbunden durch einen Lernpfad.'
 publishedAt: 2025-11-24
+appUrl: '/projekte/windows-terminal-missionen/app/'
 ---
 
 <div class="grid md:grid-cols-2 gap-12 mb-12">

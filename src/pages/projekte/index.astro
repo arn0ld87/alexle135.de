@@ -7,19 +7,8 @@ import CTASection from '../../components/site/CTASection.astro';
 
 export const prerender = true;
 
-const proofLines: Record<string, string> = {
-  'terminal-missionen': 'Produktdenken, Browser-Interaktion und Lern-UX fuer technische Inhalte.',
-  'windows-terminal-missionen': 'Didaktik, Simulation und technisches Onboarding fuer Windows-Workflows.',
-  'roi-rechner': 'Greifbarer Business-Nutzen statt Tool-Spielerei.',
-  'compose-builder': 'Strukturierte Developer-Workflows und sauber gefuehrte Automatisierung.',
-  'csharp-trainer': 'Didaktik, Browser-Interaktion und ein Lernprodukt, das direkt benutzbar ist.',
-  'ticket-routing': 'KI als Workflow-Baustein statt dekorativer Schicht.',
-  'ki-nachrichten-portal': 'Informationsaggregation, Priorisierung und verdauliche technische Aufbereitung.',
-  'ihk-radar': 'Recherche, Datenlogik und praxisnahe Unterstuetzung fuer echte Entscheidungen.',
-  'm2-schnittstelle': 'Integrationsdenken, Prozessmodellierung und saubere Uebergaenge zwischen Systemen.',
-};
-
 const featuredOrder = [
+  'agora',
   'terminal-missionen',
   'csharp-trainer',
   'ticket-routing',
@@ -107,21 +96,7 @@ const projectsSchema = {
       kicker="Projekte"
       title="Projekte, an denen man sieht, wie ich arbeite."
       lead="Keine erfundenen Fallstudien, sondern konkrete Tools, Lernprodukte und Automatisierungen, an denen man Umsetzung, Denkweise und technische Schwerpunkte erkennt."
-      aside="Die wichtigsten Sachen stehen vorne. Der Rest kommt danach. So liest es sich einfach besser."
     />
-
-    <section class="grid gap-8 border-y border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] py-10 md:py-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(18rem,0.75fr)] lg:items-start mt-12 md:mt-16">
-      <div class="space-y-5">
-        <p class="ds-kicker">Leselogik</p>
-        <h2 class="ds-display-l text-[color:var(--ink)]">
-          Nicht jedes Projekt ist gleich wichtig. Also steht das Wichtigste zuerst.
-        </h2>
-      </div>
-      <div class="space-y-4 border-l border-[color:color-mix(in_srgb,var(--ink)_10%,transparent)] pl-4 lg:pl-6 text-sm leading-7 text-[color:var(--ink)]">
-        <p>Die stärksten Einträge stehen vorne: Produkt, Automatisierung und infrastrukturlastige Themen. Kleinere oder speziellere Projekte kommen danach.</p>
-        <p class="text-[color:var(--muted)]">Jeder Eintrag zeigt außerdem kurz, worin der eigentliche Wert liegt. Sonst muss der Besucher sich alles selbst zusammensuchen.</p>
-      </div>
-    </section>
 
     <div class="space-y-20 pt-12 md:space-y-28 md:pt-16">
       {projects.map((project, index) => (
@@ -130,7 +105,7 @@ const projectsSchema = {
           title={project.data.title}
           href={`/projekte/${project.id}/`}
           summary={project.data.summary}
-          proofLine={proofLines[project.id] || 'praktische technische Umsetzung mit klarer Produkt- und Systemlogik.'}
+          meinTeil={project.data.meinTeil}
           tags={project.data.tags || []}
           image={project.data.heroImage}
           imageAlt={project.data.heroImageAlt}
@@ -154,7 +129,7 @@ const projectsSchema = {
 
     <section class="pt-20 md:pt-28">
       <CTASection
-        kicker="Naechster Schritt"
+        kicker="Nächster Schritt"
         title="Wenn du ein ähnliches Projekt planst oder nach einem Azubi / Junior-Kollegen suchst, freue ich mich über eine Nachricht."
         body="Die Projekte hier zeigen, wie ich arbeite. Ob Ausbildungsstelle, Kooperation oder technischer Austausch – eine kurze Mail reicht für einen ersten Abgleich."
         primaryHref="/kontakt/"
