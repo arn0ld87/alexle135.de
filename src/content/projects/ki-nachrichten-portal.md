@@ -8,6 +8,7 @@ tags:
   - Node.js
   - GitHub Actions
 heroImage: ../../assets/projects/ki-nachrichten-portal.webp
+heroImageAlt: 'Editorial-Grafik: Vier Nachrichtenquellen werden zu einer strukturierten KI-Briefing-Ausgabe zusammengeführt.'
 ---
 
 <div class="grid md:grid-cols-2 gap-12 mb-12">
