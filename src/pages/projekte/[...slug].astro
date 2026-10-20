@@ -2,6 +2,7 @@
 import { getCollection, getEntry, render, type CollectionEntry } from 'astro:content';
 import { Picture } from 'astro:assets';
 import V2Layout from '../../layouts/V2Layout.astro';
+import Trailer from '../../components/projects/Trailer.astro';
 
 export const prerender = true;
 
@@ -39,7 +40,11 @@ const projectSchema = {
   "name": project.data.title,
   "description": project.data.summary,
   "author": { "@id": "https://alex-schneider.dev/#person" },
-  "image": project.data.heroImage ? new URL(project.data.heroImage.src, Astro.site).toString() : undefined,
+  "image": project.data.ogImage
+    ? new URL(project.data.ogImage, Astro.site).toString()
+    : project.data.heroImage
+      ? new URL(project.data.heroImage.src, Astro.site).toString()
+      : undefined,
   "applicationCategory": isSoftwareType ? "DeveloperApplication" : undefined,
   "operatingSystem": isSoftwareType ? "Web" : undefined,
   "keywords": project.data.tags ? project.data.tags.join(", ") : undefined
@@ -53,7 +58,8 @@ const schema = projectSchema;
 <V2Layout
   title={project.data.title}
   description={project.data.summary}
-  ogSlug={project.id}
+  image={project.data.ogImage}
+  ogSlug={project.data.ogImage ? undefined : project.id}
   ogBasePath="/og/projekte"
   schema={schema}
 >
@@ -71,6 +77,16 @@ const schema = projectSchema;
         {project.data.summary}
       </p>
 
+      {project.data.appUrl && (
+        <a
+          href={project.data.appUrl}
+          data-astro-reload
+          class="inline-flex items-center gap-3 border border-[color:var(--ink)] bg-[color:var(--ink)] px-6 py-3 font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--paper)] transition-colors hover:border-[color:var(--accent-strong)] hover:bg-[color:var(--accent-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--accent)]"
+        >
+          Missionen starten <span aria-hidden="true">→</span>
+        </a>
+      )}
+
       {project.data.techStack && project.data.techStack.length > 0 && (
         <div class="flex flex-col gap-3">
           <p class="ds-meta">Tech Stack</p>
@@ -83,7 +99,17 @@ const schema = projectSchema;
       )}
     </header>
 
-    {project.data.heroImage && (
+    {project.data.trailer && (
+      <Trailer
+        src={project.data.trailer.src}
+        srcKlein={project.data.trailer.srcKlein}
+        poster={project.data.trailer.poster}
+        titel={project.data.title}
+        textfassung={project.data.trailer.textfassung}
+      />
+    )}
+
+    {!project.data.trailer && project.data.heroImage && (
       <figure class="mb-20 border border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] p-2">
          <Picture
            src={project.data.heroImage}
