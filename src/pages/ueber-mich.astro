@@ -3,7 +3,7 @@ import { Picture } from 'astro:assets';
 import V2Layout from '../layouts/V2Layout.astro';
 import CTASection from '../components/site/CTASection.astro';
 import portrait from '../assets/portrait/alex-portrait.webp';
-import agoraPoster from '../assets/blog/agora-teaser-poster.jpg';
+import agoraFeed from '../assets/projects/agora-simulation-feed.webp';
 
 // Die Seite liest weder Anfragedaten noch eine Collection. Vorab gebaut entstehen die
 // Porträt-Varianten im Build (D-25) und nicht je neuem Besucher zur Laufzeit.
@@ -44,18 +44,19 @@ const kiProjekte = [
     rolle: 'Self-hosted Agent-Framework',
     text: 'Aktueller Versuch, ein Agent-Framework komplett auf eigener Infrastruktur laufen zu lassen. Kein OpenAI-Key im Hintergrund, keine externen Logs, keine Telemetrie. Gedacht für Aufgaben, bei denen mir Datenabfluss sauer aufstoßen würde. Ersetzt ein früheres Projekt, das ich inzwischen eingestellt habe.',
     status: 'Aktiv in Entwicklung',
-    preview: null,
+    image: null,
+    imageAlt: null,
     caption: null,
     href: null,
   },
   {
     name: 'Agora',
     rolle: 'Evidenzorientierte Multi-Agenten-Analyse',
-    text: 'Aus Dokumenten und Webseiten entsteht ein Wissensgraph. Daraus leitet Agora prüfbare Stakeholder-Personas ab, lässt sie in einer kontrollierten Simulation interagieren und trennt im Report belegte Aussagen von Hypothesen und Datenlücken. Das System läuft lokal oder kontrolliert hybrid. Es erzeugt Szenarien, keine Vorhersagen.',
-    status: 'v0.9.8 Stability Beta · AGPL-3.0',
-    preview: '/media/projekte/agora-teaser.mp4',
-    poster: agoraPoster.src,
-    caption: 'Agora · GraphRAG · Multi-Agenten · Evidence-Gating',
+    text: 'Aus Dokumenten und Webseiten entsteht ein Wissensgraph. Daraus leitet Agora prüfbare Stakeholder-Personas ab, lässt sie in einer kontrollierten Simulation interagieren und trennt im Report belegte Aussagen von Hypothesen und Datenlücken. Das System lässt sich lokal oder kontrolliert hybrid betreiben. Es erzeugt Szenarien, keine Vorhersagen. Agora ist ein Fork von MiroFish-Offline (nikmcfly), das auf MiroFish aufbaut; seit dem 21. April 2026 führe ich es eigenständig weiter.',
+    status: '0.9.x Stability Beta · AGPL-3.0',
+    image: agoraFeed,
+    imageAlt: 'Agora-Oberfläche: Feed einer abgeschlossenen Simulation zum erfundenen Fall Lindenhafen, Beiträge mit dem Marker SIM für synthetische Äußerung',
+    caption: 'Simulationsfeed im erfundenen Fall Lindenhafen',
     href: '/blog/agora-mirofish-fork-local-first/',
   },
 ] as const;
@@ -220,18 +221,20 @@ const searchFields = [
                     <span class="font-mono text-[0.72rem] uppercase tracking-[0.18em] text-[color:var(--accent-strong)]">{p.rolle}</span>
                   </div>
                   <p class="max-w-[68ch] text-base leading-8 text-[color:var(--ink)]">{p.text}</p>
-                  {p.preview && (
+                  {p.image && (
                     <figure class="mt-6 space-y-3 border border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] p-2">
-                      <video
-                        data-src={p.preview}
-                        poster={p.poster}
-                        class="block h-auto w-full [&[data-loaded]]:animate-none"
-                        muted
-                        loop
-                        playsinline
-                        preload="none"
-                        data-lazy-video
-                      ></video>
+                      <Picture
+                        src={p.image}
+                        formats={['avif', 'webp']}
+                        fallbackFormat="webp"
+                        widths={[640, 960, 1200]}
+                        sizes="(min-width: 1024px) 40rem, 100vw"
+                        alt={p.imageAlt}
+                        class="block h-auto w-full"
+                        pictureAttributes={{ class: 'block' }}
+                        loading="lazy"
+                        decoding="async"
+                      />
                       {p.caption && (
                         <figcaption class="px-1 pb-1 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-[color:var(--muted)]">
                           {p.caption}
@@ -285,32 +288,4 @@ const searchFields = [
       </div>
     </section>
   </main>
-
-  <script>
-    // Lazy-load Agora-Teaser (und weitere data-lazy-video-Elemente) erst, wenn sie im Viewport sind.
-    // Spart Bandbreite und hält den Compositor-Thread auf der Startansicht frei.
-    const videos = document.querySelectorAll<HTMLVideoElement>('video[data-lazy-video]');
-    if (videos.length) {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          for (const entry of entries) {
-            if (!entry.isIntersecting) continue;
-            const video = entry.target as HTMLVideoElement;
-            const src = video.dataset.src;
-            if (src && !video.src) {
-              video.src = src;
-              video.load();
-              video.play().catch(() => {
-                // Autoplay blockiert (z. B. iOS Low Power) – User kann manuell starten.
-              });
-              video.dataset.loaded = 'true';
-            }
-            observer.unobserve(video);
-          }
-        },
-        { rootMargin: '200px 0px', threshold: 0.1 },
-      );
-      videos.forEach((v) => observer.observe(v));
-    }
-  </script>
 </V2Layout>

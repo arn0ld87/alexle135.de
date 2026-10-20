@@ -16,8 +16,12 @@ import Contact from '../components/home/Contact';
 import portrait from '../assets/portrait/alex-portrait.webp';
 
 // Weitere Arbeiten: höchstens sechs Projekte, zuerst featured, dann nach Datum (works.ts).
-const projectRows = selectProjects(await getCollection('projects'));
-// Agora ist kein Projekt der Collection; Format, Datum und Link kommen aus diesem Blogpost (D-43).
+// Agora hat einen Projekteintrag (nur unter /projekte/), steht hier aber als AgoraCard und
+// kommt darum nicht zusätzlich in die Liste.
+const projectRows = selectProjects(
+  (await getCollection('projects')).filter((project) => project.id !== 'agora')
+);
+// Die AgoraCard bezieht Format, Datum und Link aus diesem Blogpost (D-43).
 const agoraEntry = await getEntry('blog', 'agora-mirofish-fork-local-first');
 // Dieselbe Prüfung wie die Detailseite: ein Entwurf oder vordatierter Beitrag wird nicht beworben.
 const agora = agoraEntry && isPublishedBlogPost(agoraEntry) ? agoraEntry : undefined;
