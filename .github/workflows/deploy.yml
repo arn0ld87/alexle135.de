@@ -4,10 +4,115 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # PRs, die die Image-Pipeline anfassen, bauen das arm64-Image zur Probe (ohne Push, ohne Deploy).
+  pull_request:
+    paths:
+      - '.github/workflows/deploy.yml'
+      - 'Dockerfile'
+      - '.dockerignore'
+      - 'docker-compose.prod.yml'
+      - 'scripts/mission-image/**'
+
+permissions:
+  contents: read
+
+env:
+  # Produktionsimage: einmal bauen, nach ghcr.io pushen, der Server zieht nur noch.
+  IMAGE: ghcr.io/arn0ld87/alexle-vsco
 
 jobs:
-  deploy:
+  # Missions-Assets (v86 + i386-Alpine) brauchen einen x86_64-Host: Der Produktionsserver
+  # und der arm64-Runner können i386 nicht ausführen (exec format error).
+  # public/missions/linux/ ist gitignored und geht als Artefakt in den Image-Build.
+  mission-assets:
     runs-on: ubuntu-24.04
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Missions-Assets bauen
+        run: bash scripts/mission-image/build.sh
+
+      - name: Missions-Assets hochladen
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mission-assets
+          path: public/missions/linux/
+          retention-days: 1
+          if-no-files-found: error
+
+  # Der Server ist arm64 (armserver) — das Image entsteht nativ auf einem arm64-Runner statt per QEMU.
+  image:
+    needs: mission-assets
+    runs-on: ubuntu-24.04-arm
+    permissions:
+      contents: read
+      packages: write
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+    outputs:
+      sha: ${{ steps.meta.outputs.sha }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Missions-Assets laden
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: mission-assets
+          path: public/missions/linux/
+
+      - name: Image-Tag bestimmen
+        id: meta
+        run: |
+          # Kurzer, unveränderlicher Tag pro Deploy (#289), identisch zu PUBLIC_BUILD_SHA.
+          echo "sha=${GITHUB_SHA:0:12}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Login ghcr.io
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Produktionsimage bauen und pushen
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          platforms: linux/arm64
+          # Nur main pusht: Probebuilds (PR, Dispatch auf anderen Branches) überschreiben nie :latest.
+          push: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+          provenance: false
+          tags: |
+            ${{ env.IMAGE }}:${{ steps.meta.outputs.sha }}
+            ${{ env.IMAGE }}:latest
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          # Öffentliche Mess-ID (landet ohnehin im Client-Bundle), Repo-Variable statt Server-.env.
+          build-args: |
+            PUBLIC_GA_MEASUREMENT_ID=${{ vars.PUBLIC_GA_MEASUREMENT_ID }}
+            PUBLIC_BUILD_SHA=${{ steps.meta.outputs.sha }}
+          cache-from: type=gha,scope=prod-arm64
+          cache-to: type=gha,mode=max,scope=prod-arm64
+
+  deploy:
+    needs: image
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    # Nie zwei Deploys parallel auf dem Server (last-healthy, current-sha, Rollback).
+    concurrency:
+      group: deploy-prod
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: read
     # Forciert Node 24 für alle JS-Actions in diesem Job. Unterdrückt die
     # Deprecation-Warnung von actions/checkout@v4 und ist Pflicht ab Juni 2026.
     env:
@@ -85,43 +190,55 @@ jobs:
       # ========================================
       # Deploy: Docker + Traefik stack
       #
-      # Since April 2026 alexle135.de runs as Docker container `alexle135-v2`
-      # built from /home/alex/alexle-vsco-src on the server, routed by Traefik.
-      # Source-Dir on the server holds a checkout; rsync excludes .git and
-      # rebuilds from the synced files.
-      #
-      # The server-side .env at /home/alex/alexle-vsco-src/.env holds
-      # production secrets and must NOT be overwritten from CI. The rsync
-      # exclude list below guarantees that.
+      # alexle135.de runs as Docker container `alexle135-v2`, routed by Traefik.
+      # Das Image baut der Job `image` (ghcr.io/arn0ld87/alexle-vsco:<sha12>);
+      # der Server baut nichts mehr, er zieht nur noch. In
+      # /home/alex/alexle-vsco-src liegen nur noch Compose-Datei, Rollback-Skript,
+      # die Server-.env (Produktions-Secrets, wird nie aus CI überschrieben)
+      # und .deploy-state/. Migrationen stecken im Image (entrypoint.sh).
       # ========================================
-      - name: Sync repo to /home/alex/alexle-vsco-src
+      - name: Deploy-Sperre setzen
+        id: lock
         run: |
-          rsync -avz --delete-after --ignore-errors \
-            --exclude '.git' \
-            --exclude '.github' \
-            --exclude 'node_modules' \
-            --exclude 'dist' \
-            --exclude '.astro' \
-            --exclude '.env' \
-            --exclude '.env.local' \
-            --exclude '.DS_Store' \
-            --exclude '__pycache__' \
-            --exclude '*.pyc' \
-            --exclude '*.pyo' \
-            --exclude '.serena' \
-            --exclude '.code-review-graph' \
-            --exclude 'logs' \
-            --exclude 'NVME' \
-            --exclude '.venv*' \
-            --exclude '.playwright-mcp' \
-            --exclude '.deploy-state' \
-            ./ meinserver:/home/alex/alexle-vsco-src/
+          # Gemeinsame Serversperre mit scripts/deploy-manual.sh: concurrency schützt
+          # nur Actions-Läufe untereinander, nicht manuelle Deploys per SSH.
+          # shellcheck disable=SC2029 # GITHUB_RUN_ID wird bewusst clientseitig eingesetzt.
+          ssh meinserver "mkdir -p /home/alex/alexle-vsco-src/.deploy-state \
+            && mkdir /home/alex/alexle-vsco-src/.deploy-state/lock \
+            && echo 'actions ${GITHUB_RUN_ID}' > /home/alex/alexle-vsco-src/.deploy-state/lock/owner" \
+            || { echo "::error::Ein anderer Deploy läuft: $(ssh meinserver 'cat /home/alex/alexle-vsco-src/.deploy-state/lock/owner 2>/dev/null')"; exit 1; }
 
-      - name: Rebuild Docker container + restart
-        id: rebuild
+      - name: Sync Compose-Datei und Rollback-Skript
         run: |
-          ssh meinserver << 'EOF'
+          # Kein --delete: alte Quelldateien früherer Deploys bleiben liegen, .env und
+          # .deploy-state werden nie berührt. Nur die zwei Dateien, die der Server braucht.
+          rsync -avz --relative \
+            ./docker-compose.prod.yml \
+            ./scripts/rollback.sh \
+            meinserver:/home/alex/alexle-vsco-src/
+
+      - name: Pull image + restart
+        id: rebuild
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USER: ${{ github.actor }}
+          DEPLOY_SHA: ${{ needs.image.outputs.sha }}
+        run: |
+          # Der kurzlebige Job-Token geht über stdin auf den Server: Das Remote-Skript liest
+          # ihn als zweite Zeile selbst ein (Shell-Variable, nicht exportiert), nie über
+          # Argumente, Umgebung oder Log. Dort landet er nur in einem DOCKER_CONFIG auf
+          # tmpfs (/dev/shm), das nach dem Pull sofort gelöscht wird.
+          { printf 'IFS= read -r GHCR_TOKEN\n%s\n' "${GHCR_TOKEN}"; cat <<EOF
             set -euo pipefail
+            DEPLOY_SHA="${DEPLOY_SHA}"
+            GHCR_USER="${GHCR_USER}"
+          EOF
+          cat <<'EOF'
+            if ! [[ "${DEPLOY_SHA}" =~ ^[0-9a-f]{12}$ ]]; then
+              echo "ERROR: ungültiger Deploy-SHA '${DEPLOY_SHA}'"
+              exit 1
+            fi
+            IMAGE="ghcr.io/arn0ld87/alexle-vsco"
             cd /home/alex/alexle-vsco-src
 
             if [ ! -f .env ]; then
@@ -147,36 +264,36 @@ jobs:
             echo "GEMINI_API_KEY is set: ${#GEMINI_API_KEY} chars"
 
             # --- Rollback-Vorbereitung (#289) ---
-            # Kurzer, unveränderlicher Tag pro Deploy statt des impliziten
-            # Compose-Default-Tags. ${{ github.sha }} wird von GitHub Actions
-            # beim Rendern des Workflows als reiner Hex-String eingesetzt
-            # (kein Secret, keine Shell-Injektionsgefahr).
-            DEPLOY_SHA_FULL="${{ github.sha }}"
-            DEPLOY_SHA="${DEPLOY_SHA_FULL:0:12}"
+            # Kurzer, unveränderlicher Tag pro Deploy (<sha12>), gebaut und
+            # gepusht vom Job `image`.
             echo "Deploy-SHA: ${DEPLOY_SHA}"
             mkdir -p .deploy-state
 
+            # Image ziehen, bevor am laufenden Container etwas passiert. Login nur in
+            # ein flüchtiges DOCKER_CONFIG auf tmpfs; ~/.docker/config.json bleibt unberührt.
+            echo "--- docker compose pull (${IMAGE}:${DEPLOY_SHA})"
+            ghcr_config="$(mktemp -d -p /dev/shm ghcr.XXXXXX)"
+            trap 'rm -rf "${ghcr_config}"' EXIT
+            printf '%s' "${GHCR_TOKEN}" \
+              | DOCKER_CONFIG="${ghcr_config}" docker login ghcr.io -u "${GHCR_USER}" --password-stdin >/dev/null
+            unset GHCR_TOKEN
+            DEPLOY_SHA="${DEPLOY_SHA}" DOCKER_CONFIG="${ghcr_config}" \
+              docker compose -f docker-compose.prod.yml pull alexle135-v2
+            DOCKER_CONFIG="${ghcr_config}" docker logout ghcr.io >/dev/null 2>&1 || true
+            rm -rf "${ghcr_config}"
+
             # Aktuell laufendes (und damit zuletzt erfolgreich health-/smoke-
-            # geprüftes) Image VOR dem Neubau als last-healthy sichern, sonst
-            # würde es durch den Rebuild dangling und im Prune-Schritt gelöscht.
+            # geprüftes) Image VOR dem Neustart als last-healthy sichern (lokaler
+            # Tag, wird nie gepusht), sonst würde es im Prune-Schritt gelöscht.
             if current_image_id="$(docker inspect --format='{{.Image}}' alexle135-v2 2>/dev/null)"; then
-              docker tag "${current_image_id}" alexle135-v2:last-healthy
+              docker tag "${current_image_id}" "${IMAGE}:last-healthy"
               if [ -f .deploy-state/current-sha ]; then
                 cp .deploy-state/current-sha .deploy-state/last-healthy-sha
               fi
-              echo "Vorheriges Image als alexle135-v2:last-healthy gesichert (${current_image_id})."
+              echo "Vorheriges Image als ${IMAGE}:last-healthy gesichert (${current_image_id})."
             else
               echo "Kein laufender Container gefunden — Erstdeploy, kein last-healthy-Snapshot verfügbar."
             fi
-
-            # Build with explicit --build-arg so compose cannot silently drop
-            # the values through any resolution quirk.
-            echo "--- docker compose build"
-            DEPLOY_SHA="${DEPLOY_SHA}" docker compose -f docker-compose.prod.yml build \
-              --build-arg "PUBLIC_GA_MEASUREMENT_ID=${PUBLIC_GA_MEASUREMENT_ID:-}" \
-              --build-arg "PUBLIC_BUILD_SHA=${DEPLOY_SHA}"
-
-            docker tag "alexle135-v2:${DEPLOY_SHA}" alexle135-v2:latest
 
             echo "--- docker compose up"
             DEPLOY_SHA="${DEPLOY_SHA}" docker compose -f docker-compose.prod.yml up -d
@@ -186,16 +303,17 @@ jobs:
             echo "--- container status"
             docker ps --filter name=alexle135-v2 --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
-            echo "--- prune dangling images (last-healthy/latest/SHA-Tags bleiben erhalten)"
+            echo "--- prune dangling images (last-healthy/SHA-Tags bleiben erhalten)"
             docker image prune -f
 
             echo "--- Retention: nur die letzten 5 SHA-Tags behalten (best effort)"
-            mapfile -t stale_tags < <(docker images --format '{{.Tag}}\t{{.CreatedAt}}' alexle135-v2 \
+            mapfile -t stale_tags < <(docker images --format '{{.Tag}}\t{{.CreatedAt}}' "${IMAGE}" \
               | awk -F'\t' '$1 ~ /^[0-9a-f]{12}$/' | sort -k2 -r | tail -n +6 | cut -f1)
             for tag in "${stale_tags[@]:-}"; do
-              [ -n "${tag}" ] && docker rmi "alexle135-v2:${tag}" 2>/dev/null || true
+              [ -n "${tag}" ] && docker rmi "${IMAGE}:${tag}" 2>/dev/null || true
             done
           EOF
+          } | ssh meinserver 'bash -s'
 
       - name: Wait for Docker health status
         id: healthgate
@@ -320,36 +438,56 @@ jobs:
               overall=1
             fi
 
-            # CSP/COEP-Header-Zuordnung (Issue #286): reproduzierbarer Ersatz
-            # für den früheren manuellen Terminal-Missionen-Browsertest. Prüft
-            # gegen das echte Traefik in Prod, dass die zwei WebContainer-App-
-            # Routen die gelockerte CSP (unsafe-eval) + COEP credentialless
-            # bekommen, ein Teilwort-Geschwister (…/app-foo) aber NUR die
-            # strikte Default-CSP sieht (Regressionsschutz für den Segment-
-            # Matcher aus #298).
+            # CSP-Header-Zuordnung (Issue #286): reproduzierbarer Ersatz für den
+            # früheren manuellen Terminal-Missionen-Browsertest. Prüft gegen das
+            # echte Traefik in Prod, dass die zwei Missions-App-Routen die
+            # Missions-CSP ('wasm-unsafe-eval', kein 'unsafe-eval', keine
+            # StackBlitz-Quellen) und weder COEP noch COOP bekommen, ein
+            # Teilwort-Geschwister (…/app-foo) aber NUR die strikte Default-CSP
+            # sieht (Regressionsschutz für den Segment-Matcher aus #298).
+            # 'unsafe-eval' wird mit Anführungszeichen gesucht, weil es sonst
+            # als Teilwort in 'wasm-unsafe-eval' träfe.
             check_header() {
               local path="$1" mode="$2"
-              local hdrs csp coep
+              local hdrs csp coep coop
               hdrs="$(curl -s -D - -o /dev/null --max-time 15 "https://alex-schneider.dev${path}" || true)"
               csp="$(printf '%s' "${hdrs}" | grep -i '^content-security-policy:' | tr -d '\r')"
               coep="$(printf '%s' "${hdrs}" | grep -i '^cross-origin-embedder-policy:' | tr -d '\r')"
+              coop="$(printf '%s' "${hdrs}" | grep -i '^cross-origin-opener-policy:' | tr -d '\r')"
               local result="pass" detail="ok"
-              if [[ "${mode}" == "wc" ]]; then
-                if ! printf '%s' "${csp}" | grep -q "unsafe-eval"; then
-                  result="fail"; detail="WC-Route ohne unsafe-eval-CSP"; overall=1
-                elif ! printf '%s' "${coep}" | grep -qi "credentialless"; then
-                  result="fail"; detail="WC-Route ohne COEP credentialless"; overall=1
+              if [[ -z "${csp}" ]]; then
+                result="fail"; detail="keine CSP"; overall=1
+              elif [[ -n "${coep}" || -n "${coop}" ]]; then
+                result="fail"; detail="COEP/COOP gesetzt"; overall=1
+              elif [[ "${mode}" == "missions" ]]; then
+                if ! printf '%s' "${csp}" | grep -qF "'wasm-unsafe-eval'"; then
+                  result="fail"; detail="Missions-Route ohne wasm-unsafe-eval-CSP"; overall=1
+                elif printf '%s' "${csp}" | grep -qF "'unsafe-eval'"; then
+                  result="fail"; detail="Missions-Route mit unsafe-eval"; overall=1
+                elif printf '%s' "${csp}" | grep -qiE "stackblitz|webcontainer"; then
+                  result="fail"; detail="Missions-Route mit StackBlitz-Quellen"; overall=1
                 fi
               else
                 if printf '%s' "${csp}" | grep -q "unsafe-eval"; then
-                  result="fail"; detail="Nicht-WC-Route bekommt gelockerte WC-CSP (Header-Leak)"; overall=1
+                  result="fail"; detail="Nicht-Missions-Route bekommt gelockerte CSP (Header-Leak)"; overall=1
                 fi
               fi
               echo "SMOKE|hdr ${path}|${mode}|${result}|${detail}"
             }
-            check_header /projekte/terminal-missionen/app wc
-            check_header /projekte/windows-terminal-missionen/app wc
+            check_header /projekte/terminal-missionen/app missions
+            check_header /projekte/windows-terminal-missionen/app missions
             check_header /projekte/terminal-missionen/app-foo strict
+            # VM-Dateien (#414): strikte CSP und sieben Tage immutable (Inhalts-Hash im Namen).
+            vmdatei="$(docker exec alexle135-v2 sh -c 'ls /app/dist/client/missions/linux/alpine-rootfs-flat | head -1')"
+            check_header "/missions/linux/alpine-rootfs-flat/${vmdatei}" strict
+            vmhdrs="$(curl -s -D - -o /dev/null --max-time 15 "https://alex-schneider.dev/missions/linux/alpine-rootfs-flat/${vmdatei}" || true)"
+            # Status 200 Pflicht: Der immutable-Header kommt laut Middleware auch auf eine 404.
+            if printf '%s' "${vmhdrs}" | head -1 | grep -q ' 200' \
+                && printf '%s' "${vmhdrs}" | grep -i '^cache-control:' | grep -qi 'immutable'; then
+              echo "SMOKE|cache vmdatei|immutable|pass|ok"
+            else
+              echo "SMOKE|cache vmdatei|immutable|fail|kein 200 oder kein immutable"; overall=1
+            fi
 
             echo "CONTAINER_STATUS_START"
             docker ps --filter name=alexle135-v2 --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
@@ -384,7 +522,7 @@ jobs:
         if: failure() && steps.rebuild.outcome == 'success'
         run: |
           set -uo pipefail
-          echo "::error::Deploy fehlgeschlagen (Health-Gate oder Smoke-Test rot) — automatischer Rollback auf alexle135-v2:last-healthy."
+          echo "::error::Deploy fehlgeschlagen (Health-Gate oder Smoke-Test rot) — automatischer Rollback auf ghcr.io/arn0ld87/alexle-vsco:last-healthy."
 
           ssh meinserver 'bash -s' << 'EOF'
             cd /home/alex/alexle-vsco-src
@@ -401,6 +539,10 @@ jobs:
           # Der Deploy war fehlerhaft — dieser Job bleibt unabhängig vom
           # Rollback-Ergebnis als FAILED markiert (kein "grün trotz Rollback").
           exit 1
+
+      - name: Deploy-Sperre lösen
+        if: always() && steps.lock.outcome == 'success'
+        run: ssh meinserver 'rm -rf /home/alex/alexle-vsco-src/.deploy-state/lock'
 
       - name: Submit changed URLs to IndexNow
         continue-on-error: true
