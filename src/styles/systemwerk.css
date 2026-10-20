@@ -1615,6 +1615,27 @@ textarea.axinput {
   color: var(--terminal-fg-muted);
 }
 
+/* Pager-Figur (#422): leichtes Wippen, solange eine Nachricht eintippt. */
+@keyframes pager-figur-spricht {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-1px) rotate(-1.5deg);
+  }
+  75% {
+    transform: translateY(-0.5px) rotate(1.2deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pager-figur[data-spricht] {
+    transform-origin: 50% 90%;
+    animation: pager-figur-spricht 0.9s ease-in-out infinite;
+  }
+}
+
 @keyframes term-blink {
   50% {
     opacity: 0;
