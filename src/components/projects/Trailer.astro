@@ -1,0 +1,35 @@
+---
+interface Props {
+  src: string;
+  srcKlein?: string;
+  poster: string;
+  titel: string;
+  textfassung: string[];
+}
+
+const { src, srcKlein, poster, titel, textfassung } = Astro.props;
+---
+
+<figure id="trailer" class="mb-20 border border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] p-2">
+  <video
+    controls
+    playsinline
+    preload="none"
+    poster={poster}
+    aria-label={`Trailer: ${titel}`}
+    class="aspect-video w-full bg-[color:var(--panel)] object-cover"
+    data-surface="panel"
+  >
+    {srcKlein && <source src={srcKlein} type="video/mp4" media="(max-width: 800px)" />}
+    <source src={src} type="video/mp4" />
+    <a href={src}>Trailer öffnen</a>
+  </video>
+  <details class="px-2 py-3">
+    <summary class="cursor-pointer font-mono text-[0.68rem] uppercase tracking-[0.16em] text-[color:var(--muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--accent)]">
+      Was im Trailer steht
+    </summary>
+    <ol class="mt-4 list-decimal space-y-2 pl-6 text-[length:var(--ds-text-body)] leading-[1.55] text-[color:var(--ink)]">
+      {textfassung.map((zeile) => <li>{zeile}</li>)}
+    </ol>
+  </details>
+</figure>
