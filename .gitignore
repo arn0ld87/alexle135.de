@@ -254,3 +254,6 @@ docs/plans/design030726.md
 
 # Lokale Arbeitsnotizen (nicht versioniert)
 .planning/codebase/
+
+# Missions-Image (scripts/mission-image/build.sh), zu groß für Git
+public/missions/linux/
