@@ -7,6 +7,17 @@ import { z } from 'astro/zod';
 // Verhalten wie die frühere Legacy-`slug`-Generierung, solange kein `slug`-
 // Frontmatter-Override verwendet wird (im Repo nicht der Fall).
 
+// Trailer-Baustein der Projektseite (E3.2): ersetzt das Hero-Bild, wenn gesetzt.
+export const projektTrailerSchema = z.object({
+  src: z.string().startsWith('/'),
+  srcKlein: z.string().startsWith('/').optional(),
+  poster: z.string().startsWith('/'),
+  textfassung: z.array(z.string().min(1)).min(1),
+});
+
+// Eigenes Vorschaubild für og:image und JSON-LD (statt der dynamischen OG-Route).
+export const projektOgImageSchema = z.string().startsWith('/');
+
 const projects = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/projects' }),
   schema: ({ image }) =>
@@ -26,9 +37,13 @@ const projects = defineCollection({
         .enum(['SoftwareApplication', 'SoftwareSourceCode', 'CreativeWork', 'TechArticle'])
         .default('SoftwareApplication'),
       status: z.enum(['planning', 'in-progress', 'completed', 'archived']).default('completed'),
+      // Interne Route einer eigenen App (z. B. Missionen); zeigt einen Start-Button im Kopf.
+      appUrl: z.string().startsWith('/').optional(),
       demoUrl: z.url().optional(),
       repoUrl: z.url().optional(),
       featured: z.boolean().default(false),
+      trailer: projektTrailerSchema.optional(),
+      ogImage: projektOgImageSchema.optional(),
     }),
 });
 
