@@ -3,6 +3,11 @@
   "budgets": {
     "totalJsGzipKb": 202,
     "largestChunkGzipKb": 91,
+    "missionRoute": {
+      "$comment": "S2 Terminal-Missionen (2026-10-18): libv86 und xterm lädt nur die Missionsroute per React.lazy nach (Spec-Kriterium 6). Ist 153,1 KB gzip, Budget = Ist + ~15 %. Sie zählen nicht zu totalJsGzipKb; largestChunkGzipKb gilt weiter für sie.",
+      "chunkPrefixes": ["libv86", "xterm"],
+      "totalJsGzipKb": 176
+    },
     "images": {
       "maxRasterFileKb": 1038,
       "astroRasterTotalKb": 11748,
