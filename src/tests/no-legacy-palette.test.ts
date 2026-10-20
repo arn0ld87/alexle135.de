@@ -264,35 +264,10 @@ export const PALETTE_TRANSITION: Record<string, string> = {};
  * fehl (T-02-42). Alles andere in diesen Dateien steht auf `--terminal-*`.
  */
 export const TERMINAL_ISLAND: Record<string, { reason: string; allowed: string[] }> = {
-  'src/components/interactive/BaseMissionTerminal.tsx': {
-    reason:
-      'Zustandsfarbe der Ausgabe: der grüne Rahmen umschließt die Abschlussfläche der erfüllten Mission.',
-    allowed: ['border-green-500'],
-  },
-  'src/components/interactive/MissionSelector.tsx': {
-    reason:
-      'Zustandsfarben der Ausgabe: die Schwierigkeitsstufen der Missionskarten stehen als Grün, Gelb und Rot.',
-    allowed: [
-      'bg-green-500',
-      'border-green-500',
-      'text-green-400',
-      'bg-yellow-500',
-      'border-yellow-500',
-      'text-yellow-400',
-      'bg-red-500',
-      'border-red-500',
-      'text-red-400',
-    ],
-  },
   'src/components/interactive/Terminal.tsx': {
     reason:
       'Zustandsfarbe der Ausgabe: die Schließen-Schaltfläche der nachgebauten Windows-Leiste färbt sich rot.',
     allowed: ['bg-red-600'],
-  },
-  'src/components/interactive/WebContainerTerminal.tsx': {
-    reason:
-      'Zustandsfarbe der Ausgabe: das Fehlerband meldet den abgebrochenen Start der Terminal-Insel in Rot.',
-    allowed: ['bg-red-900'],
   },
 };
 

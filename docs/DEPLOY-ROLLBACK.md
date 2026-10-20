@@ -13,20 +13,21 @@ Ablauf für den Rollback eines fehlgeschlagenen oder fehlerhaften Deploys von `a
 
 ## Fakten zur aktuellen Deploy-Mechanik
 
-- Der Sync-Schritt in `deploy.yml` (`rsync ... --exclude '.git' ...`) kopiert **kein** `.git`-Verzeichnis auf den Server. `/home/alex/alexle-vsco-src` ist dort also kein Git-Checkout, sondern nur der Dateistand — `git checkout <sha>` funktioniert auf dem Server selbst **nicht**.
-- `docker compose -f docker-compose.prod.yml build` baut das Image `alexle135-v2` bei jedem Deploy und taggt es (seit #289) mit dem kurzen Commit-SHA (`alexle135-v2:<sha12>`) sowie zusätzlich `alexle135-v2:latest`.
-- Vor jedem Rebuild sichert `deploy.yml` das aktuell laufende (und damit zuletzt erfolgreich health-/smoke-geprüfte) Image explizit als `alexle135-v2:last-healthy`, bevor es durch den Neubau ersetzt wird. Dadurch bleibt es getaggt und wird vom nachfolgenden `docker image prune -f` (löscht nur _dangling_, also untaggte Images) **nicht** gelöscht.
-- Zusätzlich merkt sich der Server unter `/home/alex/alexle-vsco-src/.deploy-state/` den jeweiligen Deploy-SHA (`current-sha`, `last-healthy-sha`) als menschenlesbaren Marker. Dieses Verzeichnis ist vom `rsync --delete-after`-Sync ausgeschlossen und überlebt jeden Deploy.
-- Konsequenz: Ein Rollback auf den letzten gesunden Stand ist jetzt **ohne Rebuild** möglich (`docker compose up -d` mit `alexle135-v2:last-healthy`) — schneller und ohne das Risiko, dass ein Rollback-Build selbst fehlschlägt. Der Source-Stand-Weg (Schritt 2A/2B unten) bleibt als Fallback bestehen, z. B. wenn `last-healthy` aus irgendeinem Grund fehlt (z. B. Erstdeploy).
-- Retention: `deploy.yml` behält nur die letzten 5 per-SHA-Tags (`docker rmi` auf ältere, best effort) plus `last-healthy` und `latest` — verhindert unbegrenztes Disk-Wachstum, ohne die Rollback-Fähigkeit einzuschränken.
+- Der Server baut nicht mehr. Der Job `image` in `deploy.yml` baut das Produktionsimage einmal nativ für `linux/arm64` (der Server ist arm64) und pusht es nach `ghcr.io/arn0ld87/alexle-vsco:<sha12>` sowie `:latest`. Die Missions-Assets dafür baut vorher der Job `mission-assets` auf einem x86_64-Runner.
+- Auf `/home/alex/alexle-vsco-src` kopiert der Deploy nur noch `docker-compose.prod.yml` und `scripts/rollback.sh`; dort liegen außerdem die Server-`.env` und `.deploy-state/`. Es ist kein Git-Checkout und kein Build-Kontext mehr. Migrationen stecken im Image und laufen beim Containerstart (`scripts/entrypoint.sh`).
+- Der Server meldet sich mit dem kurzlebigen Job-Token (`GITHUB_TOKEN`, `packages: read`) bei ghcr.io an — nur in einem flüchtigen `DOCKER_CONFIG` auf `/dev/shm`, das direkt nach dem Pull gelöscht wird. Für einen manuellen Pull braucht es eigene Zugangsdaten (siehe Schritt 2B).
+- Vor jedem Neustart sichert `deploy.yml` das aktuell laufende (und damit zuletzt erfolgreich health-/smoke-geprüfte) Image als lokalen Tag `ghcr.io/arn0ld87/alexle-vsco:last-healthy` (wird nie gepusht). Dadurch bleibt es getaggt und wird vom nachfolgenden `docker image prune -f` (löscht nur _dangling_, also untaggte Images) **nicht** gelöscht.
+- Zusätzlich merkt sich der Server unter `/home/alex/alexle-vsco-src/.deploy-state/` den jeweiligen Deploy-SHA (`current-sha`, `last-healthy-sha`) als menschenlesbaren Marker. Der Sync fasst dieses Verzeichnis nicht an.
+- Konsequenz: Ein Rollback auf den letzten gesunden Stand braucht keinen Build (`docker compose up -d` mit `last-healthy`). Ältere Stände liegen als SHA-Tags in ghcr.io und lassen sich jederzeit ziehen (Schritt 2B).
+- Retention: `deploy.yml` behält lokal nur die letzten 5 SHA-Tags (`docker rmi` auf ältere, best effort) plus `last-healthy` und `latest`. In ghcr.io bleiben alle Tags erhalten.
 
 ## Automatischer Rollback (CI)
 
 Seit #289 rollt `deploy.yml` selbst zurück, wenn nach einem Rebuild entweder das Health-Gate („Wait for Docker health status“) oder der Smoke-Test rot ist:
 
 1. Der neue Step „Auto-Rollback bei rotem Health-Gate oder Smoke-Test“ läuft nur, wenn der vorherige Rebuild-Step selbst erfolgreich war (`steps.rebuild.outcome == 'success'`) — sonst gibt es kein `last-healthy`-Ziel und nichts zurückzurollen.
-2. Er verbindet sich per SSH zu `meinserver` und führt dort `scripts/rollback.sh` aus (das Skript liegt dank rsync bereits im synchronisierten Source-Stand).
-3. `scripts/rollback.sh` startet **ohne Rebuild** `alexle135-v2:last-healthy` neu und pollt erneut den Docker-Healthcheck (gleiche Logik wie das Health-Gate: 24 Versuche à 5 s).
+2. Er verbindet sich per SSH zu `meinserver` und führt dort `scripts/rollback.sh` aus (der Deploy kopiert das Skript vor jedem Neustart auf den Server).
+3. `scripts/rollback.sh` startet **ohne Build und ohne Pull** `ghcr.io/arn0ld87/alexle-vsco:last-healthy` neu und pollt erneut den Docker-Healthcheck (gleiche Logik wie das Health-Gate: 24 Versuche à 5 s).
 4. Der Job bleibt in jedem Fall **FAILED** — unabhängig davon, ob der Rollback selbst erfolgreich war. Es gibt kein „grün trotz Rollback“: Ein fehlgeschlagener Deploy ist und bleibt ein fehlgeschlagener Workflow-Run, auch wenn Prod danach wieder auf dem alten, gesunden Stand läuft.
 5. Da der Job failed, laufen „Submit changed URLs to IndexNow“ nicht (kein `if:`, wird bei vorherigem Fehler übersprungen); „Cleanup SSH Key“ und „Deployment Summary“ laufen trotzdem (`if: always()`).
 
@@ -34,6 +35,7 @@ Seit #289 rollt `deploy.yml` selbst zurück, wenn nach einem Rebuild entweder da
 
 **Bekannte Grenzfälle:**
 
+- Umstellung auf ghcr.io (erster Deploy nach dem Wechsel): Der laufende Container nutzt noch ein lokal gebautes `alexle135-v2:<sha12>`. Der Deploy taggt dessen Image-ID als `ghcr.io/arn0ld87/alexle-vsco:last-healthy`, der Auto-Rollback geht also auf das alte Image. Die alten Tags `alexle135-v2:*` fasst die Retention nicht an; nach dem ersten grünen Deploy einmal manuell entfernen (`ssh meinserver 'docker images alexle135-v2 --format "{{.Repository}}:{{.Tag}}" | xargs -r docker rmi'`).
 - Erstdeploy (noch nie ein Container gelaufen): Es existiert kein `last-healthy`-Image. `scripts/rollback.sh` bricht dann kontrolliert mit einer klaren Fehlermeldung ab (kein automatischer Rollback möglich) — Fallback ist Schritt 2A/2B.
 - Falls ein automatischer Rollback selbst fehlschlägt (Rollback-Container wird ebenfalls nicht `healthy`): Vor dem nächsten Push **manuell** auf dem Server nachsehen (Schritt 3/4 unten), sonst würde der nächste Deploy das dann kaputte laufende Image fälschlich erneut als `last-healthy` übernehmen.
 
@@ -45,12 +47,12 @@ Voraussetzung: `meinserver` ist als SSH-Host-Alias in deiner eigenen `~/.ssh/con
 ssh meinserver 'bash /home/alex/alexle-vsco-src/scripts/rollback.sh'
 ```
 
-Das Skript ist idempotent (mehrfacher Aufruf ist ungefährlich) und rührt die Postgres-DB nicht an — es startet ausschließlich den `alexle135-v2`-Service neu, auf Basis von `alexle135-v2:last-healthy`.
+Das Skript ist idempotent (mehrfacher Aufruf ist ungefährlich) und rührt die Postgres-DB nicht an — es startet ausschließlich den `alexle135-v2`-Service neu, auf Basis von `ghcr.io/arn0ld87/alexle-vsco:last-healthy`.
 
 ### Last-healthy-Ziel finden/prüfen
 
 ```bash
-ssh meinserver 'docker images alexle135-v2 --format "table {{.Tag}}\t{{.CreatedAt}}\t{{.Size}}"'
+ssh meinserver 'docker images ghcr.io/arn0ld87/alexle-vsco --format "table {{.Tag}}\t{{.CreatedAt}}\t{{.Size}}"'
 ssh meinserver 'cat /home/alex/alexle-vsco-src/.deploy-state/last-healthy-sha 2>/dev/null || echo "kein Marker vorhanden"'
 ```
 
@@ -77,7 +79,7 @@ git revert --no-edit <bad-sha1> [<bad-sha2> ...]
 git push origin main
 ```
 
-Der Push auf `main` triggert automatisch `.github/workflows/deploy.yml` (`on: push branches: [main]`). Der Workflow synct den reverteten (wieder guten) Source-Stand, baut das Image neu und deployt. Danach:
+Der Push auf `main` triggert automatisch `.github/workflows/deploy.yml` (`on: push branches: [main]`). Der Workflow baut aus dem reverteten (wieder guten) Stand ein neues Image, pusht es nach ghcr.io und deployt. Danach:
 
 ```bash
 gh run watch
@@ -89,40 +91,26 @@ Das ist der zuverlässigere Weg gegenüber einem manuellen `workflow_dispatch`: 
 
 ## Schritt 2B — Notfall/manuell: direkt auf dem Server (ohne auf CI zu warten)
 
-Nur wenn sofortiges Handeln nötig ist und kein grüner CI-Lauf abgewartet werden kann. Voraussetzung: lokaler Checkout von `GOOD_SHA`.
-
-```bash
-git checkout <GOOD_SHA>   # lokal, detached HEAD
-```
+Nur wenn sofortiges Handeln nötig ist und kein grüner CI-Lauf abgewartet werden kann. Jeder erfolgreich gebaute Stand liegt als `ghcr.io/arn0ld87/alexle-vsco:<sha12>` in der Registry; der Rollback auf einen älteren Stand ist damit ein Pull des vorigen SHA-Tags, kein Build.
 
 SSH-Zugriff auf `meinserver` (User `alex`, Port `2222`) wie in deiner eigenen `~/.ssh/config` hinterlegt — der Host-Alias `meinserver` aus `deploy.yml` wird dort nur zur Laufzeit des CI-Jobs aus `secrets.DEPLOY_HOST` per Tailscale erzeugt und existiert nicht automatisch lokal.
 
-Gleicher rsync wie im Workflow-Schritt „Sync repo to /home/alex/alexle-vsco-src“ (identische Excludes, damit `.env` und Secrets auf dem Server unangetastet bleiben):
+Liegt der Tag noch lokal auf dem Server (die letzten 5 SHA-Tags, siehe „Last-healthy-Ziel finden/prüfen“), reicht der Start. Sonst vorher einmal ziehen; dafür braucht der Server Zugangsdaten mit `read:packages` (z. B. `gh auth token` eines berechtigten Kontos über stdin, nie als Argument):
 
 ```bash
-rsync -avz --delete-after --ignore-errors \
-  --exclude '.git' --exclude '.github' --exclude 'node_modules' --exclude 'dist' \
-  --exclude '.astro' --exclude '.env' --exclude '.env.local' --exclude '.DS_Store' \
-  --exclude '__pycache__' --exclude '*.pyc' --exclude '*.pyo' --exclude '.serena' \
-  --exclude '.code-review-graph' --exclude 'logs' --exclude 'NVME' --exclude '.venv*' \
-  --exclude '.playwright-mcp' --exclude '.deploy-state' \
-  ./ meinserver:/home/alex/alexle-vsco-src/
-```
+gh auth token | ssh meinserver 'docker login ghcr.io -u arn0ld87 --password-stdin \
+  && docker pull ghcr.io/arn0ld87/alexle-vsco:<GOOD_SHA12>; docker logout ghcr.io'
 
-Auf dem Server bauen + starten (identisch zum Workflow-Schritt „Rebuild Docker container + restart“). Als SSH-Heredoc kapseln, damit alle Befehle garantiert auf dem Server laufen — sonst würde nach einem interaktiven `ssh meinserver` der Rest lokal ausgeführt:
-
-```bash
 ssh meinserver 'bash -s' <<'EOF'
 cd /home/alex/alexle-vsco-src
 set -a; . ./.env; set +a
-DEPLOY_SHA="manual-$(date -u +%Y%m%dT%H%M%SZ)"
-docker compose -f docker-compose.prod.yml build --build-arg "PUBLIC_GA_MEASUREMENT_ID=${PUBLIC_GA_MEASUREMENT_ID:-}" --build-arg "PUBLIC_BUILD_SHA=$(git rev-parse --short=12 HEAD 2>/dev/null || true)"
-DEPLOY_SHA="${DEPLOY_SHA}" docker compose -f docker-compose.prod.yml up -d
+DEPLOY_SHA="<GOOD_SHA12>" docker compose -f docker-compose.prod.yml up -d --pull never alexle135-v2
+echo "<GOOD_SHA12>" > .deploy-state/current-sha
 docker ps --filter name=alexle135-v2 --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 EOF
 ```
 
-`DEPLOY_SHA` ist hier bewusst ein Zeitstempel-Tag statt eines echten Commit-SHA — dieser Weg baut aus dem manuell rsync'ten Source-Stand, nicht aus CI heraus. Danach greift trotzdem wieder der normale Mechanismus: Der nächste reguläre CI-Deploy sichert diesen Stand vor seinem eigenen Rebuild automatisch als neues `last-healthy`, falls er selbst erfolgreich health-checked wird.
+`<GOOD_SHA12>` sind die ersten 12 Zeichen von `GOOD_SHA`. Danach greift wieder der normale Mechanismus: Der nächste reguläre CI-Deploy sichert diesen Stand vor seinem eigenen Neustart automatisch als neues `last-healthy`.
 
 **Wichtig:** Nach einem manuellen Rollback anschließend trotzdem Schritt 2A (Revert + Push) nachholen. Solange `main` den fehlerhaften Commit noch enthält, würde der nächste reguläre Push wieder auf die fehlerhafte Version deployen.
 
@@ -156,6 +144,6 @@ ssh meinserver 'docker logs --tail=100 alexle135-db'
 
 ## Erledigt (#289) + verbleibende Grenzen
 
-- Gelöst: Image-Tagging pro Deploy (`alexle135-v2:<sha12>` + `latest`), `last-healthy`-Snapshot vor jedem Rebuild, automatischer Rollback bei rotem Health-Gate/Smoke-Test, 1-Befehl-manueller Rollback (`scripts/rollback.sh`), Tag-Retention (letzte 5 SHA-Tags).
-- Weiterhin nicht gelöst: `/home/alex/alexle-vsco-src` bleibt ein reiner Dateistand ohne `.git` — ein Rollback auf einen **Source**-Stand älter als `last-healthy` (z. B. zwei Deploys zurück) geht weiterhin nur über Schritt 2A/2B (Revert + Push bzw. manueller rsync eines lokalen Checkouts), nicht über ein weiteres Docker-Image-Tag. Die Tag-Retention behält zwar die letzten 5 SHA-Tags, aber `scripts/rollback.sh` kennt nur `last-healthy` — auf einen älteren SHA-Tag zurückzuspringen ist manuell via `docker tag alexle135-v2:<älterer-sha> alexle135-v2:last-healthy` möglich, aber nicht automatisiert.
+- Gelöst: Image-Tagging pro Deploy (`ghcr.io/arn0ld87/alexle-vsco:<sha12>` + `latest`), einmaliger Build auf dem Runner statt auf dem Server, `last-healthy`-Snapshot vor jedem Neustart, automatischer Rollback bei rotem Health-Gate/Smoke-Test, 1-Befehl-manueller Rollback (`scripts/rollback.sh`), lokale Tag-Retention (letzte 5 SHA-Tags).
+- Weiterhin nicht automatisiert: `scripts/rollback.sh` kennt nur `last-healthy`. Ein Sprung auf einen älteren SHA-Tag geht manuell über Schritt 2B.
 - Falls über einen längeren Zeitraum mehrere Deploys hintereinander fehlschlagen und jeweils erfolgreich zurückgerollt wurde, bleibt `last-healthy` stabil auf dem letzten tatsächlich gesunden Stand stehen (wird nur bei einem _erfolgreichen_ Rebuild+Start überschrieben) — das ist gewolltes Verhalten, kein Bug.
