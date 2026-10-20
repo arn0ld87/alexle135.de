@@ -2,19 +2,21 @@
 title: KI Nachrichten Portal
 category: KI
 summary: Automatisiertes News-Portal für KI-Entwicklungen – tägliche Updates via GitHub Actions und Gemini API
+meinTeil: 'Ich habe die Pipeline gebaut: RSS-Feeds einsammeln, Dubletten aussortieren, mit Gemini auf Deutsch zusammenfassen und als statische Seite auf den VPS bringen.'
 tags:
   - KI
   - Automation
   - Node.js
   - GitHub Actions
 heroImage: ../../assets/projects/ki-nachrichten-portal.webp
+heroImageAlt: 'Editorial-Grafik: Vier Nachrichtenquellen werden zu einer strukturierten KI-Briefing-Ausgabe zusammengeführt.'
 ---
 
 <div class="grid md:grid-cols-2 gap-12 mb-12">
   <div>
     <h2 class="text-2xl font-bold mb-4">Die Idee</h2>
     <p class="leading-relaxed">
-      Ein automatisiertes News-Portal, das die neuesten Entwicklungen im KI-Bereich sammelt und aufbereitet – ohne dass ich täglich manuell News suchen muss. Es läuft vollautomatisch und liefert jeden Morgen ein kurzes Update.
+      Ein automatisiertes News-Portal, das die neuesten Entwicklungen im KI-Bereich sammelt und aufbereitet – ohne dass ich täglich manuell News suchen muss. Ein Workflow auf GitHub Actions soll jeden Morgen ein kurzes Update liefern. Aktuell ist die Update-Funktion in Überarbeitung (siehe Status).
     </p>
   </div>
   

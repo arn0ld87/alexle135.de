@@ -1,0 +1,4 @@
+# Staffel 1 (#400): azubi darf genau das Konto kehrwoche sperren, entsperren und seinen Status
+# ansehen; im Finale (#401) außerdem seine Cronjobs ansehen und löschen und seine Prozesse
+# beenden. Feste Argumente, damit sudo kein Weg zu root ist (kein passwd root, kein usermod -u 0).
+azubi ALL=(root) NOPASSWD: /usr/sbin/usermod -L kehrwoche, /usr/sbin/usermod -U kehrwoche, /usr/bin/passwd -S kehrwoche, /usr/bin/crontab -u kehrwoche -l, /usr/bin/crontab -u kehrwoche -r, /usr/bin/pkill -u kehrwoche

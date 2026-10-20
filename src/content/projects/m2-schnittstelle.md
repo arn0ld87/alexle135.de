@@ -2,19 +2,21 @@
 title: M.2 Schnittstelle Vortrag
 category: Infrastruktur
 schemaType: CreativeWork
-summary: Technische Präsentation über M.2 SSDs - Installation, Performance-Vergleich und praktische Anwendung
+summary: 'Vortrag über M.2-SSDs: Formfaktoren und Keys, NVMe gegen SATA, Einbau und ein Leistungsvergleich.'
+meinTeil: 'Ich habe den Vortrag gehalten und die Folien mit python-pptx programmatisch erzeugt, damit das Design auf jeder Folie gleich bleibt.'
 tags:
   - Hardware
   - Präsentation
   - IT-Grundlagen
 heroImage: ../../assets/projects/m2-schnittstelle.webp
+heroImageAlt: 'Stilisierte technische Ansicht einer M.2-SSD mit Speicherbausteinen, Steckkontakten und Formfaktor 2280.'
 ---
 
 <div class="grid md:grid-cols-2 gap-12 mb-12">
   <div>
     <h2 class="text-2xl font-bold mb-4">Der Vortrag</h2>
     <p class="leading-relaxed">
-      Im Rahmen meiner FISI-Ausbildung habe ich eine technische Präsentation über die M.2-Schnittstelle gehalten. Ziel war es, die komplexe Hardware-Spezifikation verständlich zu erklären und praktische Tipps für die Installation zu geben.
+      Für die FISI-Ausbildung habe ich einen Vortrag über die M.2-Schnittstelle gehalten. Er erklärt, woran man Formfaktor und Key erkennt, vergleicht NVMe mit SATA und zeigt, worauf beim Einbau zu achten ist.
     </p>
   </div>
   
@@ -28,7 +30,7 @@ heroImage: ../../assets/projects/m2-schnittstelle.webp
         <span class="text-[var(--accent-strong)]">✓</span> NVMe vs. SATA Protokolle
       </li>
       <li class="flex items-center gap-2">
-        <span class="text-[var(--accent-strong)]">✓</span> Praktische Installationstipps
+        <span class="text-[var(--accent-strong)]">✓</span> Installationstipps
       </li>
       <li class="flex items-center gap-2">
         <span class="text-[var(--accent-strong)]">✓</span> Performance-Benchmarks
@@ -47,13 +49,13 @@ heroImage: ../../assets/projects/m2-schnittstelle.webp
   <div class="ds-card">
     <h3 class="font-semibold mb-2">2. Performance</h3>
     <p class="text-sm">
-      Vergleich der Geschwindigkeiten: SATA SSD (~550 MB/s) vs. M.2 NVMe Gen4 (~7.000 MB/s). Ein gewaltiger Sprung.
+      Vergleich der Geschwindigkeiten: SATA SSD (~550 MB/s) vs. M.2 NVMe Gen4 (~7.000 MB/s), also mehr als das Zwölffache.
     </p>
   </div>
   <div class="ds-card">
-    <h3 class="font-semibold mb-2">3. Learnings</h3>
+    <h3 class="font-semibold mb-2">3. Einbau</h3>
     <p class="text-sm">
-      Wie man technische Inhalte verständlich visualisiert und präsentiert, um auch Nicht-Experten abzuholen.
+      Welcher Key zu welchem Steckplatz passt, entscheidet über die Kompatibilität. Darauf läuft der Einbau hinaus.
     </p>
   </div>
 </div>

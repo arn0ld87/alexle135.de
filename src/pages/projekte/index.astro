@@ -7,18 +7,6 @@ import CTASection from '../../components/site/CTASection.astro';
 
 export const prerender = true;
 
-const proofLines: Record<string, string> = {
-  'terminal-missionen': 'Produktdenken, Browser-Interaktion und Lern-UX fuer technische Inhalte.',
-  'windows-terminal-missionen': 'Didaktik, Simulation und technisches Onboarding fuer Windows-Workflows.',
-  'roi-rechner': 'Greifbarer Business-Nutzen statt Tool-Spielerei.',
-  'compose-builder': 'Strukturierte Developer-Workflows und sauber gefuehrte Automatisierung.',
-  'csharp-trainer': 'Didaktik, Browser-Interaktion und ein Lernprodukt, das direkt benutzbar ist.',
-  'ticket-routing': 'KI als Workflow-Baustein statt dekorativer Schicht.',
-  'ki-nachrichten-portal': 'Informationsaggregation, Priorisierung und verdauliche technische Aufbereitung.',
-  'ihk-radar': 'Recherche, Datenlogik und praxisnahe Unterstuetzung fuer echte Entscheidungen.',
-  'm2-schnittstelle': 'Integrationsdenken, Prozessmodellierung und saubere Uebergaenge zwischen Systemen.',
-};
-
 const featuredOrder = [
   'terminal-missionen',
   'csharp-trainer',
@@ -130,7 +118,7 @@ const projectsSchema = {
           title={project.data.title}
           href={`/projekte/${project.id}/`}
           summary={project.data.summary}
-          proofLine={proofLines[project.id] || 'praktische technische Umsetzung mit klarer Produkt- und Systemlogik.'}
+          meinTeil={project.data.meinTeil}
           tags={project.data.tags || []}
           image={project.data.heroImage}
           imageAlt={project.data.heroImageAlt}
