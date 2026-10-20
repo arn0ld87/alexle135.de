@@ -1,10 +1,9 @@
-import React from 'react';
-import BaseMissionTerminal from './BaseMissionTerminal';
+import StaffelApp from '../missions/StaffelApp';
 
 /**
- * Linux/Docker/Git Mission Terminal
- * Wrapper um BaseMissionTerminal für Linux-basierte Missionen
+ * Terminal-Missionen auf echtem Linux im Browser (v86): Staffel 1 mit Akte, Pager und Terminal.
+ * Windows-Missionen laufen als Simulation über WindowsMissionTerminal.
  */
 export default function MissionTerminal() {
-  return <BaseMissionTerminal mode="linux" />;
+  return <StaffelApp />;
 }
