@@ -1,10 +1,8 @@
-import React from 'react';
-import BaseMissionTerminal from './BaseMissionTerminal';
+import WindowsMissions from '../missions/WindowsMissions';
 
 /**
- * Windows CMD/PowerShell Mission Terminal
- * Wrapper um BaseMissionTerminal für Windows-basierte Missionen
+ * Windows-Missionen (CMD, PowerShell, Diskpart) als Simulation im Browser.
  */
 export default function WindowsMissionTerminal() {
-  return <BaseMissionTerminal mode="windows" />;
+  return <WindowsMissions />;
 }
