@@ -37,6 +37,13 @@ Lernspiel auf echtem Alpine Linux im Browser (v86) unter `/projekte/terminal-mis
 - **Vorfall** (`vorfall`): Code-Name der Episode (Nummer 0–8): kaputter Ausgangszustand, Schritte mit Pager-Text, Zustandsprüfung und drei Tippstufen (Richtung → Befehl → Lösung), 3–5 Werkzeuge, Beweisstück, Szene. Die Engine führt ihn über `vorfallAlsMission` aus.
 - **Beweisstück:** Karte für die Akte mit festem Code; die Flagge eines Vorfalls ist `FLAG{code}`.
 - **Akte (Ermittlungsakte):** gelöste Vorfälle einer Staffel; erst die volle Akte schaltet das Finale frei. Stand mit Abzeichen und roten Prompts in localStorage (`staffeln:v1`, `staffelStore.ts`); aus dem alten Stand `missionen:v1` fallen nur die abgelösten Missionen 01–08, der Windows-Fortschritt bleibt.
+- **Ansicht** _(geplant, Staffel 2)_: grafische Darstellung eines Ortes oder Werkzeugs, etwa Raum, Logwand, Netzplan oder Aktenwand. Sie zeigt nur echten VM-Zustand und ändert ihn nie (ADR 0004). _Vermeiden:_ Minispiel, Klickrätsel.
+- **Spur** _(geplant, Staffel 2)_: unabhängiger Ermittlungsstrang innerhalb einer Episode; die Spielenden wählen die Reihenfolge frei.
+- **Beleg** _(geplant, Staffel 2)_: Datei unter `~/belege/`, die die Spielenden mit Shell-Mitteln anlegen und die eine Tatsache aus dem VM-Zustand festhält, etwa eine Logzeile oder einen Dateieigentümer. Gezählt wird der Inhalt, nicht der Weg. Mit Belegen wird ein Vorwurf gestützt. Anders als das Beweisstück ist ein Beleg keine Belohnung, sondern Argument. _Vermeiden:_ Beweis.
+- **Aktenwand** _(geplant, Staffel 2)_: Ansicht auf `~/belege/`. Sie zeigt, was dort wirklich liegt; aus ihr heraus werden Vorwürfe erhoben.
+- **Vorwurf** _(geplant, Staffel 2)_: Spielentscheidung, die einen Verdacht gegen eine Figur äußert und ihn mit Belegen stützen muss. Ein falscher oder unbelegter Vorwurf hat erzählerische Folgen, führt aber nie in eine Sackgasse. _Vermeiden:_ Anklage, Lösung.
+- **Einsatzrahmen** _(geplant, Staffel 2)_: schriftlich vereinbarte Grenzen des Pentests in Staffel 2, also was angefasst werden darf und was nicht. Wer ihn verletzt, spürt die Folgen in der Geschichte. _Vermeiden:_ Auftrag (so heißt schon die Pager-Nachricht `auftrag`), Scope in sichtbaren Texten.
+- **Spielstand-Code** _(geplant, Staffel 2)_: exportierter Stand einer Staffel zum Mitnehmen auf ein anderes Gerät, ohne Konto (ADR 0005).
 - **Abzeichen:** Auszeichnung nach Regel (ohne Tipp, schnell, nie Lösung, rote Prompts), je Staffel einmal.
 - **Gesamtlauf:** Summe der Zeiten aller Missionen ohne Mission 00 „Erster Tag“.
 - **Agent:** `mission-agent` in der VM, läuft als root an der zweiten seriellen Schnittstelle und führt `setup`, `verify`, `diagnose` und `flag` unsichtbar aus.
