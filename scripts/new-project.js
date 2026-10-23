@@ -92,6 +92,15 @@ async function main() {
     process.exit(1);
   }
 
+  // „Mein Teil“: ein konkreter Satz, was ich selbst gebaut oder entschieden habe (Pflichtfeld, 20-300 Zeichen)
+  const meinTeil = (
+    await question('Mein Teil (ein konkreter Satz: was habe ich selbst gebaut oder entschieden?): ')
+  ).trim();
+  if (meinTeil.length < 20 || meinTeil.length > 300) {
+    console.error('❌ „Mein Teil“ braucht 20 bis 300 Zeichen');
+    process.exit(1);
+  }
+
   // Get tech stack tags
   const tagsInput = await question('Tech-Stack/Tags (komma-separiert): ');
   const tags = tagsInput
@@ -141,6 +150,7 @@ async function main() {
     '---',
     `title: ${escapeYaml(title)}`,
     `summary: ${escapeYaml(summary)}`,
+    `meinTeil: ${escapeYaml(meinTeil)}`,
     'tags:',
   ];
 

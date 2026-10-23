@@ -109,7 +109,7 @@ export function Showcase() {
               Mittel
             </Button>
             <Button variant="primary" size="lg">
-              Gross
+              Groß
             </Button>
           </Row>
         </Group>

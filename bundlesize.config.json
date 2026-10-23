@@ -1,11 +1,16 @@
 {
-  "$comment": "Budgets für scripts/check-bundle-size.mjs (CI-Gate, #127). JS-Basis: Ist-Messung 2026-07-02 — 21 JS-Assets, 175,2 KB gzip gesamt, größter Chunk WebContainerTerminal 78,4 KB gzip. JS-Budgets = Ist + ~15% Puffer. Bild-Basis (D-27): Ist-Messung 2026-10-15 nach den Löschungen aus Plan 02-18, Option c — größte Rasterdatei media/ansible_preview.png 902,5 KB, Rasterdateien unter _astro/ 10 215,6 KB, Bildgewicht der Startseite 0 KB. maxRasterFileKb und astroRasterTotalKb = Ist + 15%, aufgerundet; homeRasterKb = 60. Ausnahme Klasse B (Option c): media/ansible_preview.png (902,5 KB) bleibt liegen und ist die größte Rasterdatei des Builds; ohne sie läge maxRasterFileKb bei 754 KB. Das Budget gilt trotzdem für alle Rasterdateien, auch für die der Klasse B.",
+  "$comment": "Budgets für scripts/check-bundle-size.mjs (CI-Gate, #127). JS-Basis: Ist-Messung 2026-07-02 — 21 JS-Assets, 175,2 KB gzip gesamt, größter Chunk WebContainerTerminal 78,4 KB gzip. JS-Budgets = Ist + ~15% Puffer. Bild-Basis (D-27): Ist-Messung 2026-10-15 nach den Löschungen aus Plan 02-18, Option c — größte Rasterdatei media/ansible_preview.png 902,5 KB, Rasterdateien unter _astro/ 10 215,6 KB, Bildgewicht der Startseite 0 KB. maxRasterFileKb und astroRasterTotalKb = Ist + 15%, aufgerundet; homeRasterKb = 60. Ausnahme Klasse B (Option c): media/ansible_preview.png (902,5 KB) bleibt liegen und ist die größte Rasterdatei des Builds; ohne sie läge maxRasterFileKb bei 754 KB. Das Budget gilt trotzdem für alle Rasterdateien, auch für die der Klasse B. Neubasis 2026-10-20 nach Agora-Projekteintrag (#456): Ist 11 727,2 KB, Budget 13 487 KB (Ist + 15 %, aufgerundet); maxRasterFileKb bleibt bei 1038 KB (Ist 902,5 KB).",
   "budgets": {
     "totalJsGzipKb": 202,
     "largestChunkGzipKb": 91,
+    "missionRoute": {
+      "$comment": "S2 Terminal-Missionen (2026-10-18): libv86 und xterm lädt nur die Missionsroute per React.lazy nach (Spec-Kriterium 6). Ist 153,1 KB gzip, Budget = Ist + ~15 %. Sie zählen nicht zu totalJsGzipKb; largestChunkGzipKb gilt weiter für sie.",
+      "chunkPrefixes": ["libv86", "xterm"],
+      "totalJsGzipKb": 176
+    },
     "images": {
       "maxRasterFileKb": 1038,
-      "astroRasterTotalKb": 11748,
+      "astroRasterTotalKb": 13487,
       "homeRasterKb": 60
     }
   }

@@ -6,6 +6,6 @@ publishedAt: 2026-07-02
 links: []
 ---
 
-Generierte Artefakte gehoeren in CI-Uploads oder lokale Arbeitsverzeichnisse,
+Generierte Artefakte gehören in CI-Uploads oder lokale Arbeitsverzeichnisse,
 nicht in den App-Quellstand. Der neue Check macht diesen Anspruch maschinell
-pruefbar.
+prüfbar.
