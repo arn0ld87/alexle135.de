@@ -2,8 +2,7 @@ import React from 'react';
 
 /** Mono-labelled tab bar with a glowing accent underline. */
 export type TabItem =
-  | string
-  | { value: string; label: string; icon?: React.ReactNode; count?: number };
+  string | { value: string; label: string; icon?: React.ReactNode; count?: number };
 
 export interface TabsProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange'> {
   items?: TabItem[];
