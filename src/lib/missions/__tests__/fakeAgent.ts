@@ -21,13 +21,22 @@ export function fakeAgentClient(
     if (!treffer) return;
     const [, id, nutzlast] = treffer;
     const skript = decodeBase64(nutzlast);
-    void Promise.resolve(antwort(skript, id)).then((a) => {
-      if (a.art === 'res') {
-        client.feed(`RES ${id} ${a.exitCode} ${encodeBase64(a.output)}\n`);
-      } else if (a.art === 'err') {
-        client.feed(`ERR ${id} ${a.grund}\n`);
-      }
-    });
+    // Wirft `antwort` oder lehnt es ab, antwortet der Fake wie der Agent mit ERR, statt eine
+    // unbehandelte Ablehnung zu hinterlassen.
+    void Promise.resolve()
+      .then(() => antwort(skript, id))
+      .then(
+        (a) => {
+          if (a.art === 'res') {
+            // Leere Ausgabe schreibt der Agent als `-` (agentProtocol.ts).
+            const nutzlast = a.output === '' ? '-' : encodeBase64(a.output);
+            client.feed(`RES ${id} ${a.exitCode} ${nutzlast}\n`);
+          } else if (a.art === 'err') {
+            client.feed(`ERR ${id} ${a.grund.replace(/[^A-Za-z0-9_-]/g, '-')}\n`);
+          }
+        },
+        () => client.feed(`ERR ${id} fake-fehler\n`)
+      );
   });
   return { client, gesendet };
 }

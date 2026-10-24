@@ -164,6 +164,7 @@ describe('pruefLauf', () => {
     });
 
     a.lauf.anstossen();
+    await vi.waitFor(() => expect(runZeilen(a.gesendet)).toHaveLength(1));
     a.setze({ ...startZustand(), geloest: true });
     halte.freigeben();
     await a.lauf.leerlauf();
@@ -207,11 +208,13 @@ describe('pruefLauf', () => {
       output: 'pruefung\ts.a.x\t0\n',
     }));
     const vorher = startZustand();
+    const kopie = structuredClone(vorher);
     a.setze(vorher);
     a.lauf.anstossen();
     await a.lauf.leerlauf();
     expect(a.geschrieben).toHaveLength(1);
-    expect(a.geschrieben[0].zustand).toEqual(vorher);
+    expect(a.geschrieben[0].zustand).toEqual(kopie);
+    expect(vorher).toEqual(kopie);
     expect(a.geschrieben[0].ereignisse).toEqual([{ type: 'pruefung-unvollstaendig' }]);
   });
 
@@ -223,10 +226,13 @@ describe('pruefLauf', () => {
     });
 
     a.lauf.anstossen();
+    await vi.waitFor(() => expect(runZeilen(a.gesendet)).toHaveLength(1));
     a.lauf.anstossen();
     a.lauf.stoppe();
     halte.freigeben();
     await a.lauf.leerlauf();
+    // Der späten Antwort Zeit geben, damit ein fälschliches Anwenden sichtbar würde.
+    await new Promise((r) => setImmediate(r));
     expect(a.geschrieben).toHaveLength(0);
     expect(runZeilen(a.gesendet)).toHaveLength(1);
 
@@ -258,10 +264,177 @@ describe('pruefLauf', () => {
     a.lauf.anstossen();
     await a.lauf.leerlauf();
     expect(a.lauf.laeuft()).toBe(false);
+    expect(a.fehler).toEqual([]);
 
     a.lauf.anstossen();
     await a.lauf.leerlauf();
     expect(runZeilen(a.gesendet)).toHaveLength(2);
+  });
+
+  it('läuft trotz werfendem schreibeZustand den vorgemerkten Nachlauf', async () => {
+    const erste = halter();
+    let aufrufe = 0;
+    const a = aufbau(
+      async () => {
+        aufrufe += 1;
+        if (aufrufe === 1) await erste.warten;
+        return { art: 'res', exitCode: 0, output: '' };
+      },
+      {
+        schreibeZustand: () => {
+          throw new Error('kaputt');
+        },
+      }
+    );
+    a.lauf.anstossen();
+    await vi.waitFor(() => expect(runZeilen(a.gesendet)).toHaveLength(1));
+    a.lauf.anstossen();
+    erste.freigeben();
+    await vi.waitFor(() => expect(runZeilen(a.gesendet)).toHaveLength(2));
+    await a.lauf.leerlauf();
+    expect(a.fehler).toEqual([]);
+  });
+
+  it('fängt einen werfenden meldeFehler ab und bleibt bedienbar', async () => {
+    let aufrufe = 0;
+    const a = aufbau(
+      () => {
+        aufrufe += 1;
+        return aufrufe === 1
+          ? { art: 'err', grund: 'kaputt' }
+          : { art: 'res', exitCode: 0, output: '' };
+      },
+      {
+        meldeFehler: () => {
+          throw new Error('auch kaputt');
+        },
+      }
+    );
+    a.lauf.anstossen();
+    await a.lauf.leerlauf();
+    expect(a.lauf.laeuft()).toBe(false);
+    a.lauf.anstossen();
+    await a.lauf.leerlauf();
+    expect(runZeilen(a.gesendet)).toHaveLength(2);
+  });
+
+  it('holt einen vorgemerkten Nachlauf auch nach einem Agent-Fehler nach', async () => {
+    const erste = halter();
+    let aufrufe = 0;
+    const a = aufbau(async () => {
+      aufrufe += 1;
+      if (aufrufe === 1) {
+        await erste.warten;
+        return { art: 'err', grund: 'bad-base64' };
+      }
+      return { art: 'res', exitCode: 0, output: '' };
+    });
+    a.lauf.anstossen();
+    await vi.waitFor(() => expect(runZeilen(a.gesendet)).toHaveLength(1));
+    a.lauf.anstossen();
+    a.lauf.anstossen();
+    erste.freigeben();
+    await vi.waitFor(() => expect(runZeilen(a.gesendet)).toHaveLength(2));
+    await a.lauf.leerlauf();
+    expect(a.fehler).toHaveLength(1);
+    expect(a.fehler[0].type).toBe('agent');
+    expect(a.lauf.laeuft()).toBe(false);
+  });
+
+  it('holt einen Nachlauf nach, den meldeFehler selbst anstößt', async () => {
+    let aufrufe = 0;
+    let lauf: ReturnType<typeof aufbau>['lauf'] | null = null;
+    const a = aufbau(
+      () => {
+        aufrufe += 1;
+        return aufrufe === 1
+          ? { art: 'err', grund: 'kaputt' }
+          : { art: 'res', exitCode: 0, output: '' };
+      },
+      { meldeFehler: () => lauf?.anstossen() }
+    );
+    lauf = a.lauf;
+    a.lauf.anstossen();
+    await vi.waitFor(() => expect(runZeilen(a.gesendet)).toHaveLength(2));
+    await a.lauf.leerlauf();
+    expect(a.lauf.laeuft()).toBe(false);
+  });
+
+  it('holt einen Nachlauf nach einem Skriptfehler nach', async () => {
+    const kaputt: Ermittlung = {
+      ...fixture,
+      spuren: [{ ...fixture.spuren[0], id: 'A' }, fixture.spuren[1]],
+    };
+    let aufrufe = 0;
+    let lauf: { anstossen(): void } | null = null;
+    // Beim ersten Lesen ist die Spur mit der ungültigen ID offen (Skriptfehler) und der Rückruf
+    // merkt einen Nachlauf vor; danach ist sie erledigt, und nur noch gültige Prüf-IDs sind offen.
+    const a = aufbau(() => ({ art: 'res', exitCode: 0, output: '' }), {
+      ermittlung: kaputt,
+      leseZustand: () => {
+        aufrufe += 1;
+        if (aufrufe === 1) {
+          lauf?.anstossen();
+          return startZustand();
+        }
+        return { ...startZustand(), erledigt: { A: 1 } };
+      },
+    });
+    lauf = a.lauf;
+    a.lauf.anstossen();
+    await a.lauf.leerlauf();
+    expect(a.fehler.map((f) => f.type)).toEqual(['skript']);
+    expect(runZeilen(a.gesendet)).toHaveLength(1);
+  });
+
+  it('erfüllt leerlauf sofort nach stoppe, auch wenn run nie antwortet', async () => {
+    const a = aufbau(() => ({ art: 'still' }));
+    a.lauf.anstossen();
+    await vi.waitFor(() => expect(runZeilen(a.gesendet)).toHaveLength(1));
+    // Ein schon vor dem Stopp wartender Aufrufer muss ebenso erlöst werden wie ein späterer.
+    let vorher: 'offen' | 'bereit' = 'offen';
+    void a.lauf.leerlauf().then(() => (vorher = 'bereit'));
+    await Promise.resolve();
+    expect(vorher).toBe('offen');
+    a.lauf.stoppe();
+    let zustand: 'offen' | 'bereit' = 'offen';
+    void a.lauf.leerlauf().then(() => (zustand = 'bereit'));
+    await Promise.resolve();
+    expect(vorher).toBe('bereit');
+    expect(zustand).toBe('bereit');
+    expect(a.lauf.laeuft()).toBe(false);
+    expect(a.fehler).toEqual([]);
+    expect(a.geschrieben).toEqual([]);
+  });
+
+  it('meldet einen Timeout nach stoppe nicht mehr', async () => {
+    vi.useFakeTimers();
+    try {
+      const a = aufbau(() => ({ art: 'still' }), { timeoutMs: 1000 });
+      a.lauf.anstossen();
+      a.lauf.stoppe();
+      await vi.advanceTimersByTimeAsync(1000);
+      expect(a.fehler).toEqual([]);
+      expect(a.geschrieben).toEqual([]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('meldet einen Fehler beim Lesen des Zustands als intern', async () => {
+    let aufrufe = 0;
+    const a = aufbau(() => ({ art: 'res', exitCode: 0, output: '' }), {
+      leseZustand: () => {
+        aufrufe += 1;
+        if (aufrufe === 2) throw new Error('Zustand kaputt');
+        return startZustand();
+      },
+    });
+    a.lauf.anstossen();
+    await a.lauf.leerlauf();
+    expect(a.fehler).toHaveLength(1);
+    expect(a.fehler[0]).toEqual({ type: 'intern', meldung: 'Zustand kaputt' });
+    expect(a.geschrieben).toEqual([]);
   });
 
   it('reicht die Zeitgrenze an run weiter', async () => {
