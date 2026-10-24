@@ -1,6 +1,6 @@
 // Reine Aktenwand (Ticket 6/7): Dateiliste, Vorschau und Belegauswahl als React-Text.
 // Kein Agent-Zugriff, kein Dateischreibpfad, keine Interpretation von Namen als Markup.
-import { useEffect, useId, useState } from 'react';
+import { useId, useState } from 'react';
 import { ordneBelege, type AktenInhalt } from '../../lib/missions/aktenwand';
 import type { BelegRegel, ErmittlungsZustand } from '../../lib/missions/ermittlungTypes';
 
@@ -56,19 +56,6 @@ export default function Aktenwand(props: AktenwandProps) {
     vorwurfHinweis,
   } = props;
   const eintraege = ordneBelege(inhalt, belegRegeln, zustand.belegeErkannt);
-  const erlaubteIds = eintraege.flatMap((eintrag) =>
-    eintrag.regel && eintrag.erkannt ? [eintrag.regel.id] : []
-  );
-  const erlaubtKey = erlaubteIds.join('\u0000');
-
-  useEffect(() => {
-    const erlaubt = new Set(erlaubtKey ? erlaubtKey.split('\u0000') : []);
-    const bereinigt = ausgewaehlteBelegIds.filter((id) => erlaubt.has(id));
-    if (bereinigt.length !== ausgewaehlteBelegIds.length) {
-      onAuswahlAendern(bereinigt);
-    }
-  }, [erlaubtKey, ausgewaehlteBelegIds, onAuswahlAendern]);
-
   const waehle = (belegId: string, an: boolean): void => {
     const naechste = new Set(ausgewaehlteBelegIds);
     if (an) naechste.add(belegId);

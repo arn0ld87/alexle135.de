@@ -48,11 +48,12 @@ beforeEach(() => {
   };
 });
 
-async function starten() {
-  let pruefung: () => Promise<AgentResult> = async () => belege();
+async function starten(protokoll = true) {
+  let pruefung: () => Promise<AgentResult> = async () => belege(protokoll);
+  let dateiAusgabe = protokoll ? dateien : 'datei\tbm90aXoudHh0\t1\teA==\nende\t1\t0\n';
   const run = vi.fn(async (skript: string) => {
     if (skript.startsWith('(')) return pruefung();
-    if (skript.startsWith('__a=')) return { exitCode: 0, output: dateien };
+    if (skript.startsWith('__a=')) return { exitCode: 0, output: dateiAusgabe };
     return { exitCode: 0, output: '' };
   });
   h.client = { run } as unknown as AgentClient;
@@ -63,7 +64,7 @@ async function starten() {
   });
   const user = userEvent.setup();
   await user.click(screen.getByRole('button', { name: 'Aktenwand' }));
-  await waitFor(() => expect(screen.getAllByRole('checkbox')).toHaveLength(2));
+  await waitFor(() => expect(screen.getAllByRole('checkbox')).toHaveLength(protokoll ? 2 : 1));
   for (const box of screen.getAllByRole('checkbox')) await user.click(box);
   await user.click(screen.getByRole('button', { name: 'Vorwurf erheben' }));
   await user.click(screen.getByRole('radio', { name: /Person A/ }));
@@ -74,10 +75,84 @@ async function starten() {
     pruefung: (fn: () => Promise<AgentResult>) => {
       pruefung = fn;
     },
+    dateien: (ausgabe: string) => {
+      dateiAusgabe = ausgabe;
+    },
   };
 }
 
 describe('Vorwurf am tatsächlichen Prüflauf', () => {
+  it('behält neu erkannte Belege trotz altem Dateisnapshot auswählbar', async () => {
+    const t = await starten(false);
+    await t.user.click(screen.getByRole('button', { name: 'Abbrechen' }));
+    t.pruefung(async () => belege());
+    await act(async () => {
+      await h.prompt('__prompt');
+    });
+    await t.user.click(screen.getByRole('button', { name: 'Vorwurf erheben' }));
+    const dialog = screen.getByRole('dialog');
+    const neu = dialog.querySelectorAll('input[type="checkbox"]')[1] as HTMLInputElement;
+    await t.user.click(neu);
+    expect(neu).toBeChecked();
+    await act(async () => {
+      await h.prompt('__prompt');
+    });
+    expect(neu).toBeChecked();
+    // Erst ein neuer erfolgreicher Snapshot darf die fehlende Datei entfernen.
+    await t.user.click(screen.getByRole('button', { name: 'Abbrechen' }));
+    await t.user.click(screen.getByRole('button', { name: 'Aktualisieren', exact: true }));
+    await waitFor(() => expect(screen.getAllByRole('checkbox')).toHaveLength(1));
+    await t.user.click(screen.getByRole('button', { name: 'Vorwurf erheben' }));
+    expect(
+      screen.getByRole('dialog').querySelectorAll('input[type="checkbox"]')[1]
+    ).not.toBeChecked();
+  });
+
+  it('bereinigt verlorene Erkennung auch bei ausgehängter Aktenwand', async () => {
+    const t = await starten();
+    await t.user.click(screen.getByRole('button', { name: 'Abbrechen' }));
+    await t.user.click(screen.getByRole('button', { name: 'Büro', exact: true }));
+    t.pruefung(async () => belege(false));
+    await act(async () => {
+      await h.prompt('__prompt');
+    });
+    t.pruefung(async () => belege());
+    await act(async () => {
+      await h.prompt('__prompt');
+    });
+    await t.user.click(screen.getByRole('button', { name: 'Aktenwand', exact: true }));
+    await waitFor(() => expect(screen.getAllByRole('checkbox')).toHaveLength(2));
+    expect(screen.getAllByRole('checkbox')[1]).not.toBeChecked();
+  });
+
+  it.each(['fehlerhaft', 'begrenzt', 'abfragefehler'])(
+    'behält Auswahl bei %s statt Dateiabwesenheit zu unterstellen',
+    async (art) => {
+      const t = await starten();
+      await t.user.click(screen.getByRole('button', { name: 'Abbrechen' }));
+      if (art === 'abfragefehler') t.run.mockRejectedValueOnce(new Error('Agent-Timeout'));
+      else {
+        t.dateien(
+          art === 'fehlerhaft'
+            ? 'datei\tungueltig\nende\t1\t0\n'
+            : 'hinweis\tweitere-dateien\nende\t1\t0\n'
+        );
+      }
+      await t.user.click(screen.getByRole('button', { name: 'Aktualisieren', exact: true }));
+      await screen.findByText(
+        art === 'abfragefehler'
+          ? 'Ansicht konnte nicht gelesen werden. Bitte erneut aktualisieren.'
+          : art === 'fehlerhaft'
+            ? 'Einige Dateieinträge waren ungültig und wurden übersprungen.'
+            : /auf 50 Dateien begrenzt/
+      );
+      t.dateien(dateien);
+      await t.user.click(screen.getByRole('button', { name: 'Aktualisieren', exact: true }));
+      await waitFor(() => expect(screen.getAllByRole('checkbox')).toHaveLength(2));
+      expect(screen.getAllByRole('checkbox')[1]).toBeChecked();
+    }
+  );
+
   it.each(['agent', 'unvollstaendig'])(
     'wertet bei %s keine alten Belege als Erfolg',
     async (art) => {
