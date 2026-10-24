@@ -1,13 +1,15 @@
 // Ansichtenwahl und Abfrage-Lebenszyklus (Ticket 5): native Buttons, genau ein
 // Abfrage-Controller je Setup-Generation, keine Abfrage vor erfolgreichem Setup.
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { AgentResult } from '../../lib/missions/agentClient';
 import {
   erzeugeAbfragen,
   type AbfrageZustand,
   type ErmittlungsAbfragen,
 } from '../../lib/missions/ermittlungsAbfragen';
-import type { Ansicht } from '../../lib/missions/ermittlungTypes';
+import { leseAktenwand } from '../../lib/missions/aktenwand';
+import type { Ansicht, BelegRegel, ErmittlungsZustand } from '../../lib/missions/ermittlungTypes';
+import Aktenwand from './Aktenwand';
 import RaumAnsicht from './RaumAnsicht';
 
 interface AnsichtenProps {
@@ -15,11 +17,24 @@ interface AnsichtenProps {
   bereit: boolean;
   generation: number;
   run: (skript: string, timeoutMs: number) => Promise<AgentResult>;
+  belegRegeln: readonly BelegRegel[];
+  zustand: ErmittlungsZustand;
+  ausgewaehlteBelegIds: readonly string[];
+  onBelegAuswahlAendern: (ids: readonly string[]) => void;
 }
 
 const START: AbfrageZustand = { status: 'bereit', ansichtId: null, ausgabe: null };
 
-export default function Ansichten({ ansichten, bereit, generation, run }: AnsichtenProps) {
+export default function Ansichten({
+  ansichten,
+  bereit,
+  generation,
+  run,
+  belegRegeln,
+  zustand,
+  ausgewaehlteBelegIds,
+  onBelegAuswahlAendern,
+}: AnsichtenProps) {
   const [abfrage, setAbfrage] = useState<AbfrageZustand>(START);
   const controller = useRef<ErmittlungsAbfragen | null>(null);
   const generationRef = useRef(generation);
@@ -48,6 +63,12 @@ export default function Ansichten({ ansichten, bereit, generation, run }: Ansich
   }, [ansichten, bereit, generation, run]);
 
   const aktive = ansichten.find((eintrag) => eintrag.id === abfrage.ansichtId) ?? null;
+  const aktenInhalt = useMemo(() => {
+    if (!aktive || aktive.art !== 'aktenwand' || abfrage.status !== 'geladen' || !abfrage.ausgabe) {
+      return null;
+    }
+    return leseAktenwand(abfrage.ausgabe);
+  }, [aktive, abfrage.status, abfrage.ausgabe]);
 
   return (
     <section aria-labelledby="staffel2-ansichten" className="mt-6 min-w-0">
@@ -120,10 +141,14 @@ export default function Ansichten({ ansichten, bereit, generation, run }: Ansich
                 <RaumAnsicht ansicht={aktive} ausgabe={abfrage.ausgabe} />
               )}
 
-              {abfrage.status === 'geladen' && aktive.art === 'aktenwand' && (
-                <p className="mt-3 font-mono text-xs text-[color:var(--muted)]">
-                  Die Aktenwand folgt.
-                </p>
+              {aktenInhalt && (
+                <Aktenwand
+                  inhalt={aktenInhalt}
+                  belegRegeln={belegRegeln}
+                  zustand={zustand}
+                  ausgewaehlteBelegIds={ausgewaehlteBelegIds}
+                  onAuswahlAendern={onBelegAuswahlAendern}
+                />
               )}
             </div>
           )}

@@ -2,6 +2,8 @@ import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { platzhalter } from '../../../data/staffeln/staffel-2/platzhalter';
+import { abfrageSkript } from '../../../lib/missions/abfrage';
+import { AKTENWAND_ABFRAGE } from '../../../lib/missions/aktenwand';
 import type { AgentClient, AgentResult } from '../../../lib/missions/agentClient';
 import { pruefeDaten } from '../../../lib/missions/ermittlung';
 import type { Ermittlung } from '../../../lib/missions/ermittlungTypes';
@@ -377,6 +379,19 @@ const zweiAnsichten: Ermittlung = {
   ],
 };
 
+const mitAktenwand: Ermittlung = {
+  ...zweiAnsichten,
+  ansichten: [
+    ...zweiAnsichten.ansichten,
+    {
+      id: 'aktenwand',
+      art: 'aktenwand',
+      titel: 'Aktenwand',
+      abfrage: AKTENWAND_ABFRAGE,
+    },
+  ],
+};
+
 const ALLE_PRUEFUNGEN = [
   's.ankommen.notiz',
   's.ankommen.abschluss',
@@ -390,6 +405,14 @@ const ALLE_PRUEFUNGEN = [
 const buendel = (bestanden: ReadonlySet<string>): string => {
   const zeilen = ALLE_PRUEFUNGEN.map((id) => `pruefung\t${id}\t${bestanden.has(id) ? 0 : 1}`);
   return `${zeilen.join('\n')}\nende\t${ALLE_PRUEFUNGEN.length}\n`;
+};
+
+const b64 = (text: string): string => Buffer.from(text).toString('base64');
+const aktenOutput = (dateien: Array<[string, number, string]>): string => {
+  const zeilen = dateien.map(
+    ([name, bytes, text]) => `datei\t${b64(name)}\t${bytes}\t${b64(text)}`
+  );
+  return `${zeilen.join('\n')}\nende\t${zeilen.length}\t0\n`;
 };
 
 describe('ErmittlungApp: freie Spurenwahl (T4)', () => {
@@ -760,5 +783,85 @@ describe('ErmittlungApp: Raumansicht (T5)', () => {
     expect(raum.abfrage).toContain('id -un');
     expect(raum.hotspots?.map((eintrag) => eintrag.schluessel)).toEqual(['host', 'konto']);
     expect(pruefeDaten(platzhalter)).toEqual([]);
+  });
+});
+
+describe('ErmittlungApp: Aktenwand (T6)', () => {
+  const prompt = async () => {
+    await act(async () => {
+      await h.sendCommand('__prompt');
+    });
+  };
+
+  it('T6-7: Auswahl bleibt bei Ansichtswechsel, wird nach Verlust bereinigt und löst keinen Lauf aus', async () => {
+    let dateien: Array<[string, number, string]> = [
+      ['notiz.txt', 5, 'notiz'],
+      ['protokoll.txt', 8, 'protokoll'],
+      ['fremd.txt', 4, 'fremd'],
+    ];
+    const bestanden = new Set(['s.ankommen.notiz', 'b.notiz']);
+    run.mockImplementation(async (skript: string) => {
+      if (skript === abfrageSkript(AKTENWAND_ABFRAGE)) {
+        return { exitCode: 0, output: aktenOutput(dateien) };
+      }
+      if (skript.startsWith('(')) return { exitCode: 0, output: buendel(bestanden) };
+      if (istAbfrage(skript)) return { exitCode: 0, output: 'host\trw-srv01\nende\t1\t0\n' };
+      return { exitCode: 0, output: '' };
+    });
+
+    render(<ErmittlungApp ermittlung={mitAktenwand} />);
+    await waitFor(() => expect(run).toHaveBeenCalledTimes(3));
+    await prompt();
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: 'Ankommen, 1 von 2 Schritten erledigt' })
+      ).toBeInTheDocument()
+    );
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Aktenwand' }));
+    await waitFor(() => expect(screen.getByText('notiz.txt')).toBeInTheDocument());
+    expect(screen.getAllByRole('checkbox')).toHaveLength(1);
+    const box = screen.getByRole('checkbox', { name: /Eine Notiz.*notiz\.txt/ });
+    expect(box).not.toBeChecked();
+
+    const aufrufeVorAuswahl = run.mock.calls.length;
+    const buendelVorAuswahl = buendelAufrufe(run).length;
+    await user.click(box);
+    expect(screen.getByRole('checkbox', { name: /Eine Notiz.*notiz\.txt/ })).toBeChecked();
+    expect(run.mock.calls.length).toBe(aufrufeVorAuswahl);
+    expect(buendelAufrufe(run).length).toBe(buendelVorAuswahl);
+
+    await user.click(screen.getByRole('button', { name: 'Büro' }));
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Hostname' })).toBeInTheDocument()
+    );
+    await user.click(screen.getByRole('button', { name: 'Aktenwand' }));
+    await waitFor(() => expect(screen.getByText('notiz.txt')).toBeInTheDocument());
+    expect(screen.getByRole('checkbox', { name: /Eine Notiz.*notiz\.txt/ })).toBeChecked();
+
+    // Erst Aktualisieren liest die geänderte Liste; danach wird die Auswahl bereinigt.
+    dateien = [
+      ['protokoll.txt', 8, 'protokoll'],
+      ['fremd.txt', 4, 'fremd'],
+    ];
+    expect(screen.getByText('notiz.txt')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Aktualisieren' }));
+    await waitFor(() => expect(screen.queryByText('notiz.txt')).toBeNull());
+    await waitFor(() => expect(screen.getByText('protokoll.txt')).toBeInTheDocument());
+
+    await user.click(screen.getByRole('button', { name: 'Büro' }));
+    await user.click(screen.getByRole('button', { name: 'Aktenwand' }));
+    await waitFor(() => expect(screen.getByText('protokoll.txt')).toBeInTheDocument());
+    expect(screen.queryByRole('checkbox')).toBeNull();
+    expect(screen.getByTestId('stub-terminal')).toBeInTheDocument();
+  });
+
+  it('T6-Daten: der Platzhalter hat Raum und Aktenwand ohne neue Belegregeln', () => {
+    expect(pruefeDaten(platzhalter)).toEqual([]);
+    expect(pruefeDaten(mitAktenwand)).toEqual([]);
+    expect(platzhalter.ansichten.map((ansicht) => ansicht.art)).toEqual(['raum', 'aktenwand']);
+    expect(platzhalter.ansichten[1]?.abfrage).toBe(AKTENWAND_ABFRAGE);
+    expect(platzhalter.vorwurf.belege.map((beleg) => beleg.id)).toEqual(['notiz', 'protokoll']);
   });
 });

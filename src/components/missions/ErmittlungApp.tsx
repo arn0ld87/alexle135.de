@@ -47,6 +47,7 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
   const [aktiveSpurId, setAktiveSpurId] = useState<string | null>(
     () => ersteSpur(ermittlung.spuren, startZustand())?.id ?? null
   );
+  const [ausgewaehlteBelegIds, setAusgewaehlteBelegIds] = useState<readonly string[]>([]);
   const [runAdapter] = useState(() => erzeugeErmittlungsRun());
   const zustand = useRef<ErmittlungsZustand>(startZustand());
   const lauf = useRef<PruefLauf | null>(null);
@@ -116,6 +117,7 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
       setAnzeigeZustand(start);
       const startSpur = ersteSpur(ermittlung.spuren, start);
       setAktiveSpurId(startSpur?.id ?? null);
+      setAusgewaehlteBelegIds([]);
       setSetupGeneration(version);
       setPager([]);
       setPruefHinweis(null);
@@ -169,6 +171,15 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
       if (ermittlung.spuren.some((spur) => spur.id === spurId)) setAktiveSpurId(spurId);
     },
     [ermittlung.spuren]
+  );
+
+  // Beleg-IDs bleiben eindeutig und auf bekannte Regeln beschränkt; keine Dateinamen.
+  const waehleBelege = useCallback(
+    (ids: readonly string[]) => {
+      const bekannt = new Set(ermittlung.vorwurf.belege.map((beleg) => beleg.id));
+      setAusgewaehlteBelegIds([...new Set(ids)].filter((id) => bekannt.has(id)));
+    },
+    [ermittlung.vorwurf.belege]
   );
 
   useEffect(
@@ -226,6 +237,10 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
             bereit={setupGeneration > 0}
             generation={setupGeneration}
             run={abfrageRun}
+            belegRegeln={ermittlung.vorwurf.belege}
+            zustand={anzeigeZustand}
+            ausgewaehlteBelegIds={ausgewaehlteBelegIds}
+            onBelegAuswahlAendern={waehleBelege}
           />
         </div>
         <div className={`min-w-0 ${bereich === 'terminal' ? 'lg:block' : 'hidden lg:block'}`}>

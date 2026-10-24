@@ -1,3 +1,4 @@
+import { AKTENWAND_ABFRAGE } from '../../../lib/missions/aktenwand';
 import type { Ermittlung } from '../../../lib/missions/ermittlungTypes';
 
 /**
@@ -21,6 +22,12 @@ printf 'konto\\t%s\\n' "$(id -un)"`,
         { id: 'host', label: 'Hostname', x: 80, y: 80, w: 240, h: 100, schluessel: 'host' },
         { id: 'konto', label: 'Konto', x: 520, y: 320, w: 240, h: 100, schluessel: 'konto' },
       ],
+    },
+    {
+      id: 'aktenwand',
+      art: 'aktenwand',
+      titel: 'Aktenwand',
+      abfrage: AKTENWAND_ABFRAGE,
     },
   ],
   spuren: [
