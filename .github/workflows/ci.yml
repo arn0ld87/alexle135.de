@@ -189,10 +189,15 @@ jobs:
       - name: App bauen (SSR)
         run: pnpm build
 
-      # Migrationen + Admin-Seed laufen NICHT als separater Schritt: Playwrights
-      # globalSetup (e2e/global-setup.ts) führt scripts/run-postgres-migrations.mjs
-      # und scripts/seed-admin.mjs bereits vor der Suite aus — identisch zum Muster
-      # in src/tests/integration/global-setup.ts (Job "test-integration" oben).
+      # Das Schema muss VOR dem Start des Servers stehen: Playwrights webServer
+      # (`pnpm start`) startet vor globalSetup, und better-auth prüft ab 1.7.3
+      # beim Start das DB-Schema und lehnt sonst alle Auth-Requests ab. Der
+      # Migrationslauf ist idempotent (schema_migrations + Checksummen); die
+      # Migration in e2e/global-setup.ts läuft danach unverändert als No-op
+      # weiter, dort folgt auch der Admin-Seed (scripts/seed-admin.mjs).
+      - name: Datenbank migrieren
+        run: pnpm db:migrate
+
       - name: Playwright-E2E-Suite
         run: pnpm test:e2e
 
