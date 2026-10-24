@@ -58,7 +58,7 @@ async function starten(protokoll = true) {
   });
   h.client = { run } as unknown as AgentClient;
   const view = render(<ErmittlungApp ermittlung={platzhalter} />);
-  await waitFor(() => expect(run).toHaveBeenCalledTimes(3));
+  await waitFor(() => expect(run).toHaveBeenCalledTimes(4));
   await act(async () => {
     await h.prompt('__prompt');
   });
@@ -242,6 +242,6 @@ describe('Vorwurf am tatsächlichen Prüflauf', () => {
     });
     expect(screen.queryByRole('heading', { name: 'Fall gelöst' })).not.toBeInTheDocument();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(neuerRun).toHaveBeenCalledTimes(3);
+    expect(neuerRun).toHaveBeenCalledTimes(4);
   });
 });
