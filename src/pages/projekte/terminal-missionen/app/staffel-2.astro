@@ -1,0 +1,31 @@
+---
+import V2Layout from '../../../../layouts/V2Layout.astro';
+import ErmittlungApp from '../../../../components/missions/ErmittlungApp';
+import { platzhalter } from '../../../../data/staffeln/staffel-2/platzhalter';
+---
+
+<V2Layout
+  title="Ein Linux-Krimi · Staffel 2"
+  canonical="/projekte/terminal-missionen/"
+  robots="noindex, nofollow"
+  description="Staffel 2 des Linux-Krimis: echtes Linux im Browser."
+>
+  <!-- Wie in Staffel 1 füllt die Seite auf dem Desktop genau das Fenster unter der Navigation. -->
+  <main class="v2-shell pt-5 pb-4 lg:flex lg:h-[calc(100dvh-73px)] lg:flex-col">
+    <header class="mb-3 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+      <h1 class="ds-display-s text-[color:var(--ink)]">
+        Ein Linux-Krimi <span class="text-[color:var(--muted)]">· Staffel 2</span>
+      </h1>
+      <a
+        href="/projekte/terminal-missionen/"
+        class="group inline-flex items-center gap-2 font-mono text-xs tracking-[0.2em] text-[color:var(--muted)] uppercase transition-colors hover:text-[color:var(--accent-strong)]"
+      >
+        <span class="text-[color:var(--accent-strong)] transition-transform group-hover:-translate-x-1"
+          >&larr;</span
+        >
+        Zur Projektseite
+      </a>
+    </header>
+    <ErmittlungApp client:only="react" ermittlung={platzhalter} />
+  </main>
+</V2Layout>
