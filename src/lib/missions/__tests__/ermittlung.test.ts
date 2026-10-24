@@ -8,6 +8,7 @@ import {
   buendelSkript,
   istGesperrt,
   leseBuendelAusgabe,
+  mitZustandsDefaults,
   naechsteSperre,
   offenePruefungen,
   pruefeDaten,
@@ -851,5 +852,92 @@ describe('Sperre ohne Sackgasse', () => {
     const r = wendePruefungAn(fixture, z, ausgabe({}, false));
     expect(r.zustand).toBe(z);
     expect(r.ereignisse).toEqual([]);
+  });
+
+  // T3-1: Ein Verstoß bei laufender Sperre baut erst den Zähler ab. Bleibt er über 0, gibt es
+  // kein „aufgehoben“; die neue Sperre startet wieder bei SPERRE_PRUEFUNGEN.
+  it('(h) meldet den Verstoß ohne Aufhebung, wenn der Sperrzähler noch trägt', () => {
+    const z = { ...gesperrt(), sperreRestPruefungen: 2 };
+    const r = lauf(fixture, z, { [PRUEF_ID_VERSTOSS]: true });
+    expect(r.ereignisse).toEqual([{ type: 'einsatzrahmen-verletzt' }]);
+    expect(r.zustand.sperreBis).toBe(2);
+    expect(r.zustand.sperreRestPruefungen).toBe(SPERRE_PRUEFUNGEN);
+  });
+
+  it('(i) meldet erst die Aufhebung, wenn der Sperrzähler auf 0 fällt', () => {
+    const z = { ...gesperrt(), sperreRestPruefungen: 1 };
+    const r = lauf(fixture, z, { [PRUEF_ID_VERSTOSS]: true });
+    expect(r.ereignisse).toEqual([
+      { type: 'sperre-aufgehoben' },
+      { type: 'einsatzrahmen-verletzt' },
+    ]);
+    expect(r.zustand.sperreBis).toBe(2);
+    expect(r.zustand.sperreRestPruefungen).toBe(SPERRE_PRUEFUNGEN);
+  });
+
+  // T3-2: Im selben Aufruf läuft die Sperre ab (dritte Prüfung) und der Verstoß setzt eine neue.
+  // Der verlorene Beleg senkt das Ziel auf 1 — ein Vergleich mit dem alten sperreBis (2) wird rot.
+  it('(j) berechnet die neue Sperre aus dem abgebauten Zustand', () => {
+    const z = { ...gesperrt(), sperreRestPruefungen: 1 };
+    const r = lauf(fixture, z, {
+      [pruefIdBeleg('b-sudoers')]: false,
+      [PRUEF_ID_VERSTOSS]: true,
+    });
+    expect(r.ereignisse).toEqual([
+      { type: 'beleg-verloren', belegId: 'b-sudoers' },
+      { type: 'sperre-aufgehoben' },
+      { type: 'einsatzrahmen-verletzt' },
+    ]);
+    expect(r.zustand.belegeErkannt).toEqual([]);
+    expect(r.zustand.sperreBis).toBe(1);
+    expect(r.zustand.sperreRestPruefungen).toBe(SPERRE_PRUEFUNGEN);
+  });
+});
+
+// T3-3: Ältere Spielstände kennen sperreRestPruefungen nicht; der Default richtet sich nach der
+// aktiven Sperre und lässt die Eingabe unangetastet.
+describe('mitZustandsDefaults', () => {
+  const ohneRest = (teil: Partial<Omit<ErmittlungsZustand, 'sperreRestPruefungen'>> = {}) => {
+    const basis: ErmittlungsZustand = { ...startZustand(), ...teil };
+    const ohne = { ...basis };
+    delete (ohne as Partial<ErmittlungsZustand>).sperreRestPruefungen;
+    return ohne;
+  };
+
+  it('setzt ohne Sperre fehlende oder ungültige Zähler auf 0', () => {
+    expect(mitZustandsDefaults(ohneRest()).sperreRestPruefungen).toBe(0);
+    expect(
+      mitZustandsDefaults({ ...ohneRest(), sperreRestPruefungen: Number.NaN }).sperreRestPruefungen
+    ).toBe(0);
+    expect(mitZustandsDefaults({ ...ohneRest(), sperreRestPruefungen: -1 }).sperreRestPruefungen).toBe(
+      0
+    );
+    expect(mitZustandsDefaults({ ...ohneRest(), sperreRestPruefungen: 2 }).sperreRestPruefungen).toBe(
+      2
+    );
+  });
+
+  it('setzt bei aktiver Sperre fehlende oder ungültige Zähler auf SPERRE_PRUEFUNGEN', () => {
+    const gesperrt = ohneRest({ sperreBis: 2, belegeErkannt: ['b-sudoers'] });
+    expect(mitZustandsDefaults(gesperrt).sperreRestPruefungen).toBe(SPERRE_PRUEFUNGEN);
+    expect(
+      mitZustandsDefaults({ ...gesperrt, sperreRestPruefungen: Number.NaN })
+        .sperreRestPruefungen
+    ).toBe(SPERRE_PRUEFUNGEN);
+    expect(
+      mitZustandsDefaults({ ...gesperrt, sperreRestPruefungen: -1 }).sperreRestPruefungen
+    ).toBe(SPERRE_PRUEFUNGEN);
+    expect(
+      mitZustandsDefaults({ ...gesperrt, sperreRestPruefungen: 2 }).sperreRestPruefungen
+    ).toBe(2);
+  });
+
+  it('lässt die Eingabe unverändert und gibt eine Kopie zurück', () => {
+    const eingabe = ohneRest({ sperreBis: 2 });
+    const kopie = { ...eingabe };
+    const ergebnis = mitZustandsDefaults(eingabe);
+    expect(eingabe).toEqual(kopie);
+    expect(Object.hasOwn(eingabe, 'sperreRestPruefungen')).toBe(false);
+    expect(Object.hasOwn(ergebnis, 'sperreRestPruefungen')).toBe(true);
   });
 });

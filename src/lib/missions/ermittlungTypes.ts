@@ -145,4 +145,6 @@ export interface AbfrageAusgabe {
   /** schluessel → Werte in Ausgabereihenfolge. */
   werte: Readonly<Record<string, readonly string[]>>;
   vollstaendig: boolean;
+  /** Exit-Status von `su`, wenn er weder 0 noch 141 (SIGPIPE durch die Kürzung) ist; sonst null. */
+  fehlerCode: number | null;
 }

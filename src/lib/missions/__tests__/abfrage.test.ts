@@ -22,6 +22,7 @@ describe('leseAbfrage', () => {
     expect(leseAbfrage('konto\ta\nkonto\tb\nende\t2\n')).toEqual({
       werte: { konto: ['a', 'b'] },
       vollstaendig: true,
+      fehlerCode: null,
     });
   });
 
@@ -35,7 +36,7 @@ describe('leseAbfrage', () => {
 
   it('ignoriert Zeilen ohne TAB, mit ungültigem Schlüssel und ende ohne Ziffern', () => {
     const roh = 'rauschen\nohne-tab\nGroß\twert\nende\tabc\nx\tok\nende\t1\n';
-    expect(leseAbfrage(roh)).toEqual({ werte: { x: ['ok'] }, vollstaendig: true });
+    expect(leseAbfrage(roh)).toEqual({ werte: { x: ['ok'] }, vollstaendig: true, fehlerCode: null });
   });
 
   it('ist ohne passende Schlusszeile unvollständig', () => {
@@ -47,6 +48,7 @@ describe('leseAbfrage', () => {
     expect(leseAbfrage('x\ta\r\nende\t1\r\n')).toEqual({
       werte: { x: ['a'] },
       vollstaendig: true,
+      fehlerCode: null,
     });
   });
 
@@ -65,6 +67,7 @@ describe('leseAbfrage', () => {
     expect(leseAbfrage('endezeit\t12:00\nende\tabc\nende\t1\n')).toEqual({
       werte: { endezeit: ['12:00'] },
       vollstaendig: true,
+      fehlerCode: null,
     });
   });
 
@@ -75,6 +78,22 @@ describe('leseAbfrage', () => {
     expect(gelesen.werte.a).toEqual(['1']);
     expect(gelesen.vollstaendig).toBe(true);
   });
+
+  // T3-5: Die Schlusszeile trägt den Exit-Status von su; 0 und 141 (SIGPIPE) sind kein Fehler.
+  it('liest den Exit-Status aus der Schlusszeile', () => {
+    expect(leseAbfrage('x\ta\nende\t1\t0\n').fehlerCode).toBeNull();
+    expect(leseAbfrage('ende\t0\t1\n')).toEqual({
+      werte: {},
+      vollstaendig: true,
+      fehlerCode: 1,
+    });
+    expect(leseAbfrage('x\ta\nende\t1\t141\n').fehlerCode).toBeNull();
+    expect(leseAbfrage('x\ta\nende\t1\n').fehlerCode).toBeNull();
+  });
+
+  it('erkennt eine Schlusszeile mit ungültigem Exit-Status nicht', () => {
+    expect(leseAbfrage('x\ta\nende\t1\tx\n').vollstaendig).toBe(false);
+  });
 });
 
 describe('abfrageSkript', () => {
@@ -83,6 +102,7 @@ describe('abfrageSkript', () => {
     expect(leseAbfrage(lauf(abfrage))).toEqual({
       werte: { host: ['srv'], konto: ['a', 'b'] },
       vollstaendig: true,
+      fehlerCode: null,
     });
   });
 
@@ -102,16 +122,27 @@ describe('abfrageSkript', () => {
     expect(gelesen.vollstaendig).toBe(true);
   });
 
-  // T4: Gekürzt wird nur an ganzen Zeilen, nie mitten in einem Zeichen.
-  it('kürzt nur an ganzen Zeilen und bleibt unter der Byte-Grenze', () => {
+  // T4/T3-4: Gekürzt wird nur an ganzen Zeilen, und zwar exakt an der Byte-Grenze.
+  it('kürzt 100 Zeilen à 1002 Byte auf genau 59 Zeilen', () => {
     const wert = 'x'.repeat(999);
     const gelesen = leseAbfrage(
       lauf(`for i in $(seq 1 100); do printf 'k\\t%s\\n' '${wert}'; done`)
     );
-    expect(gelesen.werte.k.length).toBeGreaterThan(0);
+    expect(gelesen.werte.k).toHaveLength(59);
     for (const gelesenWert of gelesen.werte.k) expect(gelesenWert).toHaveLength(999);
-    const bytes = gelesen.werte.k.reduce((n, w) => n + w.length + 3, 0);
-    expect(bytes).toBeLessThanOrEqual(ABFRAGE_MAX_BYTES);
+    expect(gelesen.werte.k.length * 1002).toBeLessThanOrEqual(ABFRAGE_MAX_BYTES);
+    expect(gelesen.vollstaendig).toBe(true);
+  });
+
+  // T3-4: Die Grenze zählt Bytes, nicht Zeichen: 999 `ä` sind 1998 Byte je Wert.
+  it('zählt bei Mehrbyte-Zeichen die Byte-Länge, nicht die Zeichenzahl', () => {
+    const wert = 'ä'.repeat(999);
+    const gelesen = leseAbfrage(
+      lauf(`for i in $(seq 1 100); do printf 'k\\t%s\\n' '${wert}'; done`)
+    );
+    expect(gelesen.werte.k).toHaveLength(29);
+    for (const gelesenWert of gelesen.werte.k) expect(gelesenWert).toHaveLength(999);
+    expect(gelesen.werte.k.length * 2001).toBeLessThanOrEqual(ABFRAGE_MAX_BYTES);
     expect(gelesen.vollstaendig).toBe(true);
   });
 
@@ -129,5 +160,20 @@ describe('abfrageSkript', () => {
     const ausgabe = lauf(`printf 'host\\t%s\\n' srv; printf 'konto\\ta\\nkonto\\tb\\n'; echo 'rauschen'`);
     const gekuerzt = ausgabe.slice(0, Math.floor((ausgabe.length * 2) / 3));
     expect(leseAbfrage(gekuerzt).vollstaendig).toBe(false);
+  });
+
+  // T3-6: Ein Fehler der Abfrage wird als Exit-Status gemeldet, nicht als leere Abfrage.
+  it('meldet den Exit-Status einer fehlgeschlagenen Abfrage', () => {
+    expect(leseAbfrage(lauf('exit 3'))).toEqual({
+      werte: {},
+      vollstaendig: true,
+      fehlerCode: 3,
+    });
+  });
+
+  it('meldet keinen Fehler, wenn die Abfrage gelingt', () => {
+    const gelesen = leseAbfrage(lauf(`printf 'a\\t1\\n'`));
+    expect(gelesen.werte.a).toEqual(['1']);
+    expect(gelesen.fehlerCode).toBeNull();
   });
 });
