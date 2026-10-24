@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
 import { platzhalter } from '../../../data/staffeln/staffel-2/platzhalter';
 import { pruefeDaten } from '../ermittlung';
@@ -43,6 +43,15 @@ describe('rahmenSetupSkript', () => {
     const skript = rahmenSetupSkript();
     expect(skript.trimEnd().endsWith('exit 0')).toBe(true);
     expect(() => execFileSync('bash', ['-n', '-c', skript])).not.toThrow();
+  });
+
+  it('bricht bei fehlgeschlagener Rahmen-Einrichtung ab', () => {
+    const skript = rahmenSetupSkript();
+    const ersterBefehl = `hostname ${STAFFEL2_HOSTNAME}`;
+    expect(skript).toContain(ersterBefehl);
+    // Der gezielte Ersatz beendet auch ohne errexit vor jedem System-Schreibzugriff.
+    const probe = skript.replace(ersterBefehl, 'false\nexit 0');
+    expect(spawnSync('bash', ['-c', probe]).status).toBe(1);
   });
 });
 

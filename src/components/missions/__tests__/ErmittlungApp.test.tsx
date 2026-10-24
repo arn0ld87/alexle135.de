@@ -1,13 +1,14 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { platzhalter } from '../../../data/staffeln/staffel-2/platzhalter';
-import type { AgentClient } from '../../../lib/missions/agentClient';
+import type { AgentClient, AgentResult } from '../../../lib/missions/agentClient';
 import type { MissionCommand, MissionReply } from '../../../lib/missions/missionTypes';
 import { rahmenSetupSkript } from '../../../lib/missions/staffel2Rahmen';
 import ErmittlungApp from '../ErmittlungApp';
 
 const h = vi.hoisted(() => ({
   client: null as unknown as AgentClient,
+  ready: null as unknown as (client: AgentClient) => Promise<void>,
   sendCommand: null as unknown as (command: MissionCommand) => Promise<MissionReply>,
 }));
 
@@ -19,6 +20,7 @@ vi.mock('../V86Terminal', async () => {
       onMissionCommand?: (command: MissionCommand) => Promise<MissionReply>;
     }) {
       const { onReady, onMissionCommand } = props;
+      h.ready = onReady as (client: AgentClient) => Promise<void>;
       h.sendCommand = onMissionCommand as (command: MissionCommand) => Promise<MissionReply>;
       useEffect(() => {
         onReady?.(h.client);
@@ -51,6 +53,48 @@ describe('ErmittlungApp', () => {
     expect(run.mock.calls[1]?.[0]).toBe(platzhalter.setup);
     expect(run.mock.calls[1]?.[1]).toBe(60_000);
     await waitFor(() => expect(pagerText()).toContain('Leg in ~/belege'));
+  });
+
+  it.each(['rahmen', 'episode'])('meldet einen fehlgeschlagenen %s-Exitcode', async (teil) => {
+    if (teil === 'episode') run.mockResolvedValueOnce({ exitCode: 0, output: '' });
+    run.mockResolvedValue({ exitCode: 17, output: 'fehlgeschlagen' });
+    render(<ErmittlungApp ermittlung={platzhalter} />);
+
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
+    expect(run).toHaveBeenCalledTimes(teil === 'rahmen' ? 1 : 2);
+    expect(pagerText()).not.toContain('Leg in ~/belege');
+    await act(async () => { await h.sendCommand('__prompt'); });
+    expect(run).toHaveBeenCalledTimes(teil === 'rahmen' ? 1 : 2);
+  });
+
+  it.each(['rahmen', 'episode'])('verwirft das nach Unmount endende %s-Setup', async (teil) => {
+    let freigeben!: (resultat: AgentResult) => void;
+    const blockiert = new Promise<AgentResult>((fertig) => { freigeben = fertig; });
+    if (teil === 'episode') run.mockResolvedValueOnce({ exitCode: 0, output: '' });
+    run.mockImplementationOnce(() => blockiert);
+    const view = render(<ErmittlungApp ermittlung={platzhalter} />);
+    await waitFor(() => expect(run).toHaveBeenCalledTimes(teil === 'rahmen' ? 1 : 2));
+    await act(async () => { await h.sendCommand('__prompt'); });
+    view.unmount();
+
+    await act(async () => { freigeben({ exitCode: 0, output: '' }); await blockiert; });
+    expect(run).toHaveBeenCalledTimes(teil === 'rahmen' ? 1 : 2);
+  });
+
+  it('lässt ein altes Setup keinen neueren Prüflauf ersetzen', async () => {
+    let freigeben!: (resultat: AgentResult) => void;
+    const blockiert = new Promise<AgentResult>((fertig) => { freigeben = fertig; });
+    run.mockImplementationOnce(() => blockiert);
+    render(<ErmittlungApp ermittlung={platzhalter} />);
+    await waitFor(() => expect(run).toHaveBeenCalledTimes(1));
+    const neuerRun = vi.fn(async () => ({ exitCode: 0, output: '' }));
+    await act(async () => { await h.ready({ run: neuerRun } as unknown as AgentClient); });
+    expect(neuerRun).toHaveBeenCalledTimes(2);
+
+    await act(async () => { freigeben({ exitCode: 0, output: '' }); await blockiert; });
+    await act(async () => { await h.sendCommand('__prompt'); });
+    expect(run).toHaveBeenCalledTimes(1);
+    expect(neuerRun).toHaveBeenCalledTimes(3);
   });
 
   it('antwortet auf __prompt, ohne auf das Prüfbündel zu warten', async () => {

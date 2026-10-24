@@ -36,6 +36,7 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
   const zustand = useRef<ErmittlungsZustand>(startZustand());
   const lauf = useRef<PruefLauf | null>(null);
   const promptAusstehend = useRef(false);
+  const setupVersion = useRef(0);
 
   const melde = useCallback((art: PagerArt, zeilen: string[], pose?: Pose) => {
     setPager((verlauf) => anhaengen(verlauf, art, zeilen, pose));
@@ -61,15 +62,20 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
 
   const onReady = useCallback(
     async (client: AgentClient) => {
+      const version = ++setupVersion.current;
       lauf.current?.stoppe();
       lauf.current = null;
       promptAusstehend.current = false;
       setRahmenFehler(null);
       try {
-        await client.run(rahmenSetupSkript(hostname), 60_000);
-        await client.run(ermittlung.setup, 60_000);
+        const rahmen = await client.run(rahmenSetupSkript(hostname), 60_000);
+        if (version !== setupVersion.current) return;
+        if (rahmen.exitCode !== 0) throw new Error(RAHMEN_FEHLER);
+        const episode = await client.run(ermittlung.setup, 60_000);
+        if (version !== setupVersion.current) return;
+        if (episode.exitCode !== 0) throw new Error(RAHMEN_FEHLER);
       } catch {
-        setRahmenFehler(RAHMEN_FEHLER);
+        if (version === setupVersion.current) setRahmenFehler(RAHMEN_FEHLER);
         return;
       }
       const start = startZustand();
@@ -105,7 +111,15 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
     return { exitCode: 1, text: MISSION_HINWEIS };
   }, []);
 
-  useEffect(() => () => lauf.current?.stoppe(), []);
+  useEffect(
+    () => () => {
+      setupVersion.current++;
+      lauf.current?.stoppe();
+      lauf.current = null;
+      promptAusstehend.current = false;
+    },
+    []
+  );
 
   return (
     <div className="grid gap-4 lg:min-h-[32rem] lg:flex-1">
