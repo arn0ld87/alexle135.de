@@ -77,27 +77,38 @@ describe('ErmittlungApp', () => {
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
     expect(run).toHaveBeenCalledTimes(teil === 'rahmen' ? 1 : 2);
     expect(pagerText()).not.toContain('Leg in ~/belege');
-    await act(async () => { await h.sendCommand('__prompt'); });
+    await act(async () => {
+      await h.sendCommand('__prompt');
+    });
     expect(run).toHaveBeenCalledTimes(teil === 'rahmen' ? 1 : 2);
   });
 
   it.each(['rahmen', 'episode'])('verwirft das nach Unmount endende %s-Setup', async (teil) => {
     let freigeben!: (resultat: AgentResult) => void;
-    const blockiert = new Promise<AgentResult>((fertig) => { freigeben = fertig; });
+    const blockiert = new Promise<AgentResult>((fertig) => {
+      freigeben = fertig;
+    });
     if (teil === 'episode') run.mockResolvedValueOnce({ exitCode: 0, output: '' });
     run.mockImplementationOnce(() => blockiert);
     const view = render(<ErmittlungApp ermittlung={platzhalter} />);
     await waitFor(() => expect(run).toHaveBeenCalledTimes(teil === 'rahmen' ? 1 : 2));
-    await act(async () => { await h.sendCommand('__prompt'); });
+    await act(async () => {
+      await h.sendCommand('__prompt');
+    });
     view.unmount();
 
-    await act(async () => { freigeben({ exitCode: 0, output: '' }); await blockiert; });
+    await act(async () => {
+      freigeben({ exitCode: 0, output: '' });
+      await blockiert;
+    });
     expect(run).toHaveBeenCalledTimes(teil === 'rahmen' ? 1 : 2);
   });
 
   it('lässt ein altes Setup keinen neueren Prüflauf ersetzen', async () => {
     let freigeben!: (resultat: AgentResult) => void;
-    const blockiert = new Promise<AgentResult>((fertig) => { freigeben = fertig; });
+    const blockiert = new Promise<AgentResult>((fertig) => {
+      freigeben = fertig;
+    });
     run.mockImplementationOnce(() => blockiert);
     render(<ErmittlungApp ermittlung={platzhalter} />);
     await waitFor(() => expect(run).toHaveBeenCalledTimes(1));
@@ -109,9 +120,14 @@ describe('ErmittlungApp', () => {
     // Die neue Generation wartet auf das Ende des bereits gesendeten alten RUN.
     expect(neuerRun).not.toHaveBeenCalled();
 
-    await act(async () => { freigeben({ exitCode: 0, output: '' }); await blockiert; });
+    await act(async () => {
+      freigeben({ exitCode: 0, output: '' });
+      await blockiert;
+    });
     await waitFor(() => expect(neuerRun).toHaveBeenCalledTimes(3));
-    await act(async () => { await h.sendCommand('__prompt'); });
+    await act(async () => {
+      await h.sendCommand('__prompt');
+    });
     expect(run).toHaveBeenCalledTimes(1);
     await waitFor(() => expect(neuerRun).toHaveBeenCalledTimes(4));
   });
@@ -197,6 +213,47 @@ describe('ErmittlungApp', () => {
     );
   });
 
+  it.each([false, true])(
+    'zeigt unvollständige Prüfungen an, vorheriger Fehler: %s',
+    async (vorherigerFehler) => {
+      let vollstaendig = false;
+      let fehlerOffen = vorherigerFehler;
+      run.mockImplementation(async (skript: string) => {
+        if (!skript.startsWith('(')) return { exitCode: 0, output: '' };
+        if (fehlerOffen) {
+          fehlerOffen = false;
+          throw new Error('weg');
+        }
+        return { exitCode: 0, output: vollstaendig ? 'ende\t0\n' : '' };
+      });
+      render(<ErmittlungApp ermittlung={platzhalter} />);
+      await waitFor(() => expect(run).toHaveBeenCalledTimes(2));
+      if (vorherigerFehler) {
+        await act(async () => {
+          await h.sendCommand('__prompt');
+        });
+        await waitFor(() =>
+          expect(screen.getByText(/Prüfung gerade nicht erreichbar/)).toBeInTheDocument()
+        );
+      }
+
+      await act(async () => {
+        await h.sendCommand('__prompt');
+      });
+      await waitFor(() =>
+        expect(screen.getByText(/Prüfung gerade nicht erreichbar/)).toBeInTheDocument()
+      );
+
+      vollstaendig = true;
+      await act(async () => {
+        await h.sendCommand('__prompt');
+      });
+      await waitFor(() =>
+        expect(screen.queryByText(/Prüfung gerade nicht erreichbar/)).not.toBeInTheDocument()
+      );
+    }
+  );
+
   it('hängt das Terminal beim Umschalten nicht aus', async () => {
     render(<ErmittlungApp ermittlung={platzhalter} />);
     const terminal = await screen.findByTestId('stub-terminal');
@@ -204,7 +261,9 @@ describe('ErmittlungApp', () => {
     await act(async () => {
       screen.getByRole('button', { name: 'Ansicht' }).click();
     });
-    expect(screen.getByRole('button', { name: 'Ansicht' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: 'Ansicht' }).getAttribute('aria-pressed')).toBe(
+      'true'
+    );
     expect(screen.getByTestId('stub-terminal')).toBe(terminal);
     expect(terminal.parentElement?.className).toContain('hidden');
   });
@@ -344,9 +403,7 @@ const ALLE_PRUEFUNGEN = [
 ] as const;
 
 const buendel = (bestanden: ReadonlySet<string>): string => {
-  const zeilen = ALLE_PRUEFUNGEN.map(
-    (id) => `pruefung\t${id}\t${bestanden.has(id) ? 0 : 1}`
-  );
+  const zeilen = ALLE_PRUEFUNGEN.map((id) => `pruefung\t${id}\t${bestanden.has(id) ? 0 : 1}`);
   return `${zeilen.join('\n')}\nende\t${ALLE_PRUEFUNGEN.length}\n`;
 };
 
@@ -368,9 +425,8 @@ describe('ErmittlungApp: freie Spurenwahl (T4)', () => {
     const aktuell = pager.querySelector('[aria-live="polite"]');
     const verlauf = pager.querySelector('[data-testid="pager-verlauf"]');
     const historie = verlauf
-      ? Array.from(verlauf.querySelectorAll('li')).filter((li) =>
-          li.textContent?.includes(titel)
-        ).length
+      ? Array.from(verlauf.querySelectorAll('li')).filter((li) => li.textContent?.includes(titel))
+          .length
       : 0;
     return historie + (aktuell?.textContent?.includes(titel) ? 1 : 0);
   };
@@ -420,10 +476,9 @@ describe('ErmittlungApp: freie Spurenwahl (T4)', () => {
     expect(spurButton('Ankommen, 0 von 2 Schritten erledigt')).toBeInTheDocument();
     expect(screen.getByText('Ergänze fertig in protokoll.txt')).toBeInTheDocument();
     expect(screen.getByText('B2: Ergänze fertig.')).toBeInTheDocument();
-    await waitFor(
-      () => expect(pagerText()).toContain('Erledigt: Lege ein Protokoll an'),
-      { timeout: 4000 }
-    );
+    await waitFor(() => expect(pagerText()).toContain('Erledigt: Lege ein Protokoll an'), {
+      timeout: 4000,
+    });
   });
 
   it('T4-8: löst zuerst B vollständig und danach A, ohne Reihenfolgezwang', async () => {
@@ -441,9 +496,7 @@ describe('ErmittlungApp: freie Spurenwahl (T4)', () => {
     bestanden.add('s.protokoll.abschluss');
     await prompt();
     await waitFor(() =>
-      expect(
-        spurButton('Protokoll, 2 von 2 Schritten erledigt, abgeschlossen')
-      ).toBeInTheDocument()
+      expect(spurButton('Protokoll, 2 von 2 Schritten erledigt, abgeschlossen')).toBeInTheDocument()
     );
     expect(spurButton('Ankommen, 0 von 2 Schritten erledigt')).toBeInTheDocument();
 
@@ -456,9 +509,7 @@ describe('ErmittlungApp: freie Spurenwahl (T4)', () => {
     bestanden.add('s.ankommen.abschluss');
     await prompt();
     await waitFor(() =>
-      expect(
-        spurButton('Ankommen, 2 von 2 Schritten erledigt, abgeschlossen')
-      ).toBeInTheDocument()
+      expect(spurButton('Ankommen, 2 von 2 Schritten erledigt, abgeschlossen')).toBeInTheDocument()
     );
   });
 
@@ -478,10 +529,9 @@ describe('ErmittlungApp: freie Spurenwahl (T4)', () => {
       'aria-pressed',
       'true'
     );
-    await waitFor(
-      () => expect(pagerText()).toContain('Erledigt: Lege ein Protokoll an'),
-      { timeout: 4000 }
-    );
+    await waitFor(() => expect(pagerText()).toContain('Erledigt: Lege ein Protokoll an'), {
+      timeout: 4000,
+    });
 
     const vorher = run.mock.calls.length;
     await prompt();
@@ -515,9 +565,7 @@ describe('ErmittlungApp: freie Spurenwahl (T4)', () => {
 
     await prompt();
     await waitFor(() =>
-      expect(
-        spurButton('Ankommen, 2 von 2 Schritten erledigt, abgeschlossen')
-      ).toBeInTheDocument()
+      expect(spurButton('Ankommen, 2 von 2 Schritten erledigt, abgeschlossen')).toBeInTheDocument()
     );
   });
 
@@ -558,9 +606,7 @@ describe('ErmittlungApp: freie Spurenwahl (T4)', () => {
 
     await prompt();
     await waitFor(() =>
-      expect(screen.getByRole('status').textContent).toContain(
-        'Prüfung gerade nicht erreichbar'
-      )
+      expect(screen.getByRole('status').textContent).toContain('Prüfung gerade nicht erreichbar')
     );
     expect(spurButton('Ankommen, 0 von 2 Schritten erledigt')).toBeInTheDocument();
 
@@ -668,9 +714,7 @@ describe('ErmittlungApp: Raumansicht (T5)', () => {
     await waitFor(() => expect(run).toHaveBeenCalledTimes(3));
     const user = userEvent.setup();
 
-    await user.click(
-      screen.getByRole('button', { name: 'Protokoll, 0 von 2 Schritten erledigt' })
-    );
+    await user.click(screen.getByRole('button', { name: 'Protokoll, 0 von 2 Schritten erledigt' }));
     view.rerender(<ErmittlungApp ermittlung={zweiSpuren} />);
     await user.click(screen.getByRole('button', { name: 'Ansicht' }));
     await user.click(screen.getByRole('button', { name: 'Terminal' }));

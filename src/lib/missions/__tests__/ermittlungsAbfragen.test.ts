@@ -2,11 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { abfrageSkript } from '../abfrage';
 import type { AgentResult } from '../agentClient';
-import {
-  ABFRAGE_TIMEOUT_MS,
-  erzeugeAbfragen,
-  type AbfrageZustand,
-} from '../ermittlungsAbfragen';
+import { ABFRAGE_TIMEOUT_MS, erzeugeAbfragen, type AbfrageZustand } from '../ermittlungsAbfragen';
 import type { Ansicht } from '../ermittlungTypes';
 
 const raum = (id: string, abfrage: string): Ansicht => ({

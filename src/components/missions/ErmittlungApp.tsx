@@ -63,7 +63,11 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
     (neu: ErmittlungsZustand, ereignisse: readonly ErmittlungsEreignis[]) => {
       zustand.current = neu;
       setAnzeigeZustand(neu);
-      setPruefHinweis(null);
+      setPruefHinweis(
+        ereignisse.some((ereignis) => ereignis.type === 'pruefung-unvollstaendig')
+          ? PRUEF_HINWEIS
+          : null
+      );
       for (const ereignis of ereignisse) {
         if (ereignis.type === 'schritt-erledigt') {
           const spur = ermittlung.spuren.find((eintrag) => eintrag.id === ereignis.spurId);
@@ -241,7 +245,9 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
         </div>
         <div className={`min-w-0 ${bereich === 'terminal' ? 'lg:block' : 'hidden lg:block'}`}>
           <Suspense
-            fallback={<p className="font-mono text-xs text-[color:var(--muted)]">Terminal lädt …</p>}
+            fallback={
+              <p className="font-mono text-xs text-[color:var(--muted)]">Terminal lädt …</p>
+            }
           >
             <LazyV86Terminal
               className="h-[60dvh] min-h-[20rem] lg:h-full lg:min-h-[12rem]"

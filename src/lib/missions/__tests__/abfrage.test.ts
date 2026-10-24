@@ -36,7 +36,11 @@ describe('leseAbfrage', () => {
 
   it('ignoriert Zeilen ohne TAB, mit ungültigem Schlüssel und ende ohne Ziffern', () => {
     const roh = 'rauschen\nohne-tab\nGroß\twert\nende\tabc\nx\tok\nende\t1\n';
-    expect(leseAbfrage(roh)).toEqual({ werte: { x: ['ok'] }, vollstaendig: true, fehlerCode: null });
+    expect(leseAbfrage(roh)).toEqual({
+      werte: { x: ['ok'] },
+      vollstaendig: true,
+      fehlerCode: null,
+    });
   });
 
   it('ist ohne passende Schlusszeile unvollständig', () => {
@@ -157,7 +161,9 @@ describe('abfrageSkript', () => {
   });
 
   it('erkennt eine abgeschnittene Ausgabe als unvollständig', () => {
-    const ausgabe = lauf(`printf 'host\\t%s\\n' srv; printf 'konto\\ta\\nkonto\\tb\\n'; echo 'rauschen'`);
+    const ausgabe = lauf(
+      `printf 'host\\t%s\\n' srv; printf 'konto\\ta\\nkonto\\tb\\n'; echo 'rauschen'`
+    );
     const gekuerzt = ausgabe.slice(0, Math.floor((ausgabe.length * 2) / 3));
     expect(leseAbfrage(gekuerzt).vollstaendig).toBe(false);
   });
