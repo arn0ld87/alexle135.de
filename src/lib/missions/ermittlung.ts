@@ -142,6 +142,18 @@ export function startZustand(): ErmittlungsZustand {
   };
 }
 
+/** Ergänzt Felder, die ein älter gespeicherter Zustand nicht kennt. Gibt eine Kopie zurück. */
+export function mitZustandsDefaults(
+  z: Omit<ErmittlungsZustand, 'sperreRestPruefungen'> & { sperreRestPruefungen?: number }
+): ErmittlungsZustand {
+  const rest = z.sperreRestPruefungen;
+  const sauber = typeof rest === 'number' && Number.isFinite(rest) && rest >= 0 ? rest : null;
+  return {
+    ...z,
+    sperreRestPruefungen: sauber ?? (z.sperreBis !== null ? SPERRE_PRUEFUNGEN : 0),
+  };
+}
+
 /** Der Schritt an der Stelle `erledigt[spur.id]`; alle erledigt ergibt null. */
 export function aktuellerSchritt(spur: Spur, z: ErmittlungsZustand): VorfallSchritt | null {
   const index = Object.hasOwn(z.erledigt, spur.id) ? (z.erledigt[spur.id] ?? 0) : 0;

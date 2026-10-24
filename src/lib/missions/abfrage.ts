@@ -13,12 +13,15 @@ export const SPIELERKONTO = 'azubi';
 export function abfrageSkript(abfrage: string, konto: string = SPIELERKONTO): string {
   if (!/^[a-z_][a-z0-9_-]{0,31}$/.test(konto)) throw new Error(`Ungültiges Konto: ${konto}`);
   return `__a=$(printf '%s' '${encodeBase64(abfrage)}' | base64 -d)
-__o=$(su -s /bin/bash ${konto} -c "$__a" 2>/dev/null </dev/null \\
+__f=$(mktemp)
+su -s /bin/bash ${konto} -c "$__a" 2>/dev/null </dev/null \\
   | grep -a -E $'^[a-z0-9_.-]{1,40}\\t' | grep -a -v -E $'^ende\\t' \\
   | head -n ${ABFRAGE_MAX_ZEILEN} \\
-  | LC_ALL=C awk -v max=${ABFRAGE_MAX_BYTES} '{ n += length($0) + 1; if (n > max) exit; print }')
-[ -n "$__o" ] && printf '%s\\n' "$__o"
-printf 'ende\\t%s\\n' "$(printf '%s' "$__o" | grep -c '')"
+  | LC_ALL=C awk -v max=${ABFRAGE_MAX_BYTES} '{ n += length($0) + 1; if (n > max) exit; print }' > "$__f"
+__rc=\${PIPESTATUS[0]}
+cat "$__f"
+printf 'ende\\t%s\\t%s\\n' "$(grep -ac '' "$__f")" "$__rc"
+rm -f "$__f"
 `;
 }
 
@@ -27,6 +30,7 @@ export function leseAbfrage(text: string): AbfrageAusgabe {
   const werte = Object.create(null) as Record<string, string[]>;
   let gelesen = 0;
   let schluss: number | null = null;
+  let fehlerCode: number | null = null;
   for (const roh of text.split('\n')) {
     const zeile = roh.endsWith('\r') ? roh.slice(0, -1) : roh;
     const tab = zeile.indexOf('\t');
@@ -35,7 +39,13 @@ export function leseAbfrage(text: string): AbfrageAusgabe {
     const wert = zeile.slice(tab + 1);
     // Nur das exakte `ende` ist reserviert: mit Ziffern die Schlusszeile, sonst ignoriert.
     if (schluessel === 'ende') {
-      if (/^\d+$/.test(wert)) schluss = Number(wert);
+      // `ende<TAB>zahl` (alt) oder `ende<TAB>zahl<TAB>exit` (neu); die letzte gültige gewinnt.
+      const treffer = /^(\d+)(?:\t(\d+))?$/.exec(wert);
+      if (treffer) {
+        schluss = Number(treffer[1]);
+        const rc = treffer[2] === undefined ? null : Number(treffer[2]);
+        fehlerCode = rc !== null && rc !== 0 && rc !== 141 ? rc : null;
+      }
       continue;
     }
     if (!SCHLUESSEL_MUSTER.test(schluessel)) continue;
@@ -44,5 +54,5 @@ export function leseAbfrage(text: string): AbfrageAusgabe {
     (werte[schluessel] ??= []).push(sauber);
     gelesen++;
   }
-  return { werte, vollstaendig: schluss !== null && schluss === gelesen };
+  return { werte, vollstaendig: schluss !== null && schluss === gelesen, fehlerCode };
 }

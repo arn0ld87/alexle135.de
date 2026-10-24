@@ -16,6 +16,7 @@ describe('isExcludedFromSitemap', () => {
     '/kontakt/danke/',
     '/apps/compose-builder/',
     '/projekte/terminal-missionen/app/',
+    '/projekte/terminal-missionen/app/staffel-2',
     '/projekte/windows-terminal-missionen/app/',
     '/blog/terminal-demo/',
   ])('schließt %s aus', (pathname) => {
