@@ -61,7 +61,9 @@ test('Staffel 2: der Prompt blockiert nicht und die Prüfung meldet im Pager', a
   expect(promptMs).toBeLessThan(1500);
 });
 
-test('Staffel 2: unter CPU-Drosselung meldet die Prüfung weiter im Pager', async ({ page }) => {
+// Der Linux-Krimi zielt auf den PC (Entscheidung 2026-10-24): kein Budget für 6-fache
+// CPU-Drosselung mehr. Darstellung auf schmalen Bildschirmen prüfen weiterhin 07 und 08.
+test.skip('Staffel 2: unter CPU-Drosselung meldet die Prüfung weiter im Pager', async ({ page }) => {
   test.setTimeout(240_000);
   await page.setViewportSize({ width: 1400, height: 1000 });
   await page.goto(STAFFEL2);
