@@ -63,36 +63,54 @@ describe('ErmittlungApp', () => {
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
     expect(run).toHaveBeenCalledTimes(teil === 'rahmen' ? 1 : 2);
     expect(pagerText()).not.toContain('Leg in ~/belege');
-    await act(async () => { await h.sendCommand('__prompt'); });
+    await act(async () => {
+      await h.sendCommand('__prompt');
+    });
     expect(run).toHaveBeenCalledTimes(teil === 'rahmen' ? 1 : 2);
   });
 
   it.each(['rahmen', 'episode'])('verwirft das nach Unmount endende %s-Setup', async (teil) => {
     let freigeben!: (resultat: AgentResult) => void;
-    const blockiert = new Promise<AgentResult>((fertig) => { freigeben = fertig; });
+    const blockiert = new Promise<AgentResult>((fertig) => {
+      freigeben = fertig;
+    });
     if (teil === 'episode') run.mockResolvedValueOnce({ exitCode: 0, output: '' });
     run.mockImplementationOnce(() => blockiert);
     const view = render(<ErmittlungApp ermittlung={platzhalter} />);
     await waitFor(() => expect(run).toHaveBeenCalledTimes(teil === 'rahmen' ? 1 : 2));
-    await act(async () => { await h.sendCommand('__prompt'); });
+    await act(async () => {
+      await h.sendCommand('__prompt');
+    });
     view.unmount();
 
-    await act(async () => { freigeben({ exitCode: 0, output: '' }); await blockiert; });
+    await act(async () => {
+      freigeben({ exitCode: 0, output: '' });
+      await blockiert;
+    });
     expect(run).toHaveBeenCalledTimes(teil === 'rahmen' ? 1 : 2);
   });
 
   it('lässt ein altes Setup keinen neueren Prüflauf ersetzen', async () => {
     let freigeben!: (resultat: AgentResult) => void;
-    const blockiert = new Promise<AgentResult>((fertig) => { freigeben = fertig; });
+    const blockiert = new Promise<AgentResult>((fertig) => {
+      freigeben = fertig;
+    });
     run.mockImplementationOnce(() => blockiert);
     render(<ErmittlungApp ermittlung={platzhalter} />);
     await waitFor(() => expect(run).toHaveBeenCalledTimes(1));
     const neuerRun = vi.fn(async () => ({ exitCode: 0, output: '' }));
-    await act(async () => { await h.ready({ run: neuerRun } as unknown as AgentClient); });
+    await act(async () => {
+      await h.ready({ run: neuerRun } as unknown as AgentClient);
+    });
     expect(neuerRun).toHaveBeenCalledTimes(2);
 
-    await act(async () => { freigeben({ exitCode: 0, output: '' }); await blockiert; });
-    await act(async () => { await h.sendCommand('__prompt'); });
+    await act(async () => {
+      freigeben({ exitCode: 0, output: '' });
+      await blockiert;
+    });
+    await act(async () => {
+      await h.sendCommand('__prompt');
+    });
     expect(run).toHaveBeenCalledTimes(1);
     expect(neuerRun).toHaveBeenCalledTimes(3);
   });
@@ -178,6 +196,47 @@ describe('ErmittlungApp', () => {
     );
   });
 
+  it.each([false, true])(
+    'zeigt unvollständige Prüfungen an, vorheriger Fehler: %s',
+    async (vorherigerFehler) => {
+      let vollstaendig = false;
+      let fehlerOffen = vorherigerFehler;
+      run.mockImplementation(async (skript: string) => {
+        if (!skript.startsWith('(')) return { exitCode: 0, output: '' };
+        if (fehlerOffen) {
+          fehlerOffen = false;
+          throw new Error('weg');
+        }
+        return { exitCode: 0, output: vollstaendig ? 'ende\t0\n' : '' };
+      });
+      render(<ErmittlungApp ermittlung={platzhalter} />);
+      await waitFor(() => expect(run).toHaveBeenCalledTimes(2));
+      if (vorherigerFehler) {
+        await act(async () => {
+          await h.sendCommand('__prompt');
+        });
+        await waitFor(() =>
+          expect(screen.getByText(/Prüfung gerade nicht erreichbar/)).toBeInTheDocument()
+        );
+      }
+
+      await act(async () => {
+        await h.sendCommand('__prompt');
+      });
+      await waitFor(() =>
+        expect(screen.getByText(/Prüfung gerade nicht erreichbar/)).toBeInTheDocument()
+      );
+
+      vollstaendig = true;
+      await act(async () => {
+        await h.sendCommand('__prompt');
+      });
+      await waitFor(() =>
+        expect(screen.queryByText(/Prüfung gerade nicht erreichbar/)).not.toBeInTheDocument()
+      );
+    }
+  );
+
   it('hängt das Terminal beim Umschalten nicht aus', async () => {
     render(<ErmittlungApp ermittlung={platzhalter} />);
     const terminal = await screen.findByTestId('stub-terminal');
@@ -185,7 +244,9 @@ describe('ErmittlungApp', () => {
     await act(async () => {
       screen.getByRole('button', { name: 'Ansicht' }).click();
     });
-    expect(screen.getByRole('button', { name: 'Ansicht' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: 'Ansicht' }).getAttribute('aria-pressed')).toBe(
+      'true'
+    );
     expect(screen.getByTestId('stub-terminal')).toBe(terminal);
     expect(terminal.parentElement?.className).toContain('hidden');
   });

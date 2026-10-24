@@ -36,7 +36,11 @@ describe('leseAbfrage', () => {
 
   it('ignoriert Zeilen ohne TAB, mit ungültigem Schlüssel und ende ohne Ziffern', () => {
     const roh = 'rauschen\nohne-tab\nGroß\twert\nende\tabc\nx\tok\nende\t1\n';
-    expect(leseAbfrage(roh)).toEqual({ werte: { x: ['ok'] }, vollstaendig: true, fehlerCode: null });
+    expect(leseAbfrage(roh)).toEqual({
+      werte: { x: ['ok'] },
+      vollstaendig: true,
+      fehlerCode: null,
+    });
   });
 
   it('ist ohne passende Schlusszeile unvollständig', () => {

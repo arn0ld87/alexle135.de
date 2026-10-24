@@ -948,27 +948,26 @@ describe('mitZustandsDefaults', () => {
     expect(
       mitZustandsDefaults({ ...ohneRest(), sperreRestPruefungen: Number.NaN }).sperreRestPruefungen
     ).toBe(0);
-    expect(mitZustandsDefaults({ ...ohneRest(), sperreRestPruefungen: -1 }).sperreRestPruefungen).toBe(
-      0
-    );
-    expect(mitZustandsDefaults({ ...ohneRest(), sperreRestPruefungen: 2 }).sperreRestPruefungen).toBe(
-      2
-    );
+    expect(
+      mitZustandsDefaults({ ...ohneRest(), sperreRestPruefungen: -1 }).sperreRestPruefungen
+    ).toBe(0);
+    expect(
+      mitZustandsDefaults({ ...ohneRest(), sperreRestPruefungen: 2 }).sperreRestPruefungen
+    ).toBe(2);
   });
 
   it('setzt bei aktiver Sperre fehlende oder ungültige Zähler auf SPERRE_PRUEFUNGEN', () => {
     const gesperrt = ohneRest({ sperreBis: 2, belegeErkannt: ['b-sudoers'] });
     expect(mitZustandsDefaults(gesperrt).sperreRestPruefungen).toBe(SPERRE_PRUEFUNGEN);
     expect(
-      mitZustandsDefaults({ ...gesperrt, sperreRestPruefungen: Number.NaN })
-        .sperreRestPruefungen
+      mitZustandsDefaults({ ...gesperrt, sperreRestPruefungen: Number.NaN }).sperreRestPruefungen
     ).toBe(SPERRE_PRUEFUNGEN);
     expect(
       mitZustandsDefaults({ ...gesperrt, sperreRestPruefungen: -1 }).sperreRestPruefungen
     ).toBe(SPERRE_PRUEFUNGEN);
-    expect(
-      mitZustandsDefaults({ ...gesperrt, sperreRestPruefungen: 2 }).sperreRestPruefungen
-    ).toBe(2);
+    expect(mitZustandsDefaults({ ...gesperrt, sperreRestPruefungen: 2 }).sperreRestPruefungen).toBe(
+      2
+    );
   });
 
   it('lässt die Eingabe unverändert und gibt eine Kopie zurück', () => {
