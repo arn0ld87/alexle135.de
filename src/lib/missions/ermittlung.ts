@@ -144,7 +144,8 @@ export function startZustand(): ErmittlungsZustand {
 
 /** Der Schritt an der Stelle `erledigt[spur.id]`; alle erledigt ergibt null. */
 export function aktuellerSchritt(spur: Spur, z: ErmittlungsZustand): VorfallSchritt | null {
-  return spur.schritte[z.erledigt[spur.id] ?? 0] ?? null;
+  const index = Object.hasOwn(z.erledigt, spur.id) ? (z.erledigt[spur.id] ?? 0) : 0;
+  return spur.schritte[index] ?? null;
 }
 
 /** Prüfungen für den nächsten Prompt: je Spur der aktuelle Schritt, alle Belege, der Rahmen. */
@@ -214,7 +215,7 @@ export function wendePruefungAn(
   for (const spur of e.spuren) {
     const schritt = aktuellerSchritt(spur, z);
     if (!schritt || ausgabe.ergebnisse[pruefIdSchritt(spur.id, schritt.id)] !== true) continue;
-    const neu = (z.erledigt[spur.id] ?? 0) + 1;
+    const neu = (Object.hasOwn(z.erledigt, spur.id) ? (z.erledigt[spur.id] ?? 0) : 0) + 1;
     erledigt[spur.id] = neu;
     ereignisse.push({ type: 'schritt-erledigt', spurId: spur.id, schrittId: schritt.id });
     if (neu >= spur.schritte.length) ereignisse.push({ type: 'spur-erledigt', spurId: spur.id });

@@ -126,7 +126,9 @@ describe('abfrageSkript', () => {
   });
 
   it('erkennt eine abgeschnittene Ausgabe als unvollständig', () => {
-    const ausgabe = lauf(`printf 'host\\t%s\\n' srv; printf 'konto\\ta\\nkonto\\tb\\n'; echo 'rauschen'`);
+    const ausgabe = lauf(
+      `printf 'host\\t%s\\n' srv; printf 'konto\\ta\\nkonto\\tb\\n'; echo 'rauschen'`
+    );
     const gekuerzt = ausgabe.slice(0, Math.floor((ausgabe.length * 2) / 3));
     expect(leseAbfrage(gekuerzt).vollstaendig).toBe(false);
   });
