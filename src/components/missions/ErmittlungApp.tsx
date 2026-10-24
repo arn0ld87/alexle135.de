@@ -5,6 +5,7 @@ import type {
   Ermittlung,
   ErmittlungsEreignis,
   ErmittlungsZustand,
+  Spur,
 } from '../../lib/missions/ermittlungTypes';
 import type { MissionCommand, MissionReply } from '../../lib/missions/missionTypes';
 import { anhaengen, satz } from '../../lib/missions/pager';
@@ -13,6 +14,7 @@ import { erzeugePruefLauf } from '../../lib/missions/pruefLauf';
 import type { PruefLauf } from '../../lib/missions/pruefLauf';
 import { STAFFEL2_HOSTNAME, rahmenSetupSkript } from '../../lib/missions/staffel2Rahmen';
 import Pager from './Pager';
+import Spurenliste from './Spurenliste';
 
 const LazyV86Terminal = lazy(() => import('./V86Terminal'));
 
@@ -27,12 +29,21 @@ interface ErmittlungAppProps {
 
 type Bereich = 'ansicht' | 'terminal';
 
+/** Erste Spur mit offenem Schritt in Datenreihenfolge; sonst die erste Spur; sonst null. */
+function ersteSpur(spuren: readonly Spur[], zustand: ErmittlungsZustand): Spur | null {
+  return spuren.find((spur) => aktuellerSchritt(spur, zustand) !== null) ?? spuren[0] ?? null;
+}
+
 export default function ErmittlungApp(props: ErmittlungAppProps) {
   const { ermittlung, hostname = STAFFEL2_HOSTNAME } = props;
   const [pager, setPager] = useState<PagerNachricht[]>([]);
   const [pruefHinweis, setPruefHinweis] = useState<string | null>(null);
   const [rahmenFehler, setRahmenFehler] = useState<string | null>(null);
   const [bereich, setBereich] = useState<Bereich>('terminal');
+  const [anzeigeZustand, setAnzeigeZustand] = useState<ErmittlungsZustand>(startZustand);
+  const [aktiveSpurId, setAktiveSpurId] = useState<string | null>(
+    () => ersteSpur(ermittlung.spuren, startZustand())?.id ?? null
+  );
   const zustand = useRef<ErmittlungsZustand>(startZustand());
   const lauf = useRef<PruefLauf | null>(null);
   const promptAusstehend = useRef(false);
@@ -45,6 +56,7 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
   const schreibeZustand = useCallback(
     (neu: ErmittlungsZustand, ereignisse: readonly ErmittlungsEreignis[]) => {
       zustand.current = neu;
+      setAnzeigeZustand(neu);
       setPruefHinweis(
         ereignisse.some((ereignis) => ereignis.type === 'pruefung-unvollstaendig')
           ? PRUEF_HINWEIS
@@ -84,6 +96,9 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
       }
       const start = startZustand();
       zustand.current = start;
+      setAnzeigeZustand(start);
+      const startSpur = ersteSpur(ermittlung.spuren, start);
+      setAktiveSpurId(startSpur?.id ?? null);
       setPager([]);
       setPruefHinweis(null);
       lauf.current = erzeugePruefLauf({
@@ -97,9 +112,7 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
         promptAusstehend.current = false;
         lauf.current.anstossen();
       }
-      const erster = ermittlung.spuren
-        .map((spur) => aktuellerSchritt(spur, start))
-        .find((schritt) => schritt !== null);
+      const erster = startSpur ? aktuellerSchritt(startSpur, start) : null;
       if (erster) melde('auftrag', [...erster.pager]);
     },
     [ermittlung, hostname, melde, schreibeZustand]
@@ -114,6 +127,14 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
     }
     return { exitCode: 1, text: MISSION_HINWEIS };
   }, []);
+
+  // Eine Auswahl ändert nur die sichtbare Spur; Prüfungen bleiben beim bestehenden Bündel.
+  const waehleSpur = useCallback(
+    (spurId: string) => {
+      if (ermittlung.spuren.some((spur) => spur.id === spurId)) setAktiveSpurId(spurId);
+    },
+    [ermittlung.spuren]
+  );
 
   useEffect(
     () => () => {
@@ -157,15 +178,22 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
         </button>
       </div>
       <div className="grid gap-4 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
-        <section
-          aria-labelledby="staffel2-ansichten"
-          className={`min-w-0 ${bereich === 'ansicht' ? 'lg:block' : 'hidden lg:block'}`}
-        >
-          <h2 id="staffel2-ansichten" className="ds-display-s text-[color:var(--ink)]">
-            Ansichten
-          </h2>
-          <p className="mt-2 font-mono text-xs text-[color:var(--muted)]">Die Ansichten folgen.</p>
-        </section>
+        <div className={`min-w-0 ${bereich === 'ansicht' ? 'lg:block' : 'hidden lg:block'}`}>
+          <Spurenliste
+            spuren={ermittlung.spuren}
+            zustand={anzeigeZustand}
+            aktiveSpurId={aktiveSpurId}
+            onSpurWaehlen={waehleSpur}
+          />
+          <section aria-labelledby="staffel2-ansichten" className="mt-6">
+            <h2 id="staffel2-ansichten" className="ds-display-s text-[color:var(--ink)]">
+              Ansichten
+            </h2>
+            <p className="mt-2 font-mono text-xs text-[color:var(--muted)]">
+              Die Ansichten folgen.
+            </p>
+          </section>
+        </div>
         <div className={`min-w-0 ${bereich === 'terminal' ? 'lg:block' : 'hidden lg:block'}`}>
           <Suspense
             fallback={
