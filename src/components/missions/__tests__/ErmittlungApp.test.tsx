@@ -352,9 +352,7 @@ const ALLE_PRUEFUNGEN = [
 ] as const;
 
 const buendel = (bestanden: ReadonlySet<string>): string => {
-  const zeilen = ALLE_PRUEFUNGEN.map(
-    (id) => `pruefung\t${id}\t${bestanden.has(id) ? 0 : 1}`
-  );
+  const zeilen = ALLE_PRUEFUNGEN.map((id) => `pruefung\t${id}\t${bestanden.has(id) ? 0 : 1}`);
   return `${zeilen.join('\n')}\nende\t${ALLE_PRUEFUNGEN.length}\n`;
 };
 
@@ -379,9 +377,8 @@ describe('ErmittlungApp: freie Spurenwahl (T4)', () => {
     const aktuell = pager.querySelector('[aria-live="polite"]');
     const verlauf = pager.querySelector('[data-testid="pager-verlauf"]');
     const historie = verlauf
-      ? Array.from(verlauf.querySelectorAll('li')).filter((li) =>
-          li.textContent?.includes(titel)
-        ).length
+      ? Array.from(verlauf.querySelectorAll('li')).filter((li) => li.textContent?.includes(titel))
+          .length
       : 0;
     return historie + (aktuell?.textContent?.includes(titel) ? 1 : 0);
   };
@@ -431,10 +428,9 @@ describe('ErmittlungApp: freie Spurenwahl (T4)', () => {
     expect(spurButton('Ankommen, 0 von 2 Schritten erledigt')).toBeInTheDocument();
     expect(screen.getByText('Ergänze fertig in protokoll.txt')).toBeInTheDocument();
     expect(screen.getByText('B2: Ergänze fertig.')).toBeInTheDocument();
-    await waitFor(
-      () => expect(pagerText()).toContain('Erledigt: Lege ein Protokoll an'),
-      { timeout: 4000 }
-    );
+    await waitFor(() => expect(pagerText()).toContain('Erledigt: Lege ein Protokoll an'), {
+      timeout: 4000,
+    });
   });
 
   it('T4-8: löst zuerst B vollständig und danach A, ohne Reihenfolgezwang', async () => {
@@ -452,9 +448,7 @@ describe('ErmittlungApp: freie Spurenwahl (T4)', () => {
     bestanden.add('s.protokoll.abschluss');
     await prompt();
     await waitFor(() =>
-      expect(
-        spurButton('Protokoll, 2 von 2 Schritten erledigt, abgeschlossen')
-      ).toBeInTheDocument()
+      expect(spurButton('Protokoll, 2 von 2 Schritten erledigt, abgeschlossen')).toBeInTheDocument()
     );
     expect(spurButton('Ankommen, 0 von 2 Schritten erledigt')).toBeInTheDocument();
 
@@ -467,9 +461,7 @@ describe('ErmittlungApp: freie Spurenwahl (T4)', () => {
     bestanden.add('s.ankommen.abschluss');
     await prompt();
     await waitFor(() =>
-      expect(
-        spurButton('Ankommen, 2 von 2 Schritten erledigt, abgeschlossen')
-      ).toBeInTheDocument()
+      expect(spurButton('Ankommen, 2 von 2 Schritten erledigt, abgeschlossen')).toBeInTheDocument()
     );
   });
 
@@ -489,10 +481,9 @@ describe('ErmittlungApp: freie Spurenwahl (T4)', () => {
       'aria-pressed',
       'true'
     );
-    await waitFor(
-      () => expect(pagerText()).toContain('Erledigt: Lege ein Protokoll an'),
-      { timeout: 4000 }
-    );
+    await waitFor(() => expect(pagerText()).toContain('Erledigt: Lege ein Protokoll an'), {
+      timeout: 4000,
+    });
 
     const vorher = run.mock.calls.length;
     await prompt();
@@ -526,9 +517,7 @@ describe('ErmittlungApp: freie Spurenwahl (T4)', () => {
 
     await prompt();
     await waitFor(() =>
-      expect(
-        spurButton('Ankommen, 2 von 2 Schritten erledigt, abgeschlossen')
-      ).toBeInTheDocument()
+      expect(spurButton('Ankommen, 2 von 2 Schritten erledigt, abgeschlossen')).toBeInTheDocument()
     );
   });
 
@@ -569,9 +558,7 @@ describe('ErmittlungApp: freie Spurenwahl (T4)', () => {
 
     await prompt();
     await waitFor(() =>
-      expect(screen.getByRole('status').textContent).toContain(
-        'Prüfung gerade nicht erreichbar'
-      )
+      expect(screen.getByRole('status').textContent).toContain('Prüfung gerade nicht erreichbar')
     );
     expect(spurButton('Ankommen, 0 von 2 Schritten erledigt')).toBeInTheDocument();
 
