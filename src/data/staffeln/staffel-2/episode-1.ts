@@ -188,12 +188,13 @@ const schrittRechteZeile: VorfallSchritt = {
   pager: [
     'Serverraum der Rechenwerk Ostwind GmbH: Auf rw-srv01 steht eine sudo-Regel, die dort nicht hingehört.',
     'Du bist das Testkonto azubi. Lesen ist erlaubt, Belege legst du als Textdatei in ~/belege/ ab.',
-    'Schritt 1: Sichere die Regel samt Änderungskennung als ~/belege/rechte-zeile.txt.',
+    'Ein Beleg ist die echte Ausgabe eines Befehls, in die Datei umgeleitet. Abgetippter Text zählt nicht. Geprüft wird beim nächsten Shell-Prompt; wenn du in nano arbeitest, erst speichern und nano verlassen.',
+    'Schritt 1: Sichere die Regel samt der Zeile mit der Änderungskennung (RW-…) als ~/belege/rechte-zeile.txt. Die Regelzeile muss unverändert drinstehen.',
   ],
   verify: PRUEFE_RECHTE_ZEILE,
   tipps: [
     'Die Regeln für sudo liegen in Dateien unter /etc/sudoers.d. Eine davon nennt eine Person, die dort nichts zu suchen hat, und eine Änderungskennung steht gleich dabei.',
-    'Mit ls siehst du, welche Dateien im Ordner liegen, mit grep suchst du darin nach Text. Mit grep -B1 nimmst du die Zeile davor mit, und > schreibt das Ergebnis in eine Datei.',
+    'Mit ls siehst du, welche Dateien im Ordner liegen, mit grep suchst du darin nach Text. Mit grep -B1 nimmst du die Zeile davor mit, und > schreibt das Ergebnis in eine Datei. Achtung: > überschreibt die Datei jedes Mal, >> hängt nur hinten an.',
     `${LOESUNG}grep -B1 nadia /etc/sudoers.d/rw-fernwartung > ~/belege/rechte-zeile.txt`,
   ],
 };
@@ -203,12 +204,13 @@ const schrittMetadaten: VorfallSchritt = {
   title: 'Sichere Besitzer, Rechte und Datum',
   pager: [
     'Schritt 2: Die Regeldatei gehört root. Das sagt nur, wer sie angelegt hat, nicht wer die Änderung veranlasste. Trotzdem gehört es in die Akte.',
-    'Halte in ~/belege/rechte-metadaten.txt fest, wem die Regeldatei gehört, welche Rechte sie hat und wann sie zuletzt geändert wurde. Dazu den Pfad von rw-status, einem Programm mit Setuid-Bit.',
+    'Halte in ~/belege/rechte-metadaten.txt fest, wem die Regeldatei gehört, welche Rechte sie hat und wann sie zuletzt geändert wurde. Dazu kommt rw-status, ein Programm mit Setuid-Bit.',
+    'Beide Dateien gehören in denselben Beleg, und zwar als echte Ausgabe von ls -l mit Dateiname, Besitzer, Rechten und Datum. Von Hand abgetippte Werte erkennt die Prüfung nicht.',
   ],
   verify: PRUEFE_RECHTE_METADATEN,
   tipps: [
     'Besitzer, Rechte und Datum einer Datei zeigt ein einziger Befehl. Das Programm rw-status liegt irgendwo unter /usr/local; sein Setuid-Bit erkennst du an einem s in den Rechten.',
-    'ls -l zeigt Besitzer, Rechte und Datum, stat zeigt sie ausführlicher. Mit find /usr/local -perm -4000 findest du Dateien mit Setuid-Bit. Mit $( ) setzt du die Ausgabe eines Befehls in einen anderen ein.',
+    'ls -l zeigt Besitzer, Rechte und Datum, stat zeigt sie ausführlicher. Mit find /usr/local -perm -4000 findest du Dateien mit Setuid-Bit. Mit $( ) setzt du die Ausgabe eines Befehls in einen anderen ein. Willst du zwei Befehle nacheinander in dieselbe Datei schreiben, nimm beim zweiten >>, denn > würde die erste Ausgabe überschreiben.',
     `${LOESUNG}ls -l /etc/sudoers.d/rw-fernwartung $(find /usr/local -perm -4000 -type f) > ~/belege/rechte-metadaten.txt`,
   ],
 };
@@ -219,6 +221,7 @@ const schrittAuditZeile: VorfallSchritt = {
   pager: [
     'Das Audit-Log /var/log/rechenwerk-audit.log führt Buch über Änderungen am Server.',
     'Finde die Zeile, in der jemand etwas unter /etc/sudoers.d eingespielt hat, und sichere sie als ~/belege/log-zeile.txt.',
+    'Die ganze Zeile muss unverändert in der Datei stehen, so wie sie im Log steht, ohne eigene Kürzungen oder Ergänzungen.',
   ],
   verify: PRUEFE_LOG_ZEILE,
   tipps: [
