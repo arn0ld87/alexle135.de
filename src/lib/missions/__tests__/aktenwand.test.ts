@@ -12,7 +12,7 @@ import {
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { SPIELERKONTO, abfrageSkript, leseAbfrage } from '../abfrage';
+import { ABFRAGE_MAX_BYTES, SPIELERKONTO, abfrageSkript, leseAbfrage } from '../abfrage';
 import {
   AKTENWAND_ABFRAGE,
   AKTENWAND_MAX_DATEIEN,
@@ -177,6 +177,46 @@ describe('Aktenwand: Skript und Parser (T6)', () => {
     expect(inhalt.dateien.some((datei) => datei.name === 'datei-49.txt')).toBe(false);
   });
 
+  it('T6-4: NUL-Bytes zählen zum Vorschau-Limit und werden vor Base64 nicht übersprungen', () => {
+    const haus = neuesHaus();
+    const ordner = belegeOrdner(haus);
+    const prefix = Buffer.alloc(AKTENWAND_MAX_VORSCHAU_BYTES);
+    const datei = Buffer.concat([prefix, Buffer.alloc(AKTENWAND_MAX_VORSCHAU_BYTES, 0x41)]);
+    writeFileSync(join(ordner, 'nullbytes.bin'), datei);
+
+    const ausgabe = leseAbfrage(lauf(haus));
+    expect(ausgabe.vollstaendig).toBe(true);
+    expect(ausgabe.fehlerCode).toBeNull();
+    const [name, bytes, vorschau] = ausgabe.werte.datei[0].split('\t');
+    expect(Buffer.from(name, 'base64').toString('utf8')).toBe('nullbytes.bin');
+    expect(Number(bytes)).toBe(datei.length);
+    expect(Buffer.from(vorschau, 'base64')).toEqual(prefix);
+    expect(vorschau.length).toBe(4 * Math.ceil(AKTENWAND_MAX_VORSCHAU_BYTES / 3));
+    expect(leseAktenwand(ausgabe).dateien[0].vorschau).toBe('[Nichttextuelle Daten]');
+  });
+
+  it('T6-4: 50 maximale Dateinamen samt Base64-Vorschau passen vollständig ins Wrapperlimit', () => {
+    const haus = neuesHaus();
+    const ordner = belegeOrdner(haus);
+    for (let i = 0; i < AKTENWAND_MAX_DATEIEN; i++) {
+      const name = `${String(i).padStart(2, '0')}${'x'.repeat(253)}`;
+      writeFileSync(join(ordner, name), Buffer.alloc(AKTENWAND_MAX_VORSCHAU_BYTES, 0xff));
+    }
+
+    const roh = lauf(haus);
+    expect(Buffer.byteLength(roh, 'utf8')).toBeLessThan(ABFRAGE_MAX_BYTES);
+    const ausgabe = leseAbfrage(roh);
+    expect(ausgabe.vollstaendig).toBe(true);
+    expect(ausgabe.fehlerCode).toBeNull();
+    expect(ausgabe.werte.datei).toHaveLength(AKTENWAND_MAX_DATEIEN);
+    for (const zeile of ausgabe.werte.datei) {
+      const [name, , vorschau] = zeile.split('\t');
+      expect(Buffer.from(name, 'base64')).toHaveLength(255);
+      expect(Buffer.from(vorschau, 'base64')).toHaveLength(AKTENWAND_MAX_VORSCHAU_BYTES);
+    }
+    expect(leseAktenwand(ausgabe).hinweis).toBeNull();
+  });
+
   it('T6-5: ungültige Felder und doppelte Namen werden sichtbar und robust behandelt', () => {
     const name = b64('notiz.txt');
     const vorschau = b64('text');
@@ -198,12 +238,12 @@ describe('Aktenwand: Skript und Parser (T6)', () => {
   });
 
   it('T6-5: unvollständige Abfrage und Fehlerstatus werden nicht als vollständig ausgegeben', () => {
-    expect(
-      leseAktenwand({ werte: {}, vollstaendig: false, fehlerCode: null }).hinweis
-    ).toMatch(/unvollständig/i);
-    expect(
-      leseAktenwand({ werte: {}, vollstaendig: true, fehlerCode: 2 }).hinweis
-    ).toMatch(/nicht vollständig gelesen/i);
+    expect(leseAktenwand({ werte: {}, vollstaendig: false, fehlerCode: null }).hinweis).toMatch(
+      /unvollständig/i
+    );
+    expect(leseAktenwand({ werte: {}, vollstaendig: true, fehlerCode: 2 }).hinweis).toMatch(
+      /nicht vollständig gelesen/i
+    );
   });
 
   it('T6-6: nur <id>.txt wird einer Regel zugeordnet, Regeln ohne Datei bleiben unsichtbar', () => {

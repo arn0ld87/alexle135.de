@@ -37,14 +37,7 @@ while [ "$i" -lt "\${#dateien[@]}" ] && [ "$i" -lt ${AKTENWAND_MAX_DATEIEN} ]; d
   [ -n "$groesse" ] || exit 1
   if [ ! -f "$pfad" ] || [ -L "$pfad" ]; then i=$((i + 1)); continue; fi
   name=\${pfad##*/}
-  IFS= read -r -N ${AKTENWAND_MAX_VORSCHAU_BYTES} auszug_roh < "$pfad" || true
-  erwartet=$groesse
-  [ "$erwartet" -gt ${AKTENWAND_MAX_VORSCHAU_BYTES} ] && erwartet=${AKTENWAND_MAX_VORSCHAU_BYTES}
-  if [ "\${#auszug_roh}" -eq "$erwartet" ]; then
-    auszug=$(printf '%s' "$auszug_roh" | base64 -w0) || exit 1
-  else
-    auszug=$(head -c ${AKTENWAND_MAX_VORSCHAU_BYTES} -- "$pfad" | base64 -w0) || exit 1
-  fi
+  auszug=$(head -c ${AKTENWAND_MAX_VORSCHAU_BYTES} -- "$pfad" | base64 -w0) || exit 1
   name64=$(printf '%s' "$name" | base64 -w0) || exit 1
   printf 'datei\\t%s\\t%s\\t%s\\n' "$name64" "$groesse" "$auszug"
   i=$((i + 1))
@@ -100,8 +93,7 @@ function leseGroesse(wert: string): number | null {
 function bereinigeVorschau(bytes: Uint8Array): string {
   const text = UTF8.decode(bytes.slice(0, AKTENWAND_MAX_VORSCHAU_BYTES));
   const ersatz = (text.match(/\uFFFD/g) ?? []).length;
-  const binaer =
-    STEUERZEICHEN.test(text) || (text.length > 0 && ersatz / text.length > 0.1);
+  const binaer = STEUERZEICHEN.test(text) || (text.length > 0 && ersatz / text.length > 0.1);
   const sauber = text.replace(STEUERZEICHEN_GLOBAL, '');
   if (!binaer) return sauber;
   return sauber ? `[Nichttextuelle Daten] ${sauber}` : '[Nichttextuelle Daten]';
@@ -176,10 +168,7 @@ export function leseAktenwand(ausgabe: AbfrageAusgabe): AktenInhalt {
 }
 
 /** Eine Belegregel gehört genau zur Datei <id>.txt direkt unter ~/belege/. */
-export function regelFuerDatei(
-  name: string,
-  regeln: readonly BelegRegel[]
-): BelegRegel | null {
+export function regelFuerDatei(name: string, regeln: readonly BelegRegel[]): BelegRegel | null {
   for (const regel of regeln) {
     if (name === `${regel.id}.txt`) return regel;
   }

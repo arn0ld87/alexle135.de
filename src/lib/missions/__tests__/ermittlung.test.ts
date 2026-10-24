@@ -137,10 +137,10 @@ const zustand = (teil: Partial<ErmittlungsZustand> = {}): ErmittlungsZustand => 
   ...teil,
 });
 
-const ausgabe = (
-  ergebnisse: Record<string, boolean>,
-  vollstaendig = true
-): PruefungsAusgabe => ({ ergebnisse, vollstaendig });
+const ausgabe = (ergebnisse: Record<string, boolean>, vollstaendig = true): PruefungsAusgabe => ({
+  ergebnisse,
+  vollstaendig,
+});
 
 const lauf = (
   e: Ermittlung,
@@ -150,6 +150,31 @@ const lauf = (
   wendePruefungAn(e, z, ausgabe(ergebnisse));
 
 describe('pruefeDaten', () => {
+  it('prüft und erhöht den Fortschritt einer zulässigen constructor-Spur', () => {
+    const e = mit({
+      spuren: fixture.spuren.map((spur) =>
+        spur.id === 'rechte' ? { ...spur, id: 'constructor' } : spur
+      ),
+      vorwurf: {
+        ...fixture.vorwurf,
+        belege: fixture.vorwurf.belege.map((beleg) =>
+          beleg.spurId === 'rechte' ? { ...beleg, spurId: 'constructor' } : beleg
+        ),
+      },
+    });
+    const z = startZustand();
+    const spur = e.spuren[0];
+    const id = pruefIdSchritt('constructor', 's1');
+
+    expect(pruefeDaten(e)).toEqual([]);
+    expect(aktuellerSchritt(spur, z)?.id).toBe('s1');
+    expect(offenePruefungen(e, z).map((pruefung) => pruefung.id)).toContain(id);
+
+    const ergebnis = lauf(e, z, { [id]: true });
+    expect(ergebnis.zustand.erledigt['constructor']).toBe(1);
+    expect(aktuellerSchritt(spur, ergebnis.zustand)?.id).toBe('s2');
+  });
+
   it('akzeptiert das Fixture', () => {
     expect(pruefeDaten(fixture)).toEqual([]);
   });
@@ -186,7 +211,10 @@ describe('pruefeDaten', () => {
       mit({
         vorwurf: {
           ...fixture.vorwurf,
-          belege: [{ ...fixture.vorwurf.belege[0], id: 'B-Sudoers' }, ...fixture.vorwurf.belege.slice(1)],
+          belege: [
+            { ...fixture.vorwurf.belege[0], id: 'B-Sudoers' },
+            ...fixture.vorwurf.belege.slice(1),
+          ],
         },
       })
     );
@@ -214,9 +242,7 @@ describe('pruefeDaten', () => {
   });
 
   it('meldet eine ungültige Ansicht-ID', () => {
-    const fehler = pruefeDaten(
-      mit({ ansichten: [{ ...fixture.ansichten[0], id: 'Raum' }] })
-    );
+    const fehler = pruefeDaten(mit({ ansichten: [{ ...fixture.ansichten[0], id: 'Raum' }] }));
     expect(fehler).toHaveLength(1);
     expect(fehler[0]).toContain('Ungültige ID: Ansicht "Raum"');
   });
@@ -284,9 +310,7 @@ describe('pruefeDaten', () => {
   });
 
   it('meldet eine doppelte Ansicht-ID', () => {
-    const fehler = pruefeDaten(
-      mit({ ansichten: [fixture.ansichten[0], fixture.ansichten[0]] })
-    );
+    const fehler = pruefeDaten(mit({ ansichten: [fixture.ansichten[0], fixture.ansichten[0]] }));
     expect(fehler).toHaveLength(1);
     expect(fehler[0]).toContain('Doppelte ID: Ansicht "raum"');
   });
@@ -322,7 +346,10 @@ describe('pruefeDaten', () => {
       mit({
         vorwurf: {
           ...fixture.vorwurf,
-          belege: [{ ...fixture.vorwurf.belege[3], stuetzt: 'gibtsnicht' }, ...fixture.vorwurf.belege.slice(0, 3)],
+          belege: [
+            { ...fixture.vorwurf.belege[3], stuetzt: 'gibtsnicht' },
+            ...fixture.vorwurf.belege.slice(0, 3),
+          ],
         },
       })
     );
@@ -335,7 +362,10 @@ describe('pruefeDaten', () => {
       mit({
         vorwurf: {
           ...fixture.vorwurf,
-          belege: [{ ...fixture.vorwurf.belege[0], spurId: 'gibtsnicht' }, ...fixture.vorwurf.belege.slice(1)],
+          belege: [
+            { ...fixture.vorwurf.belege[0], spurId: 'gibtsnicht' },
+            ...fixture.vorwurf.belege.slice(1),
+          ],
         },
       })
     );
@@ -362,21 +392,23 @@ describe('pruefeDaten', () => {
       })
     );
     expect(fehler).toHaveLength(1);
-    expect(fehler[0]).toContain('jedeSpur verlangt einen Beleg gegen den Täter aus jeder Spur; es fehlt: log');
+    expect(fehler[0]).toContain(
+      'jedeSpur verlangt einen Beleg gegen den Täter aus jeder Spur; es fehlt: log'
+    );
   });
 
   it('meldet weniger als drei Verdächtige', () => {
     const fehler = pruefeDaten(
-      mit({ vorwurf: { ...fixture.vorwurf, verdaechtige: fixture.vorwurf.verdaechtige.slice(0, 2) } })
+      mit({
+        vorwurf: { ...fixture.vorwurf, verdaechtige: fixture.vorwurf.verdaechtige.slice(0, 2) },
+      })
     );
     expect(fehler).toHaveLength(1);
     expect(fehler[0]).toContain('Mindestens 3 Verdächtige nötig');
   });
 
   it('meldet eine leere Abfrage', () => {
-    const fehler = pruefeDaten(
-      mit({ ansichten: [{ ...fixture.ansichten[0], abfrage: '   ' }] })
-    );
+    const fehler = pruefeDaten(mit({ ansichten: [{ ...fixture.ansichten[0], abfrage: '   ' }] }));
     expect(fehler).toHaveLength(1);
     expect(fehler[0]).toContain('Ansicht "raum": leere abfrage');
   });
@@ -396,7 +428,10 @@ describe('pruefeDaten', () => {
       mit({
         vorwurf: {
           ...fixture.vorwurf,
-          belege: [{ ...fixture.vorwurf.belege[0], verify: '' }, ...fixture.vorwurf.belege.slice(1)],
+          belege: [
+            { ...fixture.vorwurf.belege[0], verify: '' },
+            ...fixture.vorwurf.belege.slice(1),
+          ],
         },
       })
     );
@@ -444,7 +479,9 @@ describe('Zustand und offene Prüfungen', () => {
   });
 
   it('lässt den Einsatzrahmen nach einem Verstoß aus', () => {
-    const ids = offenePruefungen(fixture, zustand({ einsatzrahmenVerletzt: true })).map((p) => p.id);
+    const ids = offenePruefungen(fixture, zustand({ einsatzrahmenVerletzt: true })).map(
+      (p) => p.id
+    );
     expect(ids).not.toContain(PRUEF_ID_VERSTOSS);
     expect(ids).toHaveLength(6);
   });
@@ -521,9 +558,7 @@ describe('wendePruefungAn', () => {
   it('rückt eine Spur um genau einen Schritt vor', () => {
     const r = lauf(fixture, startZustand(), { [pruefIdSchritt('rechte', 's1')]: true });
     expect(r.zustand.erledigt.rechte).toBe(1);
-    expect(r.ereignisse).toEqual([
-      { type: 'schritt-erledigt', spurId: 'rechte', schrittId: 's1' },
-    ]);
+    expect(r.ereignisse).toEqual([{ type: 'schritt-erledigt', spurId: 'rechte', schrittId: 's1' }]);
   });
 
   it('prüft höchstens einen Schritt je Spur und Aufruf', () => {
@@ -570,7 +605,11 @@ describe('wendePruefungAn', () => {
 
   it('ändert bei unvollständiger Ausgabe nichts', () => {
     const z = startZustand();
-    const r = wendePruefungAn(fixture, z, ausgabe({ [pruefIdSchritt('rechte', 's1')]: true }, false));
+    const r = wendePruefungAn(
+      fixture,
+      z,
+      ausgabe({ [pruefIdSchritt('rechte', 's1')]: true }, false)
+    );
     expect(r.zustand).toBe(z);
     expect(r.ereignisse).toEqual([{ type: 'pruefung-unvollstaendig' }]);
   });
@@ -694,9 +733,9 @@ describe('pruefeVorwurf', () => {
   it('prüft die Mindestzahl auch ohne jedeSpur', () => {
     const e = mit({ vorwurf: { ...fixture.vorwurf, jedeSpur: false } });
     const z = zustand({ belegeErkannt: ['b-log', 'b-nadia', 'b-stat', 'b-sudoers'] });
-    expect(
-      pruefeVorwurf(e, z, { verdaechtigeId: 'timo', belegIds: ['b-sudoers'] }).ergebnis
-    ).toBe('zu-wenig-belege');
+    expect(pruefeVorwurf(e, z, { verdaechtigeId: 'timo', belegIds: ['b-sudoers'] }).ergebnis).toBe(
+      'zu-wenig-belege'
+    );
     expect(
       pruefeVorwurf(e, z, { verdaechtigeId: 'timo', belegIds: ['b-sudoers', 'b-stat'] }).ergebnis
     ).toBe('richtig');
@@ -909,27 +948,26 @@ describe('mitZustandsDefaults', () => {
     expect(
       mitZustandsDefaults({ ...ohneRest(), sperreRestPruefungen: Number.NaN }).sperreRestPruefungen
     ).toBe(0);
-    expect(mitZustandsDefaults({ ...ohneRest(), sperreRestPruefungen: -1 }).sperreRestPruefungen).toBe(
-      0
-    );
-    expect(mitZustandsDefaults({ ...ohneRest(), sperreRestPruefungen: 2 }).sperreRestPruefungen).toBe(
-      2
-    );
+    expect(
+      mitZustandsDefaults({ ...ohneRest(), sperreRestPruefungen: -1 }).sperreRestPruefungen
+    ).toBe(0);
+    expect(
+      mitZustandsDefaults({ ...ohneRest(), sperreRestPruefungen: 2 }).sperreRestPruefungen
+    ).toBe(2);
   });
 
   it('setzt bei aktiver Sperre fehlende oder ungültige Zähler auf SPERRE_PRUEFUNGEN', () => {
     const gesperrt = ohneRest({ sperreBis: 2, belegeErkannt: ['b-sudoers'] });
     expect(mitZustandsDefaults(gesperrt).sperreRestPruefungen).toBe(SPERRE_PRUEFUNGEN);
     expect(
-      mitZustandsDefaults({ ...gesperrt, sperreRestPruefungen: Number.NaN })
-        .sperreRestPruefungen
+      mitZustandsDefaults({ ...gesperrt, sperreRestPruefungen: Number.NaN }).sperreRestPruefungen
     ).toBe(SPERRE_PRUEFUNGEN);
     expect(
       mitZustandsDefaults({ ...gesperrt, sperreRestPruefungen: -1 }).sperreRestPruefungen
     ).toBe(SPERRE_PRUEFUNGEN);
-    expect(
-      mitZustandsDefaults({ ...gesperrt, sperreRestPruefungen: 2 }).sperreRestPruefungen
-    ).toBe(2);
+    expect(mitZustandsDefaults({ ...gesperrt, sperreRestPruefungen: 2 }).sperreRestPruefungen).toBe(
+      2
+    );
   });
 
   it('lässt die Eingabe unverändert und gibt eine Kopie zurück', () => {

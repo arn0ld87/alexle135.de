@@ -90,9 +90,24 @@ printf 'konto\\t%s\\n' "$(id -un)"`,
   ],
   vorwurf: {
     verdaechtige: [
-      { id: 'person-a', name: 'Person A', rolle: 'Rolle A', portraet: '/missions/figur/alexander-zeigt.webp' },
-      { id: 'person-b', name: 'Person B', rolle: 'Rolle B', portraet: '/missions/figur/alexander-zeigt.webp' },
-      { id: 'person-c', name: 'Person C', rolle: 'Rolle C', portraet: '/missions/figur/alexander-zeigt.webp' },
+      {
+        id: 'person-a',
+        name: 'Person A',
+        rolle: 'Rolle A',
+        portraet: '/missions/figur/alexander-zeigt.webp',
+      },
+      {
+        id: 'person-b',
+        name: 'Person B',
+        rolle: 'Rolle B',
+        portraet: '/missions/figur/alexander-zeigt.webp',
+      },
+      {
+        id: 'person-c',
+        name: 'Person C',
+        rolle: 'Rolle C',
+        portraet: '/missions/figur/alexander-zeigt.webp',
+      },
     ],
     taeterId: 'person-a',
     belege: [

@@ -53,14 +53,54 @@ export default function RaumAnsicht({ ansicht, ausgabe }: RaumAnsichtProps) {
           focusable="false"
           className="block h-auto w-full border border-[color:var(--panel-rule)] bg-[color:var(--panel)] text-[color:var(--panel-edge)]"
         >
-          <rect x="24" y="24" width="952" height="552" fill="none" stroke="currentColor" strokeWidth="4" />
+          <rect
+            x="24"
+            y="24"
+            width="952"
+            height="552"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
           <line x1="360" y1="24" x2="360" y2="360" stroke="currentColor" strokeWidth="3" />
           <line x1="360" y1="360" x2="976" y2="360" stroke="currentColor" strokeWidth="3" />
           <line x1="24" y1="460" x2="360" y2="460" stroke="currentColor" strokeWidth="3" />
-          <rect x="72" y="72" width="220" height="96" fill="none" stroke="currentColor" strokeWidth="2" />
-          <rect x="72" y="212" width="120" height="60" fill="none" stroke="currentColor" strokeWidth="2" />
-          <rect x="430" y="72" width="300" height="70" fill="none" stroke="currentColor" strokeWidth="2" />
-          <rect x="430" y="410" width="180" height="110" fill="none" stroke="currentColor" strokeWidth="2" />
+          <rect
+            x="72"
+            y="72"
+            width="220"
+            height="96"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          />
+          <rect
+            x="72"
+            y="212"
+            width="120"
+            height="60"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          />
+          <rect
+            x="430"
+            y="72"
+            width="300"
+            height="70"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          />
+          <rect
+            x="430"
+            y="410"
+            width="180"
+            height="110"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          />
           <circle cx="860" cy="470" r="58" fill="none" stroke="currentColor" strokeWidth="2" />
           <line x1="72" y1="520" x2="280" y2="520" stroke="currentColor" strokeWidth="2" />
         </svg>

@@ -61,9 +61,7 @@ describe('Aktenwand', () => {
     ).toBeInTheDocument();
 
     expect(screen.getAllByRole('checkbox')).toHaveLength(1);
-    expect(
-      screen.getByRole('checkbox', { name: /Eine Notiz.*notiz\.txt/ })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: /Eine Notiz.*notiz\.txt/ })).toBeInTheDocument();
     expect(screen.queryByRole('checkbox', { name: /Protokoll/ })).toBeNull();
     expect(screen.queryByRole('checkbox', { name: /fremd/ })).toBeNull();
   });
@@ -77,11 +75,7 @@ describe('Aktenwand', () => {
     await user.click(box);
     expect(onAuswahlAendern).toHaveBeenLastCalledWith(['notiz']);
 
-    rerender(
-      <Aktenwand
-        {...standard({ onAuswahlAendern, ausgewaehlteBelegIds: ['notiz'] })}
-      />
-    );
+    rerender(<Aktenwand {...standard({ onAuswahlAendern, ausgewaehlteBelegIds: ['notiz'] })} />);
     expect(screen.getByRole('checkbox', { name: /Eine Notiz.*notiz\.txt/ })).toBeChecked();
     await user.click(screen.getByRole('checkbox', { name: /Eine Notiz.*notiz\.txt/ }));
     expect(onAuswahlAendern).toHaveBeenLastCalledWith([]);
@@ -164,9 +158,7 @@ describe('Aktenwand', () => {
   });
 
   it('T6-1/T6-4: leerer Zustand, Begrenzung und Parserhinweis sind sichtbar', () => {
-    const { rerender } = render(
-      <Aktenwand {...standard({ inhalt: inhalt([]) })} />
-    );
+    const { rerender } = render(<Aktenwand {...standard({ inhalt: inhalt([]) })} />);
     expect(screen.getByText('Noch keine Dateien in ~/belege/.')).toBeInTheDocument();
 
     rerender(

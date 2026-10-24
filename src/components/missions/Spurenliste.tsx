@@ -31,7 +31,9 @@ export default function Spurenliste({
       {spuren.length > 0 && (
         <ol className="mt-2 space-y-1">
           {spuren.map((spur) => {
-            const erledigt = zustand.erledigt[spur.id] ?? 0;
+            const erledigt = Object.hasOwn(zustand.erledigt, spur.id)
+              ? (zustand.erledigt[spur.id] ?? 0)
+              : 0;
             const gesamt = spur.schritte.length;
             const abgeschlossen = aktuellerSchritt(spur, zustand) === null;
             const text = fortschrittText(erledigt, gesamt);

@@ -81,7 +81,11 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
     (neu: ErmittlungsZustand, ereignisse: readonly ErmittlungsEreignis[]) => {
       zustand.current = neu;
       setAnzeigeZustand(neu);
-      setPruefHinweis(null);
+      setPruefHinweis(
+        ereignisse.some((ereignis) => ereignis.type === 'pruefung-unvollstaendig')
+          ? PRUEF_HINWEIS
+          : null
+      );
       for (const ereignis of ereignisse) {
         if (ereignis.type === 'schritt-erledigt') {
           const spur = ermittlung.spuren.find((eintrag) => eintrag.id === ereignis.spurId);
