@@ -1,0 +1,361 @@
+// Ermittlungslogik für Staffel 2 (Konzept §4, ADR 0004 und 0007): rein, ohne DOM, Uhr, Zufall
+// oder VM. Sie sagt, welche Prüfungen nach einem Prompt fällig sind, baut daraus ein Bündel
+// für einen RUN, liest dessen Ausgabe und führt Zustand und Vorwurf weiter.
+import type {
+  Ermittlung,
+  ErmittlungsEreignis,
+  ErmittlungsZustand,
+  Pruefung,
+  PruefungsAusgabe,
+  Spur,
+  VorwurfErgebnis,
+} from './ermittlungTypes';
+import type { VorfallSchritt } from './staffelTypes';
+
+export const ID_MUSTER = /^[a-z0-9-]{1,40}$/;
+export const pruefIdSchritt = (spurId: string, schrittId: string) => `s.${spurId}.${schrittId}`;
+export const pruefIdBeleg = (belegId: string) => `b.${belegId}`;
+export const PRUEF_ID_VERSTOSS = 'e.verstoss';
+/** So viele vollständige Prüfungen nach einer Sperre, bis sie spätestens endet. */
+export const SPERRE_PRUEFUNGEN = 3;
+
+/** Prüft die Daten einer Episode und sammelt deutsche Fehlermeldungen; leer heißt gültig. */
+export function pruefeDaten(e: Ermittlung): string[] {
+  const fehler: string[] = [];
+  const { spuren, ansichten, vorwurf, einsatzrahmen } = e;
+
+  // 1. IDs, die nicht auf ID_MUSTER passen.
+  for (const spur of spuren) {
+    if (!ID_MUSTER.test(spur.id)) fehler.push(`Ungültige ID: Spur "${spur.id}"`);
+    for (const schritt of spur.schritte) {
+      if (!ID_MUSTER.test(schritt.id)) fehler.push(`Ungültige ID: Schritt "${schritt.id}"`);
+    }
+  }
+  for (const beleg of vorwurf.belege) {
+    if (!ID_MUSTER.test(beleg.id)) fehler.push(`Ungültige ID: Belegregel "${beleg.id}"`);
+  }
+  for (const person of vorwurf.verdaechtige) {
+    if (!ID_MUSTER.test(person.id)) fehler.push(`Ungültige ID: Verdächtige "${person.id}"`);
+  }
+  for (const ansicht of ansichten) {
+    if (!ID_MUSTER.test(ansicht.id)) fehler.push(`Ungültige ID: Ansicht "${ansicht.id}"`);
+    for (const hotspot of ansicht.hotspots ?? []) {
+      if (!ID_MUSTER.test(hotspot.id)) fehler.push(`Ungültige ID: Hotspot "${hotspot.id}"`);
+    }
+  }
+
+  // 2. Doppelte IDs innerhalb einer Gruppe.
+  const spurIds = new Set<string>();
+  for (const spur of spuren) {
+    if (spurIds.has(spur.id)) fehler.push(`Doppelte ID: Spur "${spur.id}"`);
+    spurIds.add(spur.id);
+    const schrittIds = new Set<string>();
+    for (const schritt of spur.schritte) {
+      if (schrittIds.has(schritt.id)) fehler.push(`Doppelte ID: Schritt "${schritt.id}"`);
+      schrittIds.add(schritt.id);
+    }
+  }
+  const belegIds = new Set<string>();
+  for (const beleg of vorwurf.belege) {
+    if (belegIds.has(beleg.id)) fehler.push(`Doppelte ID: Belegregel "${beleg.id}"`);
+    belegIds.add(beleg.id);
+  }
+  const personIds = new Set<string>();
+  for (const person of vorwurf.verdaechtige) {
+    if (personIds.has(person.id)) fehler.push(`Doppelte ID: Verdächtige "${person.id}"`);
+    personIds.add(person.id);
+  }
+  const ansichtIds = new Set<string>();
+  for (const ansicht of ansichten) {
+    if (ansichtIds.has(ansicht.id)) fehler.push(`Doppelte ID: Ansicht "${ansicht.id}"`);
+    ansichtIds.add(ansicht.id);
+    const hotspotIds = new Set<string>();
+    for (const hotspot of ansicht.hotspots ?? []) {
+      if (hotspotIds.has(hotspot.id)) fehler.push(`Doppelte ID: Hotspot "${hotspot.id}"`);
+      hotspotIds.add(hotspot.id);
+    }
+  }
+
+  // 3. Täter-ID.
+  if (!personIds.has(vorwurf.taeterId)) {
+    fehler.push(`Unbekannte Täter-ID: "${vorwurf.taeterId}"`);
+  }
+
+  // 4. Belege verweisen auf bekannte Verdächtige und Spuren.
+  for (const beleg of vorwurf.belege) {
+    if (!personIds.has(beleg.stuetzt)) {
+      fehler.push(`Beleg "${beleg.id}" stützt keine Verdächtige: "${beleg.stuetzt}"`);
+    }
+    if (!spurIds.has(beleg.spurId)) {
+      fehler.push(`Beleg "${beleg.id}" gehört zu keiner Spur: "${beleg.spurId}"`);
+    }
+  }
+
+  // 5. mindestBelege passt zur Zahl der Belege gegen den Täter.
+  const gegenTaeter = vorwurf.belege.filter((b) => b.stuetzt === vorwurf.taeterId);
+  if (vorwurf.mindestBelege < 1 || vorwurf.mindestBelege > gegenTaeter.length) {
+    fehler.push(`mindestBelege muss zwischen 1 und ${gegenTaeter.length} liegen`);
+  }
+
+  // 6. jedeSpur verlangt einen Beleg gegen den Täter aus jeder Spur.
+  if (vorwurf.jedeSpur) {
+    const spurenMitBeleg = new Set(gegenTaeter.map((b) => b.spurId));
+    const fehlend = spuren.filter((s) => !spurenMitBeleg.has(s.id)).map((s) => s.id);
+    if (fehlend.length) {
+      fehler.push(
+        `jedeSpur verlangt einen Beleg gegen den Täter aus jeder Spur; es fehlt: ${fehlend.join(', ')}`
+      );
+    }
+  }
+
+  // 7. Mindestens drei Verdächtige (KONZEPT §2).
+  if (vorwurf.verdaechtige.length < 3) {
+    fehler.push('Mindestens 3 Verdächtige nötig');
+  }
+
+  // 8. Keine leeren Skripte.
+  for (const ansicht of ansichten) {
+    if (!ansicht.abfrage.trim()) fehler.push(`Ansicht "${ansicht.id}": leere abfrage`);
+  }
+  for (const spur of spuren) {
+    for (const schritt of spur.schritte) {
+      if (!schritt.verify.trim()) fehler.push(`Schritt "${spur.id}/${schritt.id}": leeres verify`);
+    }
+  }
+  for (const beleg of vorwurf.belege) {
+    if (!beleg.verify.trim()) fehler.push(`Belegregel "${beleg.id}": leeres verify`);
+  }
+  if (!einsatzrahmen.verstoss.trim()) fehler.push('Einsatzrahmen: leeres verstoss');
+
+  return fehler;
+}
+
+export function startZustand(): ErmittlungsZustand {
+  return {
+    erledigt: {},
+    belegeErkannt: [],
+    einsatzrahmenVerletzt: false,
+    sperreBis: null,
+    sperreRestPruefungen: 0,
+    vorwurfVersuche: 0,
+    geloest: false,
+  };
+}
+
+/** Der Schritt an der Stelle `erledigt[spur.id]`; alle erledigt ergibt null. */
+export function aktuellerSchritt(spur: Spur, z: ErmittlungsZustand): VorfallSchritt | null {
+  const index = Object.hasOwn(z.erledigt, spur.id) ? (z.erledigt[spur.id] ?? 0) : 0;
+  return spur.schritte[index] ?? null;
+}
+
+/** Prüfungen für den nächsten Prompt: je Spur der aktuelle Schritt, alle Belege, der Rahmen. */
+export function offenePruefungen(e: Ermittlung, z: ErmittlungsZustand): Pruefung[] {
+  if (z.geloest) return [];
+  const pruefungen: Pruefung[] = [];
+  for (const spur of e.spuren) {
+    const schritt = aktuellerSchritt(spur, z);
+    if (schritt) {
+      pruefungen.push({ id: pruefIdSchritt(spur.id, schritt.id), skript: schritt.verify });
+    }
+  }
+  for (const beleg of e.vorwurf.belege) {
+    pruefungen.push({ id: pruefIdBeleg(beleg.id), skript: beleg.verify });
+  }
+  if (!z.einsatzrahmenVerletzt) {
+    pruefungen.push({ id: PRUEF_ID_VERSTOSS, skript: e.einsatzrahmen.verstoss });
+  }
+  return pruefungen;
+}
+
+/** Ein Bash-Skript für einen einzigen RUN; jede Prüfung liefert eine Zeile mit ihrem Exit-Code. */
+export function buendelSkript(pruefungen: readonly Pruefung[]): string {
+  const teile: string[] = [];
+  for (const p of pruefungen) {
+    if (!/^[a-z0-9.-]{1,90}$/.test(p.id)) throw new Error(`Ungültige Prüf-ID: ${p.id}`);
+    teile.push(
+      `(\n${p.skript}\n) >/dev/null 2>&1 </dev/null\nprintf 'pruefung\\t%s\\t%s\\n' '${p.id}' "$?"`
+    );
+  }
+  teile.push(`printf 'ende\\t%s\\n' '${pruefungen.length}'`);
+  return `${teile.join('\n')}\n`;
+}
+
+/** Liest die Ausgabe eines Bündels; vollständig nur mit passender Schlusszahl. */
+export function leseBuendelAusgabe(text: string): PruefungsAusgabe {
+  const ergebnisse = Object.create(null) as Record<string, boolean>;
+  let gelesen = 0;
+  let schluss: number | null = null;
+  for (const roh of text.split('\n')) {
+    const zeile = roh.endsWith('\r') ? roh.slice(0, -1) : roh;
+    const teile = zeile.split('\t');
+    if (teile.length === 3 && teile[0] === 'pruefung' && /^\d+$/.test(teile[2])) {
+      ergebnisse[teile[1]] = teile[2] === '0';
+      gelesen++;
+    } else if (teile.length === 2 && teile[0] === 'ende' && /^\d+$/.test(teile[1])) {
+      schluss = Number(teile[1]);
+    }
+  }
+  return { ergebnisse, vollstaendig: schluss !== null && schluss === gelesen };
+}
+
+/** Führt eine vollständige Ausgabe in den Zustand; unvollständige Ausgaben ändern nichts. */
+export function wendePruefungAn(
+  e: Ermittlung,
+  z: ErmittlungsZustand,
+  ausgabe: PruefungsAusgabe
+): { zustand: ErmittlungsZustand; ereignisse: ErmittlungsEreignis[] } {
+  if (z.geloest) return { zustand: z, ereignisse: [] };
+  if (!ausgabe.vollstaendig) {
+    return { zustand: z, ereignisse: [{ type: 'pruefung-unvollstaendig' }] };
+  }
+
+  const ereignisse: ErmittlungsEreignis[] = [];
+  const erledigt: Record<string, number> = { ...z.erledigt };
+
+  for (const spur of e.spuren) {
+    const schritt = aktuellerSchritt(spur, z);
+    if (!schritt || ausgabe.ergebnisse[pruefIdSchritt(spur.id, schritt.id)] !== true) continue;
+    const neu = (Object.hasOwn(z.erledigt, spur.id) ? (z.erledigt[spur.id] ?? 0) : 0) + 1;
+    erledigt[spur.id] = neu;
+    ereignisse.push({ type: 'schritt-erledigt', spurId: spur.id, schrittId: schritt.id });
+    if (neu >= spur.schritte.length) ereignisse.push({ type: 'spur-erledigt', spurId: spur.id });
+  }
+
+  const vorher = new Set(z.belegeErkannt);
+  const erkannt: string[] = [];
+  const neuErkannt: string[] = [];
+  const verloren: string[] = [];
+  for (const beleg of e.vorwurf.belege) {
+    const key = pruefIdBeleg(beleg.id);
+    const bisher = vorher.has(beleg.id);
+    const jetzt = Object.hasOwn(ausgabe.ergebnisse, key)
+      ? ausgabe.ergebnisse[key] === true
+      : bisher;
+    if (jetzt) {
+      erkannt.push(beleg.id);
+      if (!bisher) neuErkannt.push(beleg.id);
+    } else if (bisher) {
+      verloren.push(beleg.id);
+    }
+  }
+  for (const belegId of neuErkannt) ereignisse.push({ type: 'beleg-erkannt', belegId });
+  for (const belegId of verloren) ereignisse.push({ type: 'beleg-verloren', belegId });
+  erkannt.sort();
+
+  let sperreBis = z.sperreBis;
+  let sperreRestPruefungen = z.sperreRestPruefungen;
+  if (z.sperreBis !== null) {
+    if (erkannt.length >= z.sperreBis) {
+      sperreBis = null;
+      sperreRestPruefungen = 0;
+      ereignisse.push({ type: 'sperre-aufgehoben' });
+    } else {
+      sperreRestPruefungen = z.sperreRestPruefungen - 1;
+      if (sperreRestPruefungen <= 0) {
+        sperreBis = null;
+        sperreRestPruefungen = 0;
+        ereignisse.push({ type: 'sperre-aufgehoben' });
+      }
+    }
+  }
+
+  let einsatzrahmenVerletzt = z.einsatzrahmenVerletzt;
+  if (!z.einsatzrahmenVerletzt && ausgabe.ergebnisse[PRUEF_ID_VERSTOSS] === true) {
+    einsatzrahmenVerletzt = true;
+    ereignisse.push({ type: 'einsatzrahmen-verletzt' });
+    const naechste = naechsteSperre(e, { ...z, erledigt, belegeErkannt: erkannt, sperreBis });
+    if (naechste === null) {
+      sperreBis = null;
+      sperreRestPruefungen = 0;
+    } else {
+      sperreBis = naechste;
+      sperreRestPruefungen = SPERRE_PRUEFUNGEN;
+    }
+  }
+
+  return {
+    zustand: {
+      erledigt,
+      belegeErkannt: erkannt,
+      einsatzrahmenVerletzt,
+      sperreBis,
+      sperreRestPruefungen,
+      vorwurfVersuche: z.vorwurfVersuche,
+      geloest: z.geloest,
+    },
+    ereignisse,
+  };
+}
+
+/** Sperre einen Beleg hinter den Stand; ohne weiteren Beleg bleibt sie aus (Sackgassen-Regel). */
+export function naechsteSperre(e: Ermittlung, z: ErmittlungsZustand): number | null {
+  const ziel = z.belegeErkannt.length + 1;
+  if (ziel > e.vorwurf.belege.length) return null;
+  return Math.max(ziel, z.sperreBis ?? 0);
+}
+
+export function istGesperrt(z: ErmittlungsZustand): boolean {
+  return z.sperreBis !== null && z.belegeErkannt.length < z.sperreBis;
+}
+
+/** Bewertet einen Vorwurf; die Fälle der Spec-Tabelle in fester Reihenfolge. */
+export function pruefeVorwurf(
+  e: Ermittlung,
+  z: ErmittlungsZustand,
+  vorwurf: { verdaechtigeId: string; belegIds: readonly string[] }
+): { zustand: ErmittlungsZustand; ergebnis: VorwurfErgebnis; antwort: readonly string[] } {
+  const { antworten, taeterId, belege, mindestBelege, jedeSpur } = e.vorwurf;
+
+  if (z.geloest) return { zustand: z, ergebnis: 'bereits-geloest', antwort: [] };
+
+  if (istGesperrt(z)) return { zustand: z, ergebnis: 'gesperrt', antwort: antworten.gesperrt };
+
+  const erkannt = new Set(z.belegeErkannt);
+  if (vorwurf.belegIds.some((id) => !erkannt.has(id))) {
+    return { zustand: z, ergebnis: 'beleg-unbekannt', antwort: [] };
+  }
+
+  if (vorwurf.verdaechtigeId !== taeterId) {
+    const sperre = naechsteSperre(e, z);
+    return {
+      zustand: {
+        ...z,
+        vorwurfVersuche: z.vorwurfVersuche + 1,
+        sperreBis: sperre,
+        sperreRestPruefungen: sperre === null ? 0 : SPERRE_PRUEFUNGEN,
+      },
+      ergebnis: 'falsche-person',
+      antwort: antworten.falschePerson,
+    };
+  }
+
+  const genannt = new Set(vorwurf.belegIds);
+  const gegenTaeter = belege.filter((b) => genannt.has(b.id) && b.stuetzt === taeterId);
+  const spuren = new Set(gegenTaeter.map((b) => b.spurId));
+  const spurenVollstaendig = e.spuren.every((s) => spuren.has(s.id));
+  if (gegenTaeter.length < mindestBelege || (jedeSpur && !spurenVollstaendig)) {
+    const sperre = naechsteSperre(e, z);
+    return {
+      zustand: {
+        ...z,
+        vorwurfVersuche: z.vorwurfVersuche + 1,
+        sperreBis: sperre,
+        sperreRestPruefungen: sperre === null ? 0 : SPERRE_PRUEFUNGEN,
+      },
+      ergebnis: 'zu-wenig-belege',
+      antwort: antworten.zuWenigBelege,
+    };
+  }
+
+  return {
+    zustand: {
+      ...z,
+      vorwurfVersuche: z.vorwurfVersuche + 1,
+      geloest: true,
+      sperreBis: null,
+      sperreRestPruefungen: 0,
+    },
+    ergebnis: 'richtig',
+    antwort: antworten.richtig,
+  };
+}
