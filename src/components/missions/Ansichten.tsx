@@ -108,7 +108,10 @@ export default function Ansichten({ ansichten, bereit, generation, run }: Ansich
               )}
 
               {abfrage.status === 'fehler' && (
-                <p role="alert" className="mt-2 break-words font-mono text-xs text-[color:var(--ink)]">
+                <p
+                  role="alert"
+                  className="mt-2 break-words font-mono text-xs text-[color:var(--ink)]"
+                >
                   Ansicht konnte nicht gelesen werden. Bitte erneut aktualisieren.
                 </p>
               )}

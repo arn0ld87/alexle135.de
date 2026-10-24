@@ -29,9 +29,7 @@ const buero: Ansicht = {
   art: 'raum',
   titel: 'Büro',
   abfrage: "printf 'host\\trw-srv01\\n'",
-  hotspots: [
-    { id: 'host', label: 'Hostname', x: 10, y: 10, w: 200, h: 100, schluessel: 'host' },
-  ],
+  hotspots: [{ id: 'host', label: 'Hostname', x: 10, y: 10, w: 200, h: 100, schluessel: 'host' }],
 };
 
 const lager: Ansicht = {
@@ -39,9 +37,7 @@ const lager: Ansicht = {
   art: 'raum',
   titel: 'Lager',
   abfrage: "printf 'konto\\tazubi\\n'",
-  hotspots: [
-    { id: 'konto', label: 'Konto', x: 10, y: 10, w: 200, h: 100, schluessel: 'konto' },
-  ],
+  hotspots: [{ id: 'konto', label: 'Konto', x: 10, y: 10, w: 200, h: 100, schluessel: 'konto' }],
 };
 
 const ansichten: readonly Ansicht[] = [buero, lager];
@@ -68,10 +64,7 @@ describe('Ansichten', () => {
     await waitFor(() => expect(run).toHaveBeenCalledTimes(1));
     expect(aufrufe[0]?.skript).toBe(abfrageSkript(buero.abfrage));
     expect(aufrufe[0]?.timeoutMs).toBe(20_000);
-    expect(screen.getByRole('button', { name: 'Büro' })).toHaveAttribute(
-      'aria-pressed',
-      'true'
-    );
+    expect(screen.getByRole('button', { name: 'Büro' })).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('startet bei einem reinen Render keine weitere Abfrage', async () => {
@@ -92,10 +85,7 @@ describe('Ansichten', () => {
     await waitFor(() => expect(run).toHaveBeenCalledTimes(1));
 
     await user.click(screen.getByRole('button', { name: 'Lager' }));
-    expect(screen.getByRole('button', { name: 'Lager' })).toHaveAttribute(
-      'aria-pressed',
-      'true'
-    );
+    expect(screen.getByRole('button', { name: 'Lager' })).toHaveAttribute('aria-pressed', 'true');
     expect(aufrufe).toHaveLength(1);
 
     aufrufe[0]?.fertig(wert('host', 'ALT'));
