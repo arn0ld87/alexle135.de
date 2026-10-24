@@ -22,6 +22,10 @@ export interface PruefLaufOptionen {
   leseZustand: () => ErmittlungsZustand;
   /** Wird nur aufgerufen, wenn der Lauf nicht gestoppt wurde. `ereignisse` darf leer sein. */
   schreibeZustand: (zustand: ErmittlungsZustand, ereignisse: ErmittlungsEreignis[]) => void;
+  /**
+   * Nicht synchron `anstossen()` aufrufen: Bleibt der Fehler bestehen, folgt sonst ein Nachlauf
+   * auf den anderen, ohne dass dazwischen der Browser zum Zug kommt.
+   */
   meldeFehler?: (fehler: PruefFehler) => void;
   timeoutMs?: number;
 }
@@ -77,7 +81,7 @@ export function erzeugePruefLauf(optionen: PruefLaufOptionen): PruefLauf {
   // Ein Durchlauf (Schritte 1–6). Kehrt in jedem Fall normal zurück, damit danach immer die
   // Nachlauf-Prüfung kommt, auch nach einem Fehler.
   const durchlauf = async (): Promise<void> => {
-    let pruefungen;
+    let pruefungen: ReturnType<typeof offenePruefungen>;
     try {
       pruefungen = offenePruefungen(ermittlung, leseZustand());
     } catch (error) {
@@ -94,6 +98,8 @@ export function erzeugePruefLauf(optionen: PruefLaufOptionen): PruefLauf {
       return;
     }
 
+    // Ein Rückruf kann selbst stoppe() aufgerufen haben.
+    if (gestoppt) return;
     let ergebnis: AgentResult;
     try {
       ergebnis = await run(skript, timeoutMs);
@@ -112,6 +118,7 @@ export function erzeugePruefLauf(optionen: PruefLaufOptionen): PruefLauf {
       melden({ type: 'intern', meldung: fehlerText(error) });
       return;
     }
+    if (gestoppt) return;
     try {
       schreibeZustand(neu.zustand, neu.ereignisse);
     } catch {

@@ -20,23 +20,20 @@ export function fakeAgentClient(
     const treffer = /^RUN (\S+) (\S+)(?: (\d+))?\n$/.exec(zeile);
     if (!treffer) return;
     const [, id, nutzlast] = treffer;
-    const skript = decodeBase64(nutzlast);
-    // Wirft `antwort` oder lehnt es ab, antwortet der Fake wie der Agent mit ERR, statt eine
-    // unbehandelte Ablehnung zu hinterlassen.
+    // Jeder Fehler im Fake (Dekodieren, `antwort`, Auswerten) wird wie beim Agenten zu ERR, statt
+    // eine unbehandelte Ablehnung zu hinterlassen.
     void Promise.resolve()
-      .then(() => antwort(skript, id))
-      .then(
-        (a) => {
-          if (a.art === 'res') {
-            // Leere Ausgabe schreibt der Agent als `-` (agentProtocol.ts).
-            const nutzlast = a.output === '' ? '-' : encodeBase64(a.output);
-            client.feed(`RES ${id} ${a.exitCode} ${nutzlast}\n`);
-          } else if (a.art === 'err') {
-            client.feed(`ERR ${id} ${a.grund.replace(/[^A-Za-z0-9_-]/g, '-')}\n`);
-          }
-        },
-        () => client.feed(`ERR ${id} fake-fehler\n`)
-      );
+      .then(() => antwort(decodeBase64(nutzlast), id))
+      .then((a) => {
+        if (a.art === 'res') {
+          // Leere Ausgabe schreibt der Agent als `-` (agentProtocol.ts).
+          const daten = a.output === '' ? '-' : encodeBase64(a.output);
+          client.feed(`RES ${id} ${a.exitCode} ${daten}\n`);
+        } else if (a.art === 'err') {
+          client.feed(`ERR ${id} ${a.grund.replace(/[^A-Za-z0-9_-]/g, '-')}\n`);
+        }
+      })
+      .catch(() => client.feed(`ERR ${id} fake-fehler\n`));
   });
   return { client, gesendet };
 }

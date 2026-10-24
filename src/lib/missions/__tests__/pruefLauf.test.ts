@@ -358,6 +358,7 @@ describe('pruefLauf', () => {
     await vi.waitFor(() => expect(runZeilen(a.gesendet)).toHaveLength(2));
     await a.lauf.leerlauf();
     expect(a.lauf.laeuft()).toBe(false);
+    expect(runZeilen(a.gesendet)).toHaveLength(2);
   });
 
   it('holt einen Nachlauf nach einem Skriptfehler nach', async () => {
@@ -412,6 +413,7 @@ describe('pruefLauf', () => {
     try {
       const a = aufbau(() => ({ art: 'still' }), { timeoutMs: 1000 });
       a.lauf.anstossen();
+      expect(runZeilen(a.gesendet)).toHaveLength(1);
       a.lauf.stoppe();
       await vi.advanceTimersByTimeAsync(1000);
       expect(a.fehler).toEqual([]);
