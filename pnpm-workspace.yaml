@@ -24,6 +24,8 @@ overrides:
   'devalue@<=5.9.2': '5.9.4'
   'source-map-js@>=1.0.0 <1.2.2': '1.2.2'
   'joi@>=17.0.0 <17.13.8': '17.13.8'
+  'zod@>=4.0.0 <4.6.6': '4.6.7'
+  'undici@>=8.0.0 <8.12.2': '8.12.3'
 
 onlyBuiltDependencies:
   - esbuild
