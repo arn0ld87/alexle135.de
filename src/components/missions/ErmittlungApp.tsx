@@ -81,6 +81,11 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
     (neu: ErmittlungsZustand, ereignisse: readonly ErmittlungsEreignis[]) => {
       zustand.current = neu;
       setAnzeigeZustand(neu);
+      const erkannt = new Set(neu.belegeErkannt);
+      setAusgewaehlteBelegIds((ids) => {
+        const bereinigt = ids.filter((id) => erkannt.has(id));
+        return bereinigt.length === ids.length ? ids : bereinigt;
+      });
       setPruefHinweis(
         ereignisse.some((ereignis) => ereignis.type === 'pruefung-unvollstaendig')
           ? PRUEF_HINWEIS
@@ -323,10 +328,19 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
   const waehleBelege = useCallback(
     (ids: readonly string[]) => {
       const bekannt = new Set(ermittlung.vorwurf.belege.map((beleg) => beleg.id));
-      setAusgewaehlteBelegIds([...new Set(ids)].filter((id) => bekannt.has(id)));
+      const erkannt = new Set(zustand.current.belegeErkannt);
+      setAusgewaehlteBelegIds([...new Set(ids)].filter((id) => bekannt.has(id) && erkannt.has(id)));
     },
     [ermittlung.vorwurf.belege]
   );
+
+  const bereinigeBelegSnapshot = useCallback((sichtbareIds: readonly string[]) => {
+    const sichtbar = new Set(sichtbareIds);
+    setAusgewaehlteBelegIds((ids) => {
+      const bereinigt = ids.filter((id) => sichtbar.has(id));
+      return bereinigt.length === ids.length ? ids : bereinigt;
+    });
+  }, []);
 
   useEffect(
     () => () => {
@@ -339,8 +353,13 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
     []
   );
 
+  useEffect(() => {
+    // Nach den Kind-Effekten: Der native Dialog muss Außenfokus wieder erlauben.
+    if (anzeigeZustand.geloest) document.getElementById('ermittlung-abschluss')?.focus();
+  }, [anzeigeZustand.geloest]);
+
   return (
-    <div className="grid gap-4 lg:min-h-[32rem] lg:flex-1">
+    <div className="grid gap-4 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
       <Pager nachrichten={pager} />
       {rahmenFehler && <p role="alert">{rahmenFehler}</p>}
       {pruefHinweis && <p role="status">{pruefHinweis}</p>}
@@ -388,6 +407,7 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
             zustand={anzeigeZustand}
             ausgewaehlteBelegIds={ausgewaehlteBelegIds}
             onBelegAuswahlAendern={waehleBelege}
+            onBelegSnapshot={bereinigeBelegSnapshot}
             onVorwurfOeffnen={anzeigeZustand.geloest ? undefined : oeffneVorwurf}
             vorwurfOeffnenAktiv={
               setupGeneration > 0 &&

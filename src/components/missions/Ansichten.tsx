@@ -7,7 +7,7 @@ import {
   type AbfrageZustand,
   type ErmittlungsAbfragen,
 } from '../../lib/missions/ermittlungsAbfragen';
-import { leseAktenwand } from '../../lib/missions/aktenwand';
+import { leseAktenwand, ordneBelege } from '../../lib/missions/aktenwand';
 import type { Ansicht, BelegRegel, ErmittlungsZustand } from '../../lib/missions/ermittlungTypes';
 import Aktenwand from './Aktenwand';
 import RaumAnsicht from './RaumAnsicht';
@@ -21,6 +21,7 @@ interface AnsichtenProps {
   zustand: ErmittlungsZustand;
   ausgewaehlteBelegIds: readonly string[];
   onBelegAuswahlAendern: (ids: readonly string[]) => void;
+  onBelegSnapshot?: (ids: readonly string[]) => void;
   onVorwurfOeffnen?: () => void;
   vorwurfOeffnenAktiv?: boolean;
   vorwurfHinweis?: string | null;
@@ -37,6 +38,7 @@ export default function Ansichten({
   zustand,
   ausgewaehlteBelegIds,
   onBelegAuswahlAendern,
+  onBelegSnapshot,
   onVorwurfOeffnen,
   vorwurfOeffnenAktiv,
   vorwurfHinweis,
@@ -75,6 +77,16 @@ export default function Ansichten({
     }
     return leseAktenwand(abfrage.ausgabe);
   }, [aktive, abfrage.status, abfrage.ausgabe]);
+
+  useEffect(() => {
+    // Dateiabwesenheit gilt nur für diesen neuen, vollständigen Snapshot.
+    // Spätere Prompt-Erkennung und Dialogauswahl dürfen ihn nicht erneut anwenden.
+    if (!aktenInhalt || aktenInhalt.hinweis || aktenInhalt.weitereDateien) return;
+    const ids = ordneBelege(aktenInhalt, belegRegeln, []).flatMap((eintrag) =>
+      eintrag.regel ? [eintrag.regel.id] : []
+    );
+    onBelegSnapshot?.(ids);
+  }, [aktenInhalt, belegRegeln, onBelegSnapshot]);
 
   return (
     <section aria-labelledby="staffel2-ansichten" className="mt-6 min-w-0">

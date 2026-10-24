@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import type { AktenInhalt } from '../../../lib/missions/aktenwand';
@@ -81,7 +81,7 @@ describe('Aktenwand', () => {
     expect(onAuswahlAendern).toHaveBeenLastCalledWith([]);
   });
 
-  it('T6-7: bereinigt Auswahl bei verlorener Erkennung und fehlender Datei', async () => {
+  it('wendet einen alten Dateisnapshot nicht auf die gemeinsame Auswahl an', () => {
     const onAuswahlAendern = vi.fn();
     const { rerender } = render(
       <Aktenwand
@@ -91,7 +91,7 @@ describe('Aktenwand', () => {
         })}
       />
     );
-    await waitFor(() => expect(onAuswahlAendern).toHaveBeenLastCalledWith(['notiz']));
+    expect(onAuswahlAendern).not.toHaveBeenCalled();
 
     onAuswahlAendern.mockClear();
     rerender(
@@ -103,7 +103,7 @@ describe('Aktenwand', () => {
         })}
       />
     );
-    await waitFor(() => expect(onAuswahlAendern).toHaveBeenLastCalledWith([]));
+    expect(onAuswahlAendern).not.toHaveBeenCalled();
 
     onAuswahlAendern.mockClear();
     rerender(
@@ -115,7 +115,7 @@ describe('Aktenwand', () => {
         })}
       />
     );
-    await waitFor(() => expect(onAuswahlAendern).toHaveBeenLastCalledWith([]));
+    expect(onAuswahlAendern).not.toHaveBeenCalled();
   });
 
   it('T6-8: Dateiname und Vorschau bleiben Text, Aufklappen bleibt lokal', async () => {
