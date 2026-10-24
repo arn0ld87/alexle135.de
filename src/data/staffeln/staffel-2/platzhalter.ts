@@ -15,7 +15,12 @@ export const platzhalter: Ermittlung = {
       id: 'raum',
       art: 'raum',
       titel: 'Büro',
-      abfrage: "printf 'host\\t%s\\n' rw-srv01",
+      abfrage: `printf 'host\\t%s\\n' "$(hostname)"
+printf 'konto\\t%s\\n' "$(id -un)"`,
+      hotspots: [
+        { id: 'host', label: 'Hostname', x: 80, y: 80, w: 240, h: 100, schluessel: 'host' },
+        { id: 'konto', label: 'Konto', x: 520, y: 320, w: 240, h: 100, schluessel: 'konto' },
+      ],
     },
   ],
   spuren: [

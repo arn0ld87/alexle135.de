@@ -10,9 +10,11 @@ import type {
 import type { MissionCommand, MissionReply } from '../../lib/missions/missionTypes';
 import { anhaengen, satz } from '../../lib/missions/pager';
 import type { PagerArt, PagerNachricht, Pose } from '../../lib/missions/pager';
+import { erzeugeErmittlungsRun } from '../../lib/missions/ermittlungsRun';
 import { erzeugePruefLauf } from '../../lib/missions/pruefLauf';
 import type { PruefLauf } from '../../lib/missions/pruefLauf';
 import { STAFFEL2_HOSTNAME, rahmenSetupSkript } from '../../lib/missions/staffel2Rahmen';
+import Ansichten from './Ansichten';
 import Pager from './Pager';
 import Spurenliste from './Spurenliste';
 
@@ -41,11 +43,14 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
   const [rahmenFehler, setRahmenFehler] = useState<string | null>(null);
   const [bereich, setBereich] = useState<Bereich>('terminal');
   const [anzeigeZustand, setAnzeigeZustand] = useState<ErmittlungsZustand>(startZustand);
+  const [setupGeneration, setSetupGeneration] = useState(0);
   const [aktiveSpurId, setAktiveSpurId] = useState<string | null>(
     () => ersteSpur(ermittlung.spuren, startZustand())?.id ?? null
   );
+  const [runAdapter] = useState(() => erzeugeErmittlungsRun());
   const zustand = useRef<ErmittlungsZustand>(startZustand());
   const lauf = useRef<PruefLauf | null>(null);
+  const clientRef = useRef<AgentClient | null>(null);
   const promptAusstehend = useRef(false);
   const setupVersion = useRef(0);
 
@@ -79,15 +84,27 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
   const onReady = useCallback(
     async (client: AgentClient) => {
       const version = ++setupVersion.current;
+      clientRef.current = client;
+      setSetupGeneration(0);
       lauf.current?.stoppe();
       lauf.current = null;
       promptAusstehend.current = false;
       setRahmenFehler(null);
       try {
-        const rahmen = await client.run(rahmenSetupSkript(hostname), 60_000);
+        const rahmen = await runAdapter.run(
+          client,
+          rahmenSetupSkript(hostname),
+          60_000,
+          () => version === setupVersion.current
+        );
         if (version !== setupVersion.current) return;
         if (rahmen.exitCode !== 0) throw new Error(RAHMEN_FEHLER);
-        const episode = await client.run(ermittlung.setup, 60_000);
+        const episode = await runAdapter.run(
+          client,
+          ermittlung.setup,
+          60_000,
+          () => version === setupVersion.current
+        );
         if (version !== setupVersion.current) return;
         if (episode.exitCode !== 0) throw new Error(RAHMEN_FEHLER);
       } catch {
@@ -99,11 +116,13 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
       setAnzeigeZustand(start);
       const startSpur = ersteSpur(ermittlung.spuren, start);
       setAktiveSpurId(startSpur?.id ?? null);
+      setSetupGeneration(version);
       setPager([]);
       setPruefHinweis(null);
       lauf.current = erzeugePruefLauf({
         ermittlung,
-        run: (skript, timeoutMs) => client.run(skript, timeoutMs),
+        run: (skript, timeoutMs) =>
+          runAdapter.run(client, skript, timeoutMs, () => version === setupVersion.current),
         leseZustand: () => zustand.current,
         schreibeZustand,
         meldeFehler: () => setPruefHinweis(PRUEF_HINWEIS),
@@ -115,7 +134,23 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
       const erster = startSpur ? aktuellerSchritt(startSpur, start) : null;
       if (erster) melde('auftrag', [...erster.pager]);
     },
-    [ermittlung, hostname, melde, schreibeZustand]
+    [ermittlung, hostname, melde, runAdapter, schreibeZustand]
+  );
+
+  const abfrageRun = useCallback(
+    (skript: string, timeoutMs: number) => {
+      const client = clientRef.current;
+      if (!client || setupGeneration === 0) {
+        return Promise.reject(new Error('Ansichten sind noch nicht bereit.'));
+      }
+      return runAdapter.run(
+        client,
+        skript,
+        timeoutMs,
+        () => setupGeneration === setupVersion.current
+      );
+    },
+    [runAdapter, setupGeneration]
   );
 
   const onMissionCommand = useCallback(async (command: MissionCommand): Promise<MissionReply> => {
@@ -141,6 +176,7 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
       setupVersion.current++;
       lauf.current?.stoppe();
       lauf.current = null;
+      clientRef.current = null;
       promptAusstehend.current = false;
     },
     []
@@ -185,14 +221,12 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
             aktiveSpurId={aktiveSpurId}
             onSpurWaehlen={waehleSpur}
           />
-          <section aria-labelledby="staffel2-ansichten" className="mt-6">
-            <h2 id="staffel2-ansichten" className="ds-display-s text-[color:var(--ink)]">
-              Ansichten
-            </h2>
-            <p className="mt-2 font-mono text-xs text-[color:var(--muted)]">
-              Die Ansichten folgen.
-            </p>
-          </section>
+          <Ansichten
+            ansichten={ermittlung.ansichten}
+            bereit={setupGeneration > 0}
+            generation={setupGeneration}
+            run={abfrageRun}
+          />
         </div>
         <div className={`min-w-0 ${bereich === 'terminal' ? 'lg:block' : 'hidden lg:block'}`}>
           <Suspense
