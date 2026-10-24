@@ -107,6 +107,14 @@ test('T10-3: falsche Person bei erkannten Belegen', async ({ page }) => {
   await expect(belegBox(page, 'log-zeile')).toBeVisible({ timeout: 30_000 });
   await gesperrtSichtbar(page);
   expect(await anzahlImPager(page, PAGER.falschePerson)).toBe(1);
+
+  // Die Sperre ist begrenzt: Der dritte erkannte Beleg hebt sie auf (Sperre lag bei zwei erkannten
+  // Belegen auf dem dritten), danach ist der Vorwurf wieder möglich.
+  await befehl(page, RECHTE_METADATEN, { pager: PAGER.metaErledigt });
+  await expect(pager(page)).toContainText(PAGER.wieder, { timeout: 30_000 });
+  await flaeche(page, 'Ansicht');
+  await expect(vorwurfKnopf(page)).toBeEnabled({ timeout: 30_000 });
+  await expect(page.getByRole('region', { name: 'Ansichten' })).not.toContainText(PAGER.gesperrt);
 });
 
 test('T10-4: richtige Person, aber nur Belege aus der Rechte-Spur', async ({ page }) => {
@@ -186,11 +194,14 @@ test('T10-9: leere, fehlerhafte und geänderte Dateien in der Aktenwand', async 
   await expect(page.getByText('Ansicht konnte nicht gelesen werden')).toHaveCount(0);
   await shot(page, 't10-9-leer');
 
-  // Lesezeitstempel des Belegordners vor allen Grafik-Aktionen.
-  const mtime = async (): Promise<string> => {
-    await befehl(page, 'echo "ZZ""MT$(stat -c %Y ~/belege)ZZ"');
+  // Fingerabdruck aller Dateien im Belegordner: Inhalt (sha256) sowie Name, mtime und Größe.
+  const stand = async (): Promise<string> => {
+    await befehl(
+      page,
+      'echo "ZZ""SUM$( (find ~/belege -type f -exec sha256sum {} + ; find ~/belege -exec stat -c \'%n %Y %s\' {} +) | sort | sha256sum | cut -c1-16)ZZ"'
+    );
     const text = (await rows(page).textContent()) ?? '';
-    const treffer = [...text.matchAll(/ZZMT(\d+)ZZ/g)];
+    const treffer = [...text.matchAll(/ZZSUM([0-9a-f]{16})ZZ/g)];
     expect(treffer.length).toBeGreaterThan(0);
     return treffer[treffer.length - 1][1];
   };
@@ -199,7 +210,7 @@ test('T10-9: leere, fehlerhafte und geänderte Dateien in der Aktenwand', async 
   await befehl(page, ': > ~/belege/leer.txt');
   await befehl(page, 'echo falsch > ~/belege/log-zeile.txt');
   await befehl(page, 'ln -s /etc/passwd ~/belege/rechte-zeile.txt');
-  const vorher = await mtime();
+  const vorher = await stand();
   await oeffneAnsicht(page, 'Aktenwand');
   await aktualisiere(page);
   await expect(page.getByText('leer.txt', { exact: true })).toBeVisible({ timeout: 30_000 });
@@ -213,7 +224,7 @@ test('T10-9: leere, fehlerhafte und geänderte Dateien in der Aktenwand', async 
   for (let i = 0; i < 3; i++) await aktualisiere(page);
   await zeigeRaum(page);
   await oeffneAnsicht(page, 'Aktenwand');
-  expect(await mtime()).toBe(vorher);
+  expect(await stand()).toBe(vorher);
 
   // Datei ändern: richtiger Inhalt wird beim nächsten Prompt erkannt, nie vorher als Geisterbeleg.
   await befehl(page, 'rm ~/belege/log-zeile.txt ~/belege/rechte-zeile.txt ~/belege/leer.txt');
@@ -226,6 +237,28 @@ test('T10-9: leere, fehlerhafte und geänderte Dateien in der Aktenwand', async 
   await expect(page.getByText('leer.txt', { exact: true })).toHaveCount(0);
   await expect(page.getByText(BELEG_DATEI['rechte-zeile'], { exact: true })).toHaveCount(0);
   await expect(page.getByRole('checkbox')).toHaveCount(1);
+});
+
+test('T10-9b: echter Lesefehler der Aktenwand ist kein leerer Ordner', async ({ page }) => {
+  await startEpisode(page);
+  await befehl(page, 'echo x > ~/belege/probe.txt');
+  await befehl(page, 'chmod 000 ~/belege');
+  await oeffneAnsicht(page, 'Aktenwand');
+  await aktualisiere(page);
+  // Fehler oder Teilhinweis der Oberfläche, nie die Leer-Meldung.
+  await expect(
+    page.getByText(/Ansicht konnte nicht gelesen werden|nicht vollständig gelesen/)
+  ).toBeVisible({ timeout: 45_000 });
+  await expect(page.getByText('Noch keine Dateien in ~/belege/.')).toHaveCount(0);
+  await shot(page, 't10-9b-lesefehler');
+
+  // Wieder lesbar: Die Datei erscheint, der Fehler verschwindet.
+  await befehl(page, 'chmod 755 ~/belege');
+  await aktualisiere(page);
+  await expect(page.getByText('probe.txt', { exact: true })).toBeVisible({ timeout: 45_000 });
+  await expect(
+    page.getByText(/Ansicht konnte nicht gelesen werden|nicht vollständig gelesen/)
+  ).toHaveCount(0);
 });
 
 async function zeigeRaum(page: import('@playwright/test').Page): Promise<void> {

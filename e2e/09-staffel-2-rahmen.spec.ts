@@ -90,7 +90,13 @@ test('T10-8b: Erholung durch drei vollständige Prüfungen', async ({ page }) =>
     await expect(vorwurfKnopf(page)).toBeDisabled({ timeout: 30_000 });
   }
 
-  for (let i = 0; i < 3; i++) await befehl(page, 'true');
+  // Nach der 1. und 2. vollständigen Prüfung bleibt die Sperre, erst die 3. gibt frei.
+  for (let i = 1; i <= 2; i++) {
+    await befehl(page, 'true');
+    await expect(vorwurfKnopf(page)).toBeDisabled();
+    await expect(page.getByRole('region', { name: 'Ansichten' })).toContainText(PAGER.gesperrt);
+  }
+  await befehl(page, 'true');
   await expect(vorwurfKnopf(page)).toBeEnabled({ timeout: 45_000 });
   await expect(page.getByRole('checkbox')).toHaveCount(0);
   await expect(page.getByRole('region', { name: 'Ansichten' })).not.toContainText(PAGER.gesperrt);
