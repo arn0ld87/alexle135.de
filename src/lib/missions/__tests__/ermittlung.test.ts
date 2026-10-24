@@ -508,6 +508,22 @@ describe('buendelSkript', () => {
     });
   });
 
+  it('führt ein identisches Skript für mehrere IDs nur einmal aus', () => {
+    const skript = buendelSkript([
+      { id: 'schritt', skript: 'echo MARKER >&2; exit 0' },
+      { id: 'andere', skript: 'false' },
+      { id: 'beleg', skript: 'echo MARKER >&2; exit 0' },
+    ]);
+    expect(skript.split('MARKER')).toHaveLength(2);
+    const ausgeben = execFileSync('bash', ['-c', skript], { encoding: 'utf8' });
+    expect(ausgeben.split('\n').filter((z) => z.startsWith('pruefung'))).toEqual([
+      'pruefung\tschritt\t0',
+      'pruefung\tandere\t1',
+      'pruefung\tbeleg\t0',
+    ]);
+    expect(leseBuendelAusgabe(ausgeben).vollstaendig).toBe(true);
+  });
+
   it('wirft bei einer ID, die das Quoting brechen würde', () => {
     expect(() => buendelSkript([{ id: 'a b', skript: 'true' }])).toThrow(/Ungültige Prüf-ID/);
     expect(() => buendelSkript([{ id: "a'", skript: 'true' }])).toThrow(/Ungültige Prüf-ID/);

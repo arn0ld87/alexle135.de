@@ -179,14 +179,28 @@ export function offenePruefungen(e: Ermittlung, z: ErmittlungsZustand): Pruefung
   return pruefungen;
 }
 
-/** Ein Bash-Skript für einen einzigen RUN; jede Prüfung liefert eine Zeile mit ihrem Exit-Code. */
+/**
+ * Ein Bash-Skript für einen einzigen RUN; jede Prüfung liefert eine Zeile mit ihrem Exit-Code.
+ * Ein identisches Skript steht nur einmal im Bündel und läuft einmal; alle zugehörigen IDs
+ * erhalten dessen Ergebnis. Die Reihenfolge der Zeilen bleibt die der Prüfungen.
+ */
 export function buendelSkript(pruefungen: readonly Pruefung[]): string {
+  const anzahl = new Map<string, number>();
+  for (const p of pruefungen) anzahl.set(p.skript, (anzahl.get(p.skript) ?? 0) + 1);
+  const ergebnisVar = new Map<string, string>();
   const teile: string[] = [];
   for (const p of pruefungen) {
     if (!/^[a-z0-9.-]{1,90}$/.test(p.id)) throw new Error(`Ungültige Prüf-ID: ${p.id}`);
-    teile.push(
-      `(\n${p.skript}\n) >/dev/null 2>&1 </dev/null\nprintf 'pruefung\\t%s\\t%s\\n' '${p.id}' "$?"`
-    );
+    let ergebnis = '"$?"';
+    let lauf = `(\n${p.skript}\n) >/dev/null 2>&1 </dev/null\n`;
+    if ((anzahl.get(p.skript) ?? 0) > 1) {
+      const bekannt = ergebnisVar.get(p.skript);
+      const name = bekannt ?? `r${ergebnisVar.size}`;
+      ergebnisVar.set(p.skript, name);
+      ergebnis = `"$${name}"`;
+      lauf = bekannt === undefined ? `${lauf}${name}=$?\n` : '';
+    }
+    teile.push(`${lauf}printf 'pruefung\\t%s\\t%s\\n' '${p.id}' ${ergebnis}`);
   }
   teile.push(`printf 'ende\\t%s\\n' '${pruefungen.length}'`);
   return `${teile.join('\n')}\n`;
