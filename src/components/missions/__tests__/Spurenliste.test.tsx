@@ -38,6 +38,21 @@ const mitFortschritt = (erledigt: Record<string, number>): ErmittlungsZustand =>
 });
 
 describe('Spurenliste', () => {
+  it('zeigt geerbte Fortschrittswerte einer constructor-Spur nicht an', () => {
+    render(
+      <Spurenliste
+        spuren={[{ ...spuren[0], id: 'constructor' }]}
+        zustand={startZustand()}
+        aktiveSpurId="constructor"
+        onSpurWaehlen={() => {}}
+      />
+    );
+    expect(
+      screen.getByRole('button', { name: 'Ankommen, 0 von 2 Schritten erledigt' })
+    ).toBeInTheDocument();
+    expect(screen.getByText('Lege eine Notiz an')).toBeInTheDocument();
+  });
+
   it('T4-1: zeigt beide Spuren mit Fortschritt und den ersten Auftrag der Auswahl', () => {
     render(
       <Spurenliste
@@ -170,12 +185,19 @@ describe('Spurenliste', () => {
     expect(
       screen.getByRole('button', { name: 'Protokoll, 0 von 2 Schritten erledigt' })
     ).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('button', { name: 'Protokoll, 0 von 2 Schritten erledigt' })).toHaveFocus();
+    expect(
+      screen.getByRole('button', { name: 'Protokoll, 0 von 2 Schritten erledigt' })
+    ).toHaveFocus();
   });
 
   it('T4-6: bleibt bei leerer oder unbekannter Auswahl robust und rendert Text nur als Text', () => {
     const { container, rerender } = render(
-      <Spurenliste spuren={[]} zustand={startZustand()} aktiveSpurId={null} onSpurWaehlen={() => {}} />
+      <Spurenliste
+        spuren={[]}
+        zustand={startZustand()}
+        aktiveSpurId={null}
+        onSpurWaehlen={() => {}}
+      />
     );
     expect(screen.getByText('Keine Spuren vorhanden.')).toBeInTheDocument();
     expect(screen.queryByRole('list')).not.toBeInTheDocument();
