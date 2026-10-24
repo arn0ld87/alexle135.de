@@ -1,10 +1,20 @@
 import { expect, test } from '@playwright/test';
 
-// Ticket 4: freie Spurenreihenfolge und Fortschritt ausschließlich aus der echten VM.
+// Ticket 4/9: freie Spurenreihenfolge und Fortschritt ausschließlich aus der echten VM,
+// jetzt an den Belegen von Episode 1.
 // Ohne MISSION_VM laufen nur die übrigen E2E-Tests; eine übersprungene Probe ist kein Nachweis.
 test.skip(!process.env.MISSION_VM, 'MISSION_VM ist nicht gesetzt.');
 
 const STAFFEL2 = '/projekte/terminal-missionen/app/staffel-2';
+
+// Geprüfte Lösungswege aus Episode 1; jeder Befehl ist ein eigener Beleg.
+const LOG = 'grep sudoers.d /var/log/rechenwerk-audit.log > ~/belege/log-zeile.txt';
+const RECHTE_REGEL = 'grep -B1 nadia /etc/sudoers.d/rw-fernwartung > ~/belege/rechte-zeile.txt';
+const RECHTE_METADATEN =
+  'ls -l /etc/sudoers.d/rw-fernwartung $(find /usr/local -perm -4000 -type f) > ~/belege/rechte-metadaten.txt';
+const ANFANG = 'Serverraum der Rechenwerk Ostwind GmbH';
+const RECHTE_0 = 'Rechte, 0 von 2 Schritten erledigt';
+const LOG_0 = 'Log, 0 von 1 Schritten erledigt';
 
 async function warteAufPrompt(page: import('@playwright/test').Page, name: string) {
   const rows = page.locator('.xterm-rows').first();
@@ -15,73 +25,58 @@ async function warteAufPrompt(page: import('@playwright/test').Page, name: strin
 const spur = (page: import('@playwright/test').Page, name: string) =>
   page.getByRole('button', { name });
 
-test('Staffel 2: Spur B vor A lösen, je ein Schritt pro Bündel', async ({ page }) => {
+test('Staffel 2: Spur Log vor Spur Rechte lösen, je ein Schritt pro Bündel', async ({ page }) => {
   test.setTimeout(300_000);
   await page.setViewportSize({ width: 1400, height: 1000 });
   await page.goto(STAFFEL2);
   await expect(page.getByTestId('v86-status')).toContainText('echtes Linux', { timeout: 90_000 });
   await warteAufPrompt(page, 'rw-srv01');
   // Erst nach dem Setup steht die Startauswahl fest; vorher würde sie überschrieben.
-  await expect(page.getByTestId('pager')).toContainText('Leg in ~/belege eine Datei notiz.txt', {
-    timeout: 15_000,
-  });
+  await expect(page.getByTestId('pager')).toContainText(ANFANG, { timeout: 15_000 });
 
-  await expect(spur(page, 'Ankommen, 0 von 2 Schritten erledigt')).toBeVisible();
-  await expect(spur(page, 'Protokoll, 0 von 2 Schritten erledigt')).toBeVisible();
+  await expect(spur(page, RECHTE_0)).toBeVisible();
+  await expect(spur(page, LOG_0)).toBeVisible();
 
-  // 1. Protokoll wählen und die erste Zeile anlegen. Die zweite Zeile folgt bewusst als
-  //    eigener Befehl: Der Prompt-Hook kann während eines laufenden Bündels einen Nachlauf
-  //    auslösen; ein einziges Kommando mit beiden Zeilen wäre für die Zwischenanzeige nicht
-  //    zuverlässig beobachtbar. Die Ein-Schritt-Grenze je Bündel sichern T4-7 bis T4-10 ab.
-  await spur(page, 'Protokoll, 0 von 2 Schritten erledigt').click();
-  await expect(page.getByRole('heading', { level: 3, name: 'Protokoll' })).toBeVisible();
+  // 1. Log wählen und den einzigen Schritt dieser Spur lösen. Rechte bleibt offen, obwohl die
+  //    Spur in den Daten zuerst steht: Die Auswahl schaltet nichts frei und prüft keine VM.
+  await spur(page, LOG_0).click();
+  await expect(page.getByRole('heading', { level: 3, name: 'Log', exact: true })).toBeVisible();
   await page.getByTestId('v86-terminal').click();
-  await page.keyboard.type("printf 'x\\n' > ~/belege/protokoll.txt");
+  await page.keyboard.type(LOG);
   await page.keyboard.press('Enter');
-  await expect(page.getByTestId('pager')).toContainText('Erledigt: Lege ein Protokoll an', {
+  await expect(page.getByTestId('pager')).toContainText('Erledigt: Sichere die passende Audit-Zeile', {
     timeout: 15_000,
   });
-  await expect(spur(page, 'Protokoll, 1 von 2 Schritten erledigt')).toBeVisible();
-  await expect(spur(page, 'Ankommen, 0 von 2 Schritten erledigt')).toBeVisible();
-
-  // 2. Der nächste Prompt prüft B2 und schließt B ab, A bleibt unberührt.
-  await page.keyboard.type("printf 'fertig\\n' >> ~/belege/protokoll.txt");
-  await page.keyboard.press('Enter');
-  await expect(page.getByTestId('pager')).toContainText('Erledigt: Ergänze fertig in protokoll.txt', {
-    timeout: 15_000,
-  });
-  await expect(
-    spur(page, 'Protokoll, 2 von 2 Schritten erledigt, abgeschlossen')
-  ).toBeVisible();
-  await expect(spur(page, 'Ankommen, 0 von 2 Schritten erledigt')).toBeVisible();
+  await expect(spur(page, 'Log, 1 von 1 Schritten erledigt, abgeschlossen')).toBeVisible();
+  await expect(spur(page, RECHTE_0)).toBeVisible();
   await expect(page.getByText('Alle Schritte dieser Spur sind erledigt.')).toBeVisible();
 
-  // 3. Erst jetzt A wählen; die Reihenfolge zwischen den Spuren ist frei.
-  await spur(page, 'Ankommen, 0 von 2 Schritten erledigt').click();
+  // 2. Erst jetzt Rechte wählen; die Reihenfolge zwischen den Spuren ist frei. Die beiden Schritte
+  //    folgen als eigene Befehle: Je Bündel gilt nur der aktuelle Schritt einer Spur.
+  await spur(page, RECHTE_0).click();
   await page.getByTestId('v86-terminal').click();
-  await page.keyboard.type("printf 'x\\n' > ~/belege/notiz.txt");
+  await page.keyboard.type(RECHTE_REGEL);
   await page.keyboard.press('Enter');
-  await expect(page.getByTestId('pager')).toContainText('Erledigt: Lege eine Notiz an', {
+  await expect(page.getByTestId('pager')).toContainText('Erledigt: Sichere die unerwartete sudo-Regel', {
     timeout: 15_000,
   });
-  await expect(spur(page, 'Ankommen, 1 von 2 Schritten erledigt')).toBeVisible();
+  await expect(spur(page, 'Rechte, 1 von 2 Schritten erledigt')).toBeVisible();
+  await expect(spur(page, 'Log, 1 von 1 Schritten erledigt, abgeschlossen')).toBeVisible();
 
-  await page.keyboard.type("printf 'fertig\\n' >> ~/belege/notiz.txt");
+  await page.keyboard.type(RECHTE_METADATEN);
   await page.keyboard.press('Enter');
-  await expect(page.getByTestId('pager')).toContainText('Erledigt: Ergänze fertig in notiz.txt', {
+  await expect(page.getByTestId('pager')).toContainText('Erledigt: Sichere Besitzer, Rechte und Datum', {
     timeout: 15_000,
   });
-  await expect(
-    spur(page, 'Ankommen, 2 von 2 Schritten erledigt, abgeschlossen')
-  ).toBeVisible();
+  await expect(spur(page, 'Rechte, 2 von 2 Schritten erledigt, abgeschlossen')).toBeVisible();
 
-  // 4. Beide bleiben auswählbar und zeigen ihr Abschlussdetail.
-  await spur(page, 'Protokoll, 2 von 2 Schritten erledigt, abgeschlossen').click();
+  // 3. Beide bleiben auswählbar und zeigen ihr Abschlussdetail.
+  await spur(page, 'Log, 1 von 1 Schritten erledigt, abgeschlossen').click();
   await expect(page.getByText('Alle Schritte dieser Spur sind erledigt.')).toBeVisible();
-  await spur(page, 'Ankommen, 2 von 2 Schritten erledigt, abgeschlossen').click();
+  await spur(page, 'Rechte, 2 von 2 Schritten erledigt, abgeschlossen').click();
   await expect(page.getByText('Alle Schritte dieser Spur sind erledigt.')).toBeVisible();
 
-  // 5. Browser-Zoom ist nicht zuverlässig automatisierbar; ausdrücklich manuell offen.
+  // 4. Browser-Zoom ist nicht zuverlässig automatisierbar; ausdrücklich manuell offen.
   console.log('T04-ZOOM: 200-%-Zoom auf Desktop ist ein manueller Check und hier nicht automatisiert.');
 });
 
@@ -91,9 +86,7 @@ test('Staffel 2: mobile Flächen behalten Terminalausgabe und Spurenauswahl', as
   await page.goto(STAFFEL2);
   await expect(page.getByTestId('v86-status')).toContainText('echtes Linux', { timeout: 90_000 });
   const rows = await warteAufPrompt(page, 'rw-srv01');
-  await expect(page.getByTestId('pager')).toContainText('Leg in ~/belege eine Datei notiz.txt', {
-    timeout: 15_000,
-  });
+  await expect(page.getByTestId('pager')).toContainText(ANFANG, { timeout: 15_000 });
 
   await page.getByTestId('v86-terminal').click();
   await page.keyboard.type('echo T04-MOBIL');
@@ -103,15 +96,15 @@ test('Staffel 2: mobile Flächen behalten Terminalausgabe und Spurenauswahl', as
   await page.getByRole('button', { name: 'Ansicht', exact: true }).click();
   const liste = page.getByRole('region', { name: 'Spuren' });
   await expect(liste).toBeVisible();
-  await expect(spur(page, 'Ankommen, 0 von 2 Schritten erledigt')).toBeVisible();
-  await expect(spur(page, 'Protokoll, 0 von 2 Schritten erledigt')).toBeVisible();
+  await expect(spur(page, RECHTE_0)).toBeVisible();
+  await expect(spur(page, LOG_0)).toBeVisible();
 
   const keinQuerscrollen = await liste.evaluate(
     (element) => element.scrollWidth <= element.clientWidth + 1
   );
   expect(keinQuerscrollen).toBe(true);
 
-  await spur(page, 'Protokoll, 0 von 2 Schritten erledigt').click();
+  await spur(page, LOG_0).click();
   await page.getByRole('button', { name: 'Terminal', exact: true }).click();
   await expect(page.getByTestId('v86-terminal')).toBeVisible();
   await expect(rows).toContainText('T04-MOBIL');
@@ -119,8 +112,6 @@ test('Staffel 2: mobile Flächen behalten Terminalausgabe und Spurenauswahl', as
   await expect(page.getByTestId('v86-status')).toContainText('echtes Linux');
 
   await page.getByRole('button', { name: 'Ansicht', exact: true }).click();
-  await expect(
-    spur(page, 'Protokoll, 0 von 2 Schritten erledigt')
-  ).toHaveAttribute('aria-pressed', 'true');
-  await expect(spur(page, 'Ankommen, 0 von 2 Schritten erledigt')).toBeVisible();
+  await expect(spur(page, LOG_0)).toHaveAttribute('aria-pressed', 'true');
+  await expect(spur(page, RECHTE_0)).toBeVisible();
 });

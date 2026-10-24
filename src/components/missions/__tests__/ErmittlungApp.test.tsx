@@ -1101,3 +1101,90 @@ describe('ErmittlungApp: Einsatzrahmen (T8)', () => {
     expect(screen.getAllByText(/vorübergehend gesperrt/).length).toBeGreaterThan(0);
   }, 40_000);
 });
+
+describe('ErmittlungApp: Episodenkopf und Hilfe (T9)', () => {
+  const installiereVm = (bestanden: ReadonlySet<string>) => {
+    run.mockImplementation(async (skript: string) =>
+      istBuendel(skript) ? { exitCode: 0, output: buendel(bestanden) } : { exitCode: 0, output: '' }
+    );
+  };
+
+  const werkzeuge = [
+    { befehl: 'grep', erklaerung: 'Sucht Zeilen.', beispiel: 'grep root /etc/passwd' },
+  ];
+
+  const starte = async (props: { werkzeuge?: typeof werkzeuge } = {}) => {
+    render(<ErmittlungApp ermittlung={zweiSpuren} {...props} />);
+    await waitFor(() => expect(run).toHaveBeenCalledTimes(4));
+  };
+
+  it('T9-11: zeigt Nummer und Titel der Episode, aber nie die interne ID', () => {
+    render(<ErmittlungApp ermittlung={zweiSpuren} />);
+    expect(screen.getByRole('heading', { name: /Episode 99.*Test/ })).toBeInTheDocument();
+    expect(document.body.textContent).not.toContain('test-zwei-spuren');
+  });
+
+  it('T9-10: zeigt Hilfe nur auf Abruf und löst weder Agent noch Fortschritt aus', async () => {
+    installiereVm(new Set());
+    await starte({ werkzeuge });
+    const user = userEvent.setup();
+    const aufrufe = run.mock.calls.length;
+
+    expect(screen.queryByText('Richtung')).not.toBeInTheDocument();
+    expect(screen.getByText('Werkzeugkasten').closest('details')).not.toHaveAttribute('open');
+
+    await user.click(screen.getByRole('button', { name: 'Ersten Tipp zeigen' }));
+    await user.click(screen.getByRole('button', { name: 'Nächsten Tipp zeigen' }));
+    await user.click(screen.getByRole('button', { name: 'Lösung zeigen' }));
+    await user.click(screen.getByText('Werkzeugkasten'));
+
+    expect(screen.getByText('Lösung')).toBeInTheDocument();
+    expect(run).toHaveBeenCalledTimes(aufrufe);
+    expect(
+      screen.getByRole('button', { name: 'Ankommen, 0 von 2 Schritten erledigt' })
+    ).toBeInTheDocument();
+    expect(h.sendCommand).toBeDefined();
+  });
+
+  it('T9-10: zeigt die Tipps des Schritts der gewählten Spur und wechselt mit ihr', async () => {
+    installiereVm(new Set());
+    await starte({ werkzeuge });
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Ersten Tipp zeigen' }));
+    expect(screen.getAllByText('Richtung')).toHaveLength(1);
+
+    await user.click(screen.getByRole('button', { name: 'Protokoll, 0 von 2 Schritten erledigt' }));
+    // Eigene Spur, eigener Schritt, eigener Zähler.
+    expect(screen.queryByText('Richtung')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Ersten Tipp zeigen' })).toBeInTheDocument();
+  });
+
+  it('T9-10: setzt die gezeigten Tipps beim erfolgreichen neuen Setup zurück', async () => {
+    installiereVm(new Set());
+    await starte();
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Ersten Tipp zeigen' }));
+    expect(screen.getByText('Richtung')).toBeInTheDocument();
+
+    const neuerRun = vi.fn(async () => ({ exitCode: 0, output: '' }));
+    await act(async () => {
+      await h.ready({ run: neuerRun } as unknown as AgentClient);
+    });
+    await waitFor(() => expect(screen.queryByText('Richtung')).not.toBeInTheDocument());
+    expect(screen.getByRole('button', { name: 'Ersten Tipp zeigen' })).toBeInTheDocument();
+  });
+
+  it('T9-10: lässt Tipps eines gescheiterten Setups stehen', async () => {
+    installiereVm(new Set());
+    await starte();
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Ersten Tipp zeigen' }));
+
+    const kaputt = vi.fn(async () => ({ exitCode: 1, output: '' }));
+    await act(async () => {
+      await h.ready({ run: kaputt } as unknown as AgentClient);
+    });
+    expect(screen.getByRole('alert')).toBeInTheDocument();
+    expect(screen.getByText('Richtung')).toBeInTheDocument();
+  });
+});
