@@ -14,7 +14,12 @@ import { erzeugeErmittlungsRun } from '../../lib/missions/ermittlungsRun';
 import { erzeugePruefLauf } from '../../lib/missions/pruefLauf';
 import type { PruefLauf } from '../../lib/missions/pruefLauf';
 import { STAFFEL2_HOSTNAME, rahmenSetupSkript } from '../../lib/missions/staffel2Rahmen';
-import { erstelleFrischPruef, erstelleVorwurfAblauf, type VorwurfKandidat } from '../../lib/missions/vorwurfAblauf';
+import {
+  erstelleFrischPruef,
+  erstelleVorwurfAblauf,
+  type PruefRueckmeldung,
+  type VorwurfKandidat,
+} from '../../lib/missions/vorwurfAblauf';
 import Ansichten from './Ansichten';
 import ErmittlungsAbschluss from './ErmittlungsAbschluss';
 import Pager from './Pager';
@@ -62,6 +67,11 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
   const clientRef = useRef<AgentClient | null>(null);
   const promptAusstehend = useRef(false);
   const setupVersion = useRef(0);
+  const pruefRueckmeldung = useRef<PruefRueckmeldung>({
+    sequenz: 0,
+    generation: 0,
+    vollstaendig: false,
+  });
 
   const melde = useCallback((art: PagerArt, zeilen: string[], pose?: Pose) => {
     setPager((verlauf) => anhaengen(verlauf, art, zeilen, pose));
@@ -89,6 +99,10 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
   const onReady = useCallback(
     async (client: AgentClient) => {
       const version = ++setupVersion.current;
+      submitGuard.current = false;
+      setPrueftVorwurf(false);
+      setDialogOffen(false);
+      setVorwurfHinweis(null);
       clientRef.current = client;
       setSetupGeneration(0);
       lauf.current?.stoppe();
@@ -130,8 +144,22 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
         run: (skript, timeoutMs) =>
           runAdapter.run(client, skript, timeoutMs, () => version === setupVersion.current),
         leseZustand: () => zustand.current,
-        schreibeZustand,
-        meldeFehler: () => setPruefHinweis(PRUEF_HINWEIS),
+        schreibeZustand: (neu, ereignisse) => {
+          pruefRueckmeldung.current = {
+            sequenz: pruefRueckmeldung.current.sequenz + 1,
+            generation: version,
+            vollstaendig: !ereignisse.some((e) => e.type === 'pruefung-unvollstaendig'),
+          };
+          schreibeZustand(neu, ereignisse);
+        },
+        meldeFehler: () => {
+          pruefRueckmeldung.current = {
+            sequenz: pruefRueckmeldung.current.sequenz + 1,
+            generation: version,
+            vollstaendig: false,
+          };
+          setPruefHinweis(PRUEF_HINWEIS);
+        },
       });
       if (promptAusstehend.current) {
         promptAusstehend.current = false;
@@ -170,22 +198,14 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
   }, []);
 
   const pruefeFrischFn = useCallback(
-    erstelleFrischPruef({
-      ermittlung,
-      run: (skript: string, timeoutMs: number) => {
-        const client = clientRef.current;
-        if (!client || setupGeneration === 0) {
-          return Promise.reject(new Error('Nicht bereit'));
-        }
-        return runAdapter.run(client, skript, timeoutMs, () => setupGeneration === setupVersion.current);
-      },
-      leseZustand: () => zustand.current,
-      schreibeZustand: schreibeZustand,
-      getPruefLauf: () => lauf.current,
-      getGeneration: () => setupGeneration,
-      getSetupVersion: () => setupVersion.current,
-    }),
-    [ermittlung, runAdapter, schreibeZustand, setupGeneration]
+    () =>
+      erstelleFrischPruef({
+        getPruefLauf: () => lauf.current,
+        getGeneration: () => setupGeneration,
+        getSetupVersion: () => setupVersion.current,
+        leseRueckmeldung: () => pruefRueckmeldung.current,
+      })(),
+    [setupGeneration]
   );
 
   const oeffneVorwurf = useCallback(() => {
@@ -196,33 +216,32 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
     }
     if (prueftVorwurf || submitGuard.current) return;
     setVorwurfHinweis(null);
+    const fokus = document.activeElement;
+    if (fokus instanceof HTMLButtonElement) oeufnerRef.current = fokus;
     setDialogOffen(true);
   }, [anzeigeZustand, ermittlung.vorwurf.antworten.gesperrt, prueftVorwurf]);
 
   const abbrechenVorwurf = useCallback(() => {
-    if (prueftVorwurf) return;
     setDialogOffen(false);
-  }, [prueftVorwurf]);
+  }, []);
 
   const absendenVorwurf = useCallback(
     async (kandidat: VorwurfKandidat) => {
       if (submitGuard.current || prueftVorwurf) return;
+      const version = setupVersion.current;
+      const istAktuell = () => version === setupVersion.current;
       submitGuard.current = true;
       setPrueftVorwurf(true);
-      setDialogOffen(false);
       try {
         const res = await erstelleVorwurfAblauf({
           ermittlung,
           leseZustand: () => zustand.current,
-          schreibeZustand: (z, e) => {
-            zustand.current = z;
-            setAnzeigeZustand(z);
-            // Ereignisse für Vorwurf werden nicht separat gemeldet außer Pager
-          },
-          getPruefLauf: () => lauf.current,
+          istAktuell,
           pruefeFrisch: pruefeFrischFn,
           kandidat,
         });
+        if (!istAktuell()) return;
+        setDialogOffen(false);
         if (res.art === 'fehler') {
           melde('auftrag', [satz(res.nachricht)]);
           setVorwurfHinweis(res.nachricht);
@@ -235,14 +254,18 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
         setAnzeigeZustand(neu);
         if (ergebnis === 'gesperrt') {
           melde('auftrag', [...antwort]);
-          setVorwurfHinweis(ermittlung.vorwurf.antworten.gesperrt.join(' '));
+          setVorwurfHinweis(null);
           submitGuard.current = false;
           setPrueftVorwurf(false);
           return;
         }
         if (ergebnis === 'beleg-unbekannt') {
-          melde('auftrag', [satz('Ein ausgewählter Beleg ist nicht mehr gültig. Aktualisiere die Aktenwand.')]);
-          setVorwurfHinweis('Ein ausgewählter Beleg ist nicht mehr gültig. Aktualisiere die Aktenwand.');
+          melde('auftrag', [
+            satz('Ein ausgewählter Beleg ist nicht mehr gültig. Aktualisiere die Aktenwand.'),
+          ]);
+          setVorwurfHinweis(
+            'Ein ausgewählter Beleg ist nicht mehr gültig. Aktualisiere die Aktenwand.'
+          );
           submitGuard.current = false;
           setPrueftVorwurf(false);
           return;
@@ -273,12 +296,15 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
         submitGuard.current = false;
         setPrueftVorwurf(false);
       } catch {
-        melde('auftrag', [satz('Belege konnten gerade nicht geprüft werden. Bitte erneut versuchen.')]);
+        if (!istAktuell()) return;
+        melde('auftrag', [
+          satz('Belege konnten gerade nicht geprüft werden. Bitte erneut versuchen.'),
+        ]);
         submitGuard.current = false;
         setPrueftVorwurf(false);
       }
     },
-    [ermittlung, melde, pruefeFrischFn]
+    [ermittlung, melde, pruefeFrischFn, prueftVorwurf]
   );
 
   // Eine Auswahl ändert nur die sichtbare Spur; Prüfungen bleiben beim bestehenden Bündel.
@@ -358,14 +384,26 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
             zustand={anzeigeZustand}
             ausgewaehlteBelegIds={ausgewaehlteBelegIds}
             onBelegAuswahlAendern={waehleBelege}
-            onVorwurfOeffnen={oeffneVorwurf}
-            vorwurfOeffnenAktiv={setupGeneration > 0 && !anzeigeZustand.geloest && !istGesperrt(anzeigeZustand) && !prueftVorwurf && !submitGuard.current}
-            vorwurfHinweis={vorwurfHinweis}
+            onVorwurfOeffnen={anzeigeZustand.geloest ? undefined : oeffneVorwurf}
+            vorwurfOeffnenAktiv={
+              setupGeneration > 0 &&
+              !anzeigeZustand.geloest &&
+              !istGesperrt(anzeigeZustand) &&
+              !prueftVorwurf &&
+              !submitGuard.current
+            }
+            vorwurfHinweis={
+              istGesperrt(anzeigeZustand)
+                ? ermittlung.vorwurf.antworten.gesperrt.join(' ')
+                : vorwurfHinweis
+            }
           />
         </div>
         <div className={`min-w-0 ${bereich === 'terminal' ? 'lg:block' : 'hidden lg:block'}`}>
           <Suspense
-            fallback={<p className="font-mono text-xs text-[color:var(--muted)]">Terminal lädt …</p>}
+            fallback={
+              <p className="font-mono text-xs text-[color:var(--muted)]">Terminal lädt …</p>
+            }
           >
             <LazyV86Terminal
               className="h-[60dvh] min-h-[20rem] lg:h-full lg:min-h-[12rem]"
@@ -380,6 +418,7 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
         ermittlung={ermittlung}
         zustand={anzeigeZustand}
         ausgewaehlteBelegIds={ausgewaehlteBelegIds}
+        onAuswahlAendern={waehleBelege}
         gesperrt={istGesperrt(anzeigeZustand)}
         gesperrtHinweis={ermittlung.vorwurf.antworten.gesperrt.join(' ')}
         prueft={prueftVorwurf}

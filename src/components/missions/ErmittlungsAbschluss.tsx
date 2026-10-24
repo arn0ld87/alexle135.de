@@ -1,6 +1,7 @@
 // Ticket 7: Abschluss bei richtigem Vorwurf
+import { useEffect, useRef } from 'react';
 import type { Ermittlung } from '../../lib/missions/ermittlungTypes';
-import { figurGanzUrl } from '../../lib/missions/pager';
+import { figurGanzUrl, figurUrl } from '../../lib/missions/pager';
 
 interface ErmittlungsAbschlussProps {
   ermittlung: Ermittlung;
@@ -20,9 +21,19 @@ function TerminalZeilen({ zeilen }: { zeilen: readonly string[] }) {
 
 export default function ErmittlungsAbschluss({ ermittlung }: ErmittlungsAbschlussProps) {
   const pose = ermittlung.szenePose ?? 'zeigt';
+  const bild = pose === 'zeigt' || pose === 'urlaub' ? figurGanzUrl(pose) : figurUrl(pose);
+  const titelRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    titelRef.current?.focus();
+  }, []);
   return (
     <section aria-labelledby="ermittlung-abschluss" className="mt-4">
-      <h2 id="ermittlung-abschluss" className="ds-display-m text-[color:var(--ink)]">
+      <h2
+        ref={titelRef}
+        tabIndex={-1}
+        id="ermittlung-abschluss"
+        className="ds-display-m text-[color:var(--ink)]"
+      >
         Fall gelöst
       </h2>
       <div className="mt-3 grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,18rem)]">
@@ -44,12 +55,7 @@ export default function ErmittlungsAbschluss({ ermittlung }: ErmittlungsAbschlus
           </div>
         </div>
         <div className="hidden md:flex justify-center items-start">
-          <img
-            src={figurGanzUrl(pose)}
-            alt=""
-            className="max-h-[28rem] w-auto"
-            loading="lazy"
-          />
+          <img src={bild} alt="" className="max-h-[28rem] w-auto" loading="lazy" />
         </div>
       </div>
     </section>

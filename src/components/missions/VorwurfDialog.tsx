@@ -1,6 +1,11 @@
 // Ticket 7: Vorwurf-Dialog
 import { useEffect, useId, useRef, useState } from 'react';
-import type { BelegRegel, Ermittlung, ErmittlungsZustand, Verdaechtige } from '../../lib/missions/ermittlungTypes';
+import type {
+  BelegRegel,
+  Ermittlung,
+  ErmittlungsZustand,
+  Verdaechtige,
+} from '../../lib/missions/ermittlungTypes';
 import type { VorwurfKandidat } from '../../lib/missions/vorwurfAblauf';
 
 interface VorwurfDialogProps {
@@ -8,6 +13,7 @@ interface VorwurfDialogProps {
   ermittlung: Ermittlung;
   zustand: ErmittlungsZustand;
   ausgewaehlteBelegIds: readonly string[];
+  onAuswahlAendern: (ids: readonly string[]) => void;
   gesperrt: boolean;
   gesperrtHinweis?: string;
   prueft: boolean;
@@ -16,16 +22,13 @@ interface VorwurfDialogProps {
   oeufnerRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
-function istBekannt(id: string, liste: readonly string[]): boolean {
-  return liste.includes(id);
-}
-
 export default function VorwurfDialog(props: VorwurfDialogProps) {
   const {
     open,
     ermittlung,
     zustand,
     ausgewaehlteBelegIds,
+    onAuswahlAendern,
     gesperrt,
     gesperrtHinweis,
     prueft,
@@ -37,13 +40,12 @@ export default function VorwurfDialog(props: VorwurfDialogProps) {
   const formRef = useRef<HTMLFormElement | null>(null);
   const personRef = useRef<HTMLFieldSetElement | null>(null);
   const [personId, setPersonId] = useState<string>('');
-  const [belegIds, setBelegIds] = useState<readonly string[]>([]);
+  const titelId = useId();
   const [fehler, setFehler] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
       setPersonId('');
-      setBelegIds([...ausgewaehlteBelegIds]);
       setFehler(null);
       const d = dialogRef.current;
       if (d && !d.open) {
@@ -53,10 +55,10 @@ export default function VorwurfDialog(props: VorwurfDialogProps) {
           d.setAttribute('open', '');
         }
       }
-      setTimeout(() => {
-        const first = personRef.current?.querySelector('input[type=radio]') as HTMLInputElement | null;
-        first?.focus();
-      }, 0);
+      const first = personRef.current?.querySelector(
+        'input[type=radio]'
+      ) as HTMLInputElement | null;
+      first?.focus();
     } else {
       const d = dialogRef.current;
       if (d?.open) {
@@ -66,7 +68,7 @@ export default function VorwurfDialog(props: VorwurfDialogProps) {
           d.removeAttribute('open');
         }
       }
-      if (oeufnerRef?.current) {
+      if (oeufnerRef?.current?.isConnected) {
         try {
           oeufnerRef.current.focus();
         } catch {
@@ -74,7 +76,7 @@ export default function VorwurfDialog(props: VorwurfDialogProps) {
         }
       }
     }
-  }, [open, ausgewaehlteBelegIds, oeufnerRef]);
+  }, [open, oeufnerRef]);
 
   const erkennte = new Set(zustand.belegeErkannt);
   const erkennteBelege = ermittlung.vorwurf.belege.filter((b) => erkennte.has(b.id));
@@ -82,10 +84,10 @@ export default function VorwurfDialog(props: VorwurfDialogProps) {
   const bekannteBelege = new Set(ermittlung.vorwurf.belege.map((b) => b.id));
 
   const toggleBeleg = (id: string, an: boolean) => {
-    const set = new Set(belegIds);
+    const set = new Set(ausgewaehlteBelegIds);
     if (an) set.add(id);
     else set.delete(id);
-    setBelegIds([...set]);
+    onAuswahlAendern([...set]);
   };
 
   const absenden = (e: React.FormEvent) => {
@@ -100,10 +102,7 @@ export default function VorwurfDialog(props: VorwurfDialogProps) {
       setFehler('Ungültige Auswahl.');
       return;
     }
-    const clean = [...new Set(belegIds)].filter((id) => bekannteBelege.has(id));
-    if (clean.some((id) => !erkennte.has(id))) {
-      // wird später abgefangen, aber UI verhindert
-    }
+    const clean = [...new Set(ausgewaehlteBelegIds)].filter((id) => bekannteBelege.has(id));
     onAbsenden({ verdaechtigeId: personId, belegIds: clean });
   };
 
@@ -114,7 +113,8 @@ export default function VorwurfDialog(props: VorwurfDialogProps) {
   return (
     <dialog
       ref={dialogRef}
-      aria-labelledby="vorwurf-titel"
+      aria-labelledby={titelId}
+      aria-busy={prueft}
       className="max-w-xl border border-[var(--terminal-border)] bg-[var(--bg)] p-4 text-[color:var(--ink)]"
       onCancel={(e) => {
         e.preventDefault();
@@ -123,18 +123,21 @@ export default function VorwurfDialog(props: VorwurfDialogProps) {
     >
       <form ref={formRef} onSubmit={absenden}>
         <header className="flex items-start justify-between gap-2">
-          <h2 id="vorwurf-titel" className="ds-display-s">Vorwurf erheben</h2>
+          <h2 id={titelId} className="ds-display-s">
+            Vorwurf erheben
+          </h2>
           <button
             type="button"
             onClick={schliessen}
             className="rounded-none border border-[var(--terminal-border)] px-2 py-1 font-mono text-xs uppercase"
-            disabled={prueft}
           >
             Abbrechen
           </button>
         </header>
         <p className="mt-2 font-mono text-xs text-[color:var(--muted)]">
-          Mindestens ein Beleg aus jeder Spur kann erforderlich sein. Die Prüfung erfolgt frisch vor der Bewertung.
+          Mindestens {ermittlung.vorwurf.mindestBelege} Beleg(e)
+          {ermittlung.vorwurf.jedeSpur ? ', mindestens ein Beleg aus jeder Spur' : ''}. Die Prüfung
+          erfolgt frisch vor der Bewertung.
         </p>
         {gesperrt && gesperrtHinweis && (
           <p role="status" className="mt-2 font-mono text-xs text-[color:var(--ink)]">
@@ -157,6 +160,8 @@ export default function VorwurfDialog(props: VorwurfDialogProps) {
                 {v.portraet && (
                   <img
                     src={v.portraet}
+                    width={40}
+                    height={40}
                     alt=""
                     className="h-10 w-10 object-cover"
                     onError={(e) => {
@@ -178,12 +183,13 @@ export default function VorwurfDialog(props: VorwurfDialogProps) {
               <label key={b.id} className="flex items-start gap-2 font-mono text-xs">
                 <input
                   type="checkbox"
-                  checked={belegIds.includes(b.id)}
+                  checked={ausgewaehlteBelegIds.includes(b.id)}
                   onChange={(e) => toggleBeleg(b.id, e.target.checked)}
                   disabled={prueft || gesperrt}
                 />
                 <span className="break-words">
-                  {b.beschreibung} ({b.spurId})
+                  {b.beschreibung} (
+                  {ermittlung.spuren.find((s) => s.id === b.spurId)?.titel ?? b.spurId})
                 </span>
               </label>
             ))}
@@ -200,7 +206,11 @@ export default function VorwurfDialog(props: VorwurfDialogProps) {
           </p>
         )}
         {prueft && (
-          <p role="status" aria-busy="true" className="mt-2 font-mono text-xs text-[color:var(--muted)]">
+          <p
+            role="status"
+            aria-busy="true"
+            className="mt-2 font-mono text-xs text-[color:var(--muted)]"
+          >
             Belege werden geprüft …
           </p>
         )}

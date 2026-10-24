@@ -1,7 +1,6 @@
-// Ticket 7: Frischprüfung vor Bewertung, einmaliger Submit mit Guards.
-import type { AgentClient } from './agentClient';
-import { buendelSkript, leseBuendelAusgabe, offenePruefungen, pruefeVorwurf, wendePruefungAn } from './ermittlung';
-import type { Ermittlung, ErmittlungsEreignis, ErmittlungsZustand, VorwurfErgebnis } from './ermittlungTypes';
+// Ein Vorwurf bewertet ausschließlich einen nach dem Submit frisch geprüften VM-Zustand.
+import { pruefeVorwurf } from './ermittlung';
+import type { Ermittlung, ErmittlungsZustand, VorwurfErgebnis } from './ermittlungTypes';
 import type { PruefLauf } from './pruefLauf';
 
 export interface VorwurfKandidat {
@@ -12,8 +11,7 @@ export interface VorwurfKandidat {
 export interface VorwurfSubmitOptionen {
   ermittlung: Ermittlung;
   leseZustand: () => ErmittlungsZustand;
-  schreibeZustand: (zustand: ErmittlungsZustand, ereignisse: readonly ErmittlungsEreignis[]) => void;
-  getPruefLauf: () => PruefLauf | null;
+  istAktuell: () => boolean;
   pruefeFrisch: () => Promise<boolean>;
   kandidat: VorwurfKandidat;
 }
@@ -27,143 +25,66 @@ export type VorwurfSubmitErgebnis =
       zustand: ErmittlungsZustand;
     };
 
-function kopiereKandidat(k: VorwurfKandidat): VorwurfKandidat {
-  return {
-    verdaechtigeId: k.verdaechtigeId,
-    belegIds: [...new Set(k.belegIds)].filter((id) => typeof id === 'string' && id.length > 0),
-  };
-}
+const FRISCHE_FEHLER = 'Belege konnten gerade nicht geprüft werden. Bitte erneut versuchen.';
 
 export async function erstelleVorwurfAblauf(
   opts: VorwurfSubmitOptionen
 ): Promise<VorwurfSubmitErgebnis> {
-  const kandidat = kopiereKandidat(opts.kandidat);
-  const zustandVor = opts.leseZustand();
-  if (zustandVor.geloest) {
-    const r = pruefeVorwurf(opts.ermittlung, zustandVor, kandidat);
-    return { art: 'bewertung', ergebnis: r.ergebnis, antwort: r.antwort, zustand: r.zustand };
+  const kandidat = {
+    verdaechtigeId: opts.kandidat.verdaechtigeId,
+    belegIds: [...new Set(opts.kandidat.belegIds)],
+  };
+  if (!opts.istAktuell()) return { art: 'fehler', nachricht: FRISCHE_FEHLER };
+  if (!opts.ermittlung.vorwurf.verdaechtige.some((p) => p.id === kandidat.verdaechtigeId)) {
+    return { art: 'fehler', nachricht: 'Bitte wähle eine bekannte Person aus.' };
   }
-  try {
-    const ok = await opts.pruefeFrisch();
-    if (!ok) {
-      return {
-        art: 'fehler',
-        nachricht: 'Belege konnten gerade nicht geprüft werden. Bitte erneut versuchen.',
-      };
+  if (!opts.leseZustand().geloest) {
+    try {
+      if (!(await opts.pruefeFrisch()) || !opts.istAktuell()) {
+        return { art: 'fehler', nachricht: FRISCHE_FEHLER };
+      }
+    } catch {
+      return { art: 'fehler', nachricht: FRISCHE_FEHLER };
     }
-  } catch {
-    return {
-      art: 'fehler',
-      nachricht: 'Belege konnten gerade nicht geprüft werden. Bitte erneut versuchen.',
-    };
   }
-  const zustandAkt = opts.leseZustand();
-  const r = pruefeVorwurf(opts.ermittlung, zustandAkt, kandidat);
+  const r = pruefeVorwurf(opts.ermittlung, opts.leseZustand(), kandidat);
   return { art: 'bewertung', ergebnis: r.ergebnis, antwort: r.antwort, zustand: r.zustand };
 }
 
+export interface PruefRueckmeldung {
+  sequenz: number;
+  generation: number;
+  vollstaendig: boolean;
+}
+
 export interface FrischPruefAbhaengigkeiten {
-  ermittlung: Ermittlung;
-  run: (skript: string, timeoutMs: number) => Promise<{ exitCode: number; text: string; output: string }>;
-  leseZustand: () => ErmittlungsZustand;
-  schreibeZustand: (zustand: ErmittlungsZustand, ereignisse: readonly ErmittlungsEreignis[]) => void;
   getPruefLauf: () => PruefLauf | null;
   getGeneration: () => number;
   getSetupVersion: () => number;
+  leseRueckmeldung: () => PruefRueckmeldung;
 }
 
-function protokolliereRueckmeldung(
-  deps: FrischPruefAbhaengigkeiten,
-  callback: (zustand: ErmittlungsZustand, ereignisse: readonly ErmittlungsEreignis[]) => void
-): () => { ok: boolean } {
-  let vollstaendig = false;
-  let fehlgeschlagen = false;
-  let generiertBei: number | null = null;
-  const orig = deps.schreibeZustand;
-  deps.schreibeZustand = (z, e) => {
-    try {
-      generiertBei = deps.getGeneration();
-      const hatEreignis = Array.isArray(e) && e.length > 0;
-      if (e.some((ev) => ev.type === 'pruefung-unvollstaendig')) {
-        fehlgeschlagen = true;
-      }
-      if (hatEreignis && !fehlerhaft(e)) {
-        vollstaendig = true;
-      }
-    } catch {
-      fehlgeschlagen = true;
-    }
-    callback(z, e);
-    orig(z, e);
-  };
-  return () => {
-    deps.schreibeZustand = orig;
-    return { ok: vollstaendig && !fehlgeschlagen && generiertBei === deps.getGeneration() && generiertBei === deps.getSetupVersion() };
-  };
-}
-
-function fehlerhaft(e: readonly ErmittlungsEreignis[]): boolean {
-  return e.some((ev) => ev.type === 'pruefung-unvollstaendig');
-}
-
-export function erstelleFrischPruef(
-  deps: FrischPruefAbhaengigkeiten
-): () => Promise<boolean> {
+export function erstelleFrischPruef(deps: FrischPruefAbhaengigkeiten): () => Promise<boolean> {
   return async () => {
+    const generation = deps.getGeneration();
     const lauf = deps.getPruefLauf();
-    if (lauf) {
-      try {
-        await lauf.leerlauf();
-      } catch {
-        // ignorieren
-      }
-    }
-    const stateVor = deps.leseZustand();
-    let vollstaendigRueck = false;
-    let fehlgeschlagenRueck = false;
-    const origSchreib = deps.schreibeZustand;
-    deps.schreibeZustand = (z, e) => {
-      try {
-        if (e.some((ev) => ev.type === 'pruefung-unvollstaendig')) fehlgeschlagenRueck = true;
-        if (Array.isArray(e) && e.length > 0 && !e.some((ev) => ev.type === 'pruefung-unvollstaendig')) {
-          vollstaendigRueck = true;
-        }
-      } catch {
-        fehlgeschlagenRueck = true;
-      }
-      origSchreib(z, e);
-    };
+    const aktuell = () =>
+      generation > 0 &&
+      generation === deps.getSetupVersion() &&
+      lauf !== null &&
+      lauf === deps.getPruefLauf();
+    if (!lauf || !aktuell()) return false;
     try {
-      if (lauf) {
-        lauf.anstossen();
-        try {
-          await lauf.leerlauf();
-        } catch {
-          // ignorieren
-        }
-      } else {
-        const pruefungen = offenePruefungen(deps.ermittlung, deps.leseZustand());
-        if (pruefungen.length > 0) {
-          const skript = buendelSkript(pruefungen);
-          const res = await deps.run(skript, 20000);
-          const neu = wendePruefungAn(deps.ermittlung, deps.leseZustand(), leseBuendelAusgabe(res.output));
-          deps.schreibeZustand(neu.zustand, neu.ereignisse);
-        }
-      }
+      await lauf.leerlauf();
+      if (!aktuell()) return false;
+      const vorher = deps.leseRueckmeldung().sequenz;
+      lauf.anstossen();
+      await lauf.leerlauf();
+      if (!aktuell()) return false;
+      const letzte = deps.leseRueckmeldung();
+      return letzte.sequenz > vorher && letzte.generation === generation && letzte.vollstaendig;
     } catch {
-      deps.schreibeZustand = origSchreib;
       return false;
     }
-    deps.schreibeZustand = origSchreib;
-    if (fehlgeschlagenRueck) return false;
-    if (!vollstaendigRueck && deps.leseZustand() === stateVor) {
-      // falls kein Ereignis, aber Zustand unverändert; trotzdem erfolgreich wenn leerlauf ok
-    }
-    if (fehlgeschlagenRueck) return false;
-    // Erfolg nur wenn nach neuem Anstoß vollständiges Bündel derselben Generation angewendet
-    if (deps.getGeneration() !== deps.getSetupVersion()) return false;
-    if (vollstaendigRueck) return true;
-    // Fallback: wenn lauf vorhanden und leerlauf lief, aber keine Ereignisse protokolliert - akzeptiere falls Zustand sich nicht verschlechtert
-    return lauf ? true : vollstaendigRueck;
   };
 }

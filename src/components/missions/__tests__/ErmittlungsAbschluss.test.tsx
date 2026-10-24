@@ -25,6 +25,16 @@ const ermittlung: Ermittlung = {
 };
 
 describe('ErmittlungsAbschluss', () => {
+  it('nutzt auch eine Szene-Pose ohne Ganzkörperbild und fokussiert den Abschluss', () => {
+    const view = render(
+      <ErmittlungsAbschluss ermittlung={{ ...ermittlung, szenePose: 'grinst' }} />
+    );
+    expect(view.container.querySelector('img')).toHaveAttribute(
+      'src',
+      '/missions/figur/alexander-grinst.webp'
+    );
+    expect(screen.getByRole('heading', { name: 'Fall gelöst' })).toHaveFocus();
+  });
   it('zeigt Szene und Beweisstück', () => {
     render(<ErmittlungsAbschluss ermittlung={ermittlung} />);
     expect(screen.getByText('Fall gelöst')).toBeTruthy();

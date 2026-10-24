@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { startZustand, wendePruefungAn } from '../ermittlung';
+import { startZustand } from '../ermittlung';
 import type { Ermittlung } from '../ermittlungTypes';
 import { erstelleVorwurfAblauf } from '../vorwurfAblauf';
 
@@ -55,6 +55,37 @@ const ermittlung: Ermittlung = {
 };
 
 describe('vorwurfAblauf', () => {
+  it('zählt unbekannte Personen nicht als Versuch', async () => {
+    const state = startZustand();
+    const pruefeFrisch = vi.fn(async () => true);
+    const res = await erstelleVorwurfAblauf({
+      ermittlung,
+      leseZustand: () => state,
+      istAktuell: () => true,
+      pruefeFrisch,
+      kandidat: { verdaechtigeId: 'unbekannt', belegIds: [] },
+    });
+    expect(res.art).toBe('fehler');
+    expect(pruefeFrisch).not.toHaveBeenCalled();
+    expect(state.vorwurfVersuche).toBe(0);
+  });
+
+  it('bewertet nach Generationwechsel keinen alten Kandidaten', async () => {
+    let aktuell = true;
+    const state = { ...startZustand(), belegeErkannt: ['b1'] };
+    const res = await erstelleVorwurfAblauf({
+      ermittlung,
+      leseZustand: () => state,
+      istAktuell: () => aktuell,
+      pruefeFrisch: async () => {
+        aktuell = false;
+        return true;
+      },
+      kandidat: { verdaechtigeId: 'timo', belegIds: ['b1'] },
+    });
+    expect(res.art).toBe('fehler');
+    expect(state.vorwurfVersuche).toBe(0);
+  });
   it('prueft frisch vor Bewertung', async () => {
     const z = startZustand();
     let state = z;
@@ -65,10 +96,7 @@ describe('vorwurfAblauf', () => {
     const res = await erstelleVorwurfAblauf({
       ermittlung,
       leseZustand: () => state,
-      schreibeZustand: (s) => {
-        state = s;
-      },
-      getPruefLauf: () => null,
+      istAktuell: () => true,
       pruefeFrisch,
       kandidat: { verdaechtigeId: 'timo', belegIds: ['b1'] },
     });

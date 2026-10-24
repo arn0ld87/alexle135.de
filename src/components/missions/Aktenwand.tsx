@@ -96,7 +96,7 @@ export default function Aktenwand(props: AktenwandProps) {
         )}
       </div>
       {vorwurfHinweis && (
-        <p role="status" className="mt-2 break-words font-mono text-xs text-[color:var(--ink)]">
+        <p className="mt-2 break-words font-mono text-xs text-[color:var(--ink)]">
           {vorwurfHinweis}
         </p>
       )}
@@ -120,10 +120,7 @@ export default function Aktenwand(props: AktenwandProps) {
       ) : (
         <ul className="mt-3 min-w-0 space-y-3">
           {eintraege.map(({ datei, regel, erkannt }) => (
-            <li
-              key={datei.name}
-              className="min-w-0 border-b border-[var(--terminal-border)] pb-3"
-            >
+            <li key={datei.name} className="min-w-0 border-b border-[var(--terminal-border)] pb-3">
               <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-2">
                 <span className="min-w-0 break-words whitespace-pre-wrap font-mono text-sm text-[color:var(--ink)]">
                   {datei.name}
