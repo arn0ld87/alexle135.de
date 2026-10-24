@@ -1,4 +1,5 @@
 import { AKTENWAND_ABFRAGE } from '../../../lib/missions/aktenwand';
+import { EINSATZRAHMEN_VERSTOSS } from '../../../lib/missions/einsatzrahmenSetup';
 import type { Ermittlung } from '../../../lib/missions/ermittlungTypes';
 
 /**
@@ -136,9 +137,16 @@ printf 'konto\\t%s\\n' "$(id -un)"`,
     },
   },
   einsatzrahmen: {
-    text: ['Nur lesen, nichts verändern.'],
-    verstoss: 'false',
-    folge: ['Der Einsatzrahmen wurde verletzt.'],
+    text: [
+      'Diagnose außerhalb des ausgeschlossenen Ordners ist erlaubt.',
+      'Eigene Belege unter ~/belege/ darfst du anlegen und ändern.',
+      '/home/nadia/ ist ausgeschlossen. Ein Zugriff dort hat erzählerische Folgen.',
+    ],
+    verstoss: EINSATZRAHMEN_VERSTOSS,
+    folge: [
+      'Margit wird misstrauisch: Jemand hat im ausgeschlossenen Ordner gelesen.',
+      'Der Vorwurf ist vorübergehend gesperrt. Ein weiterer erkannter Beleg hilft, spätestens drei vollständige Prüfungen öffnen ihn wieder.',
+    ],
   },
   beweisstueck: {
     id: 'notiz',

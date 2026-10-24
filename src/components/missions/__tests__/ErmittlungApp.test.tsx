@@ -8,6 +8,7 @@ import type { AgentClient, AgentResult } from '../../../lib/missions/agentClient
 import { pruefeDaten } from '../../../lib/missions/ermittlung';
 import type { Ermittlung } from '../../../lib/missions/ermittlungTypes';
 import type { MissionCommand, MissionReply } from '../../../lib/missions/missionTypes';
+import { einsatzrahmenSetupSkript } from '../../../lib/missions/einsatzrahmenSetup';
 import { rahmenSetupSkript } from '../../../lib/missions/staffel2Rahmen';
 import ErmittlungApp from '../ErmittlungApp';
 
@@ -41,6 +42,9 @@ const istAbfrage = (skript: string) => skript.startsWith('__a=$(printf');
 const buendelAufrufe = (mock: ReturnType<typeof vi.fn>) =>
   mock.mock.calls.filter((call) => istBuendel(call[0] as string));
 
+// Erfolgreiche Setup-Läufe vor dem jeweils geprüften.
+const vorherige: Record<string, number> = { rahmen: 0, einsatzrahmen: 1, episode: 2 };
+
 let run: ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
@@ -60,49 +64,61 @@ describe('ErmittlungApp', () => {
   it('setzt den Rahmen vor dem Episoden-Setup und zeigt den Auftrag', async () => {
     render(<ErmittlungApp ermittlung={platzhalter} />);
 
-    await waitFor(() => expect(run).toHaveBeenCalledTimes(3));
+    await waitFor(() => expect(run).toHaveBeenCalledTimes(4));
     expect(run.mock.calls[0]?.[0]).toBe(rahmenSetupSkript());
     expect(run.mock.calls[0]?.[1]).toBe(60_000);
-    expect(run.mock.calls[1]?.[0]).toBe(platzhalter.setup);
+    expect(run.mock.calls[1]?.[0]).toBe(einsatzrahmenSetupSkript());
     expect(run.mock.calls[1]?.[1]).toBe(60_000);
-    expect(istAbfrage(run.mock.calls[2]?.[0] as string)).toBe(true);
+    expect(run.mock.calls[2]?.[0]).toBe(platzhalter.setup);
+    expect(run.mock.calls[2]?.[1]).toBe(60_000);
+    expect(istAbfrage(run.mock.calls[3]?.[0] as string)).toBe(true);
     await waitFor(() => expect(pagerText()).toContain('Leg in ~/belege'));
   });
 
-  it.each(['rahmen', 'episode'])('meldet einen fehlgeschlagenen %s-Exitcode', async (teil) => {
-    if (teil === 'episode') run.mockResolvedValueOnce({ exitCode: 0, output: '' });
-    run.mockResolvedValue({ exitCode: 17, output: 'fehlgeschlagen' });
-    render(<ErmittlungApp ermittlung={platzhalter} />);
+  it.each(['rahmen', 'einsatzrahmen', 'episode'])(
+    'meldet einen fehlgeschlagenen %s-Exitcode',
+    async (teil) => {
+      for (let i = 0; i < vorherige[teil]; i++) {
+        run.mockResolvedValueOnce({ exitCode: 0, output: '' });
+      }
+      run.mockResolvedValue({ exitCode: 17, output: 'fehlgeschlagen' });
+      render(<ErmittlungApp ermittlung={platzhalter} />);
 
-    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
-    expect(run).toHaveBeenCalledTimes(teil === 'rahmen' ? 1 : 2);
-    expect(pagerText()).not.toContain('Leg in ~/belege');
-    await act(async () => {
-      await h.sendCommand('__prompt');
-    });
-    expect(run).toHaveBeenCalledTimes(teil === 'rahmen' ? 1 : 2);
-  });
+      await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
+      expect(run).toHaveBeenCalledTimes(vorherige[teil] + 1);
+      expect(pagerText()).not.toContain('Leg in ~/belege');
+      await act(async () => {
+        await h.sendCommand('__prompt');
+      });
+      expect(run).toHaveBeenCalledTimes(vorherige[teil] + 1);
+    }
+  );
 
-  it.each(['rahmen', 'episode'])('verwirft das nach Unmount endende %s-Setup', async (teil) => {
-    let freigeben!: (resultat: AgentResult) => void;
-    const blockiert = new Promise<AgentResult>((fertig) => {
-      freigeben = fertig;
-    });
-    if (teil === 'episode') run.mockResolvedValueOnce({ exitCode: 0, output: '' });
-    run.mockImplementationOnce(() => blockiert);
-    const view = render(<ErmittlungApp ermittlung={platzhalter} />);
-    await waitFor(() => expect(run).toHaveBeenCalledTimes(teil === 'rahmen' ? 1 : 2));
-    await act(async () => {
-      await h.sendCommand('__prompt');
-    });
-    view.unmount();
+  it.each(['rahmen', 'einsatzrahmen', 'episode'])(
+    'verwirft das nach Unmount endende %s-Setup',
+    async (teil) => {
+      let freigeben!: (resultat: AgentResult) => void;
+      const blockiert = new Promise<AgentResult>((fertig) => {
+        freigeben = fertig;
+      });
+      for (let i = 0; i < vorherige[teil]; i++) {
+        run.mockResolvedValueOnce({ exitCode: 0, output: '' });
+      }
+      run.mockImplementationOnce(() => blockiert);
+      const view = render(<ErmittlungApp ermittlung={platzhalter} />);
+      await waitFor(() => expect(run).toHaveBeenCalledTimes(vorherige[teil] + 1));
+      await act(async () => {
+        await h.sendCommand('__prompt');
+      });
+      view.unmount();
 
-    await act(async () => {
-      freigeben({ exitCode: 0, output: '' });
-      await blockiert;
-    });
-    expect(run).toHaveBeenCalledTimes(teil === 'rahmen' ? 1 : 2);
-  });
+      await act(async () => {
+        freigeben({ exitCode: 0, output: '' });
+        await blockiert;
+      });
+      expect(run).toHaveBeenCalledTimes(vorherige[teil] + 1);
+    }
+  );
 
   it('lässt ein altes Setup keinen neueren Prüflauf ersetzen', async () => {
     let freigeben!: (resultat: AgentResult) => void;
@@ -124,12 +140,12 @@ describe('ErmittlungApp', () => {
       freigeben({ exitCode: 0, output: '' });
       await blockiert;
     });
-    await waitFor(() => expect(neuerRun).toHaveBeenCalledTimes(3));
+    await waitFor(() => expect(neuerRun).toHaveBeenCalledTimes(4));
     await act(async () => {
       await h.sendCommand('__prompt');
     });
     expect(run).toHaveBeenCalledTimes(1);
-    await waitFor(() => expect(neuerRun).toHaveBeenCalledTimes(4));
+    await waitFor(() => expect(neuerRun).toHaveBeenCalledTimes(5));
   });
 
   it('antwortet auf __prompt, ohne auf das Prüfbündel zu warten', async () => {
@@ -139,13 +155,13 @@ describe('ErmittlungApp', () => {
     });
     render(<ErmittlungApp ermittlung={platzhalter} />);
 
-    await waitFor(() => expect(run).toHaveBeenCalledTimes(3));
+    await waitFor(() => expect(run).toHaveBeenCalledTimes(4));
     let antwort: MissionReply | undefined;
     await act(async () => {
       antwort = await h.sendCommand('__prompt');
     });
     expect(antwort).toEqual({ exitCode: 0, text: '' });
-    expect(run).toHaveBeenCalledTimes(4);
+    expect(run).toHaveBeenCalledTimes(5);
   });
 
   it('holt einen Prompt nach, der während des Setups eintrifft', async () => {
@@ -162,11 +178,11 @@ describe('ErmittlungApp', () => {
     });
     render(<ErmittlungApp ermittlung={platzhalter} />);
 
-    await waitFor(() => expect(run).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(run).toHaveBeenCalledTimes(3));
     await act(async () => {
       await h.sendCommand('__prompt');
     });
-    expect(run).toHaveBeenCalledTimes(2);
+    expect(run).toHaveBeenCalledTimes(3);
 
     await act(async () => {
       freigeben();
@@ -188,7 +204,7 @@ describe('ErmittlungApp', () => {
     });
     render(<ErmittlungApp ermittlung={platzhalter} />);
 
-    await waitFor(() => expect(run).toHaveBeenCalledTimes(3));
+    await waitFor(() => expect(run).toHaveBeenCalledTimes(4));
     await act(async () => {
       await h.sendCommand('__prompt');
     });
@@ -204,7 +220,7 @@ describe('ErmittlungApp', () => {
     });
     render(<ErmittlungApp ermittlung={platzhalter} />);
 
-    await waitFor(() => expect(run).toHaveBeenCalledTimes(3));
+    await waitFor(() => expect(run).toHaveBeenCalledTimes(4));
     await act(async () => {
       await h.sendCommand('__prompt');
     });
@@ -227,7 +243,7 @@ describe('ErmittlungApp', () => {
         return { exitCode: 0, output: vollstaendig ? 'ende\t0\n' : '' };
       });
       render(<ErmittlungApp ermittlung={platzhalter} />);
-      await waitFor(() => expect(run).toHaveBeenCalledTimes(2));
+      await waitFor(() => expect(run).toHaveBeenCalledTimes(3));
       if (vorherigerFehler) {
         await act(async () => {
           await h.sendCommand('__prompt');
@@ -270,7 +286,7 @@ describe('ErmittlungApp', () => {
 
   it('weist andere mission-Befehle mit Exit 1 ab', async () => {
     render(<ErmittlungApp ermittlung={platzhalter} />);
-    await waitFor(() => expect(run).toHaveBeenCalledTimes(3));
+    await waitFor(() => expect(run).toHaveBeenCalledTimes(4));
 
     let antwort: MissionReply | undefined;
     await act(async () => {
@@ -441,13 +457,13 @@ describe('ErmittlungApp: freie Spurenwahl (T4)', () => {
 
   const starte = async () => {
     render(<ErmittlungApp ermittlung={zweiSpuren} />);
-    await waitFor(() => expect(run).toHaveBeenCalledTimes(3));
+    await waitFor(() => expect(run).toHaveBeenCalledTimes(4));
   };
 
   const starteMit = async (client: AgentClient, mock: ReturnType<typeof vi.fn>) => {
     h.client = client;
     render(<ErmittlungApp ermittlung={zweiSpuren} />);
-    await waitFor(() => expect(mock).toHaveBeenCalledTimes(3));
+    await waitFor(() => expect(mock).toHaveBeenCalledTimes(4));
   };
 
   const prompt = async () => {
@@ -584,7 +600,7 @@ describe('ErmittlungApp: freie Spurenwahl (T4)', () => {
       antwort = await h.sendCommand('__prompt');
     });
     expect(antwort).toEqual({ exitCode: 0, text: '' });
-    expect(run).toHaveBeenCalledTimes(4);
+    expect(run).toHaveBeenCalledTimes(5);
     expect(spurButton('Ankommen, 0 von 2 Schritten erledigt')).toBeInTheDocument();
     expect(spurButton('Protokoll, 0 von 2 Schritten erledigt')).toBeInTheDocument();
 
@@ -643,7 +659,7 @@ describe('ErmittlungApp: freie Spurenwahl (T4)', () => {
     const user = userEvent.setup();
 
     await user.click(spurButton('Protokoll, 0 von 2 Schritten erledigt'));
-    expect(run).toHaveBeenCalledTimes(3);
+    expect(run).toHaveBeenCalledTimes(4);
 
     await user.click(screen.getByRole('button', { name: 'Ansicht' }));
     expect(screen.getByTestId('stub-terminal')).toBe(terminal);
@@ -652,7 +668,7 @@ describe('ErmittlungApp: freie Spurenwahl (T4)', () => {
     await user.click(spurButton('Ankommen, 0 von 2 Schritten erledigt'));
     await user.click(screen.getByRole('button', { name: 'Terminal' }));
     expect(screen.getByTestId('stub-terminal')).toBe(terminal);
-    expect(run).toHaveBeenCalledTimes(3);
+    expect(run).toHaveBeenCalledTimes(4);
   });
 
   it('T4-13: ein erneutes Setup setzt Ref und Render-State zurück und verwirft die alte Antwort', async () => {
@@ -665,7 +681,7 @@ describe('ErmittlungApp: freie Spurenwahl (T4)', () => {
     );
     await starteMit({ run: alterRun } as unknown as AgentClient, alterRun);
     await prompt();
-    expect(alterRun).toHaveBeenCalledTimes(4);
+    expect(alterRun).toHaveBeenCalledTimes(5);
 
     const neueBestanden = new Set<string>();
     const neuerRun = vi.fn(async (skript: string) =>
@@ -685,7 +701,7 @@ describe('ErmittlungApp: freie Spurenwahl (T4)', () => {
       await altesBuendel;
     });
     void neuesSetup;
-    await waitFor(() => expect(neuerRun).toHaveBeenCalledTimes(3));
+    await waitFor(() => expect(neuerRun).toHaveBeenCalledTimes(4));
     await waitFor(() =>
       expect(spurButton('Ankommen, 0 von 2 Schritten erledigt')).toHaveAttribute(
         'aria-pressed',
@@ -693,10 +709,10 @@ describe('ErmittlungApp: freie Spurenwahl (T4)', () => {
       )
     );
     expect(spurButton('Ankommen, 0 von 2 Schritten erledigt')).toBeInTheDocument();
-    expect(alterRun).toHaveBeenCalledTimes(4);
+    expect(alterRun).toHaveBeenCalledTimes(5);
 
     await prompt();
-    await waitFor(() => expect(neuerRun).toHaveBeenCalledTimes(4));
+    await waitFor(() => expect(neuerRun).toHaveBeenCalledTimes(5));
     const letztesSkript = buendelAufrufe(neuerRun).at(-1)?.[0] as string;
     expect(letztesSkript).toContain("'s.ankommen.notiz'");
 
@@ -711,7 +727,7 @@ describe('ErmittlungApp: freie Spurenwahl (T4)', () => {
 describe('ErmittlungApp: Raumansicht (T5)', () => {
   it('T5-8a: Spurwechsel und reiner Render starten weder Setup noch Abfrage', async () => {
     const view = render(<ErmittlungApp ermittlung={zweiSpuren} />);
-    await waitFor(() => expect(run).toHaveBeenCalledTimes(3));
+    await waitFor(() => expect(run).toHaveBeenCalledTimes(4));
     const user = userEvent.setup();
 
     await user.click(screen.getByRole('button', { name: 'Protokoll, 0 von 2 Schritten erledigt' }));
@@ -719,7 +735,7 @@ describe('ErmittlungApp: Raumansicht (T5)', () => {
     await user.click(screen.getByRole('button', { name: 'Ansicht' }));
     await user.click(screen.getByRole('button', { name: 'Terminal' }));
 
-    expect(run).toHaveBeenCalledTimes(3);
+    expect(run).toHaveBeenCalledTimes(4);
   });
 
   it('T5-8b: Öffnen und Aktualisieren lösen je genau eine wirksame Abfrage aus', async () => {
@@ -732,23 +748,23 @@ describe('ErmittlungApp: Raumansicht (T5)', () => {
     h.client = { run } as unknown as AgentClient;
 
     render(<ErmittlungApp ermittlung={zweiAnsichten} />);
-    await waitFor(() => expect(run).toHaveBeenCalledTimes(3));
+    await waitFor(() => expect(run).toHaveBeenCalledTimes(4));
     expect(offen).toHaveLength(1);
 
     const user = userEvent.setup();
     await user.click(screen.getByRole('button', { name: 'Lager' }));
-    expect(run).toHaveBeenCalledTimes(3);
+    expect(run).toHaveBeenCalledTimes(4);
 
     offen[0]?.({ exitCode: 0, output: 'host\tALT\nende\t1\t0\n' });
-    await waitFor(() => expect(run).toHaveBeenCalledTimes(4));
+    await waitFor(() => expect(run).toHaveBeenCalledTimes(5));
     expect(offen).toHaveLength(2);
 
     const aktualisieren = screen.getByRole('button', { name: 'Aktualisieren' });
     for (let i = 0; i < 10; i++) await user.click(aktualisieren);
-    expect(run).toHaveBeenCalledTimes(4);
+    expect(run).toHaveBeenCalledTimes(5);
 
     offen[1]?.({ exitCode: 0, output: 'konto\tazubi\nende\t1\t0\n' });
-    await waitFor(() => expect(run).toHaveBeenCalledTimes(5));
+    await waitFor(() => expect(run).toHaveBeenCalledTimes(6));
     expect(offen).toHaveLength(3);
     offen[2]?.({ exitCode: 0, output: 'konto\tazubi\nende\t1\t0\n' });
 
@@ -774,7 +790,7 @@ describe('ErmittlungApp: Raumansicht (T5)', () => {
     expect(hotspot).toHaveFocus();
     expect(screen.getByTestId('hotspot-detail')).toHaveTextContent('rw-srv01');
     expect(screen.getByTestId('stub-terminal')).toBe(terminal);
-    expect(run).toHaveBeenCalledTimes(3);
+    expect(run).toHaveBeenCalledTimes(4);
   });
 
   it('T5-Daten: der Platzhalter liest Host und Konto ohne feste Ergebniswerte', () => {
@@ -810,7 +826,7 @@ describe('ErmittlungApp: Aktenwand (T6)', () => {
     });
 
     render(<ErmittlungApp ermittlung={mitAktenwand} />);
-    await waitFor(() => expect(run).toHaveBeenCalledTimes(3));
+    await waitFor(() => expect(run).toHaveBeenCalledTimes(4));
     await prompt();
     await waitFor(() =>
       expect(
@@ -864,4 +880,224 @@ describe('ErmittlungApp: Aktenwand (T6)', () => {
     expect(platzhalter.ansichten[1]?.abfrage).toBe(AKTENWAND_ABFRAGE);
     expect(platzhalter.vorwurf.belege.map((beleg) => beleg.id)).toEqual(['notiz', 'protokoll']);
   });
+});
+
+describe('ErmittlungApp: Einsatzrahmen (T8)', () => {
+  const FOLGE = 'Verstoß.';
+  const WIEDER = 'Der Vorwurf ist wieder möglich.';
+  const GESPERRT = 'Der Vorwurf ist vorübergehend gesperrt.';
+
+  // Zählt Pager-Nachrichten, nicht Textvorkommen (aktuelle Nachricht plus Verlauf).
+  const pagerAnzahl = (text: string): number => {
+    const pager = screen.getByTestId('pager');
+    const aktuell = pager.querySelector('[data-testid="pager-text"]');
+    const verlauf = pager.querySelector('[data-testid="pager-verlauf"]');
+    const historie = verlauf
+      ? Array.from(verlauf.querySelectorAll('li')).filter((li) => li.textContent?.includes(text))
+          .length
+      : 0;
+    return historie + (aktuell?.textContent?.includes(text) ? 1 : 0);
+  };
+  const verlaufEnthaelt = (text: string): boolean =>
+    Array.from(
+      screen.getByTestId('pager').querySelectorAll('[data-testid="pager-verlauf"] li')
+    ).some((li) => li.textContent?.includes(text));
+  const aktuellEnthaelt = (text: string): boolean =>
+    screen.getByTestId('pager-text').textContent?.includes(text) ?? false;
+
+  const prompt = async () => {
+    await act(async () => {
+      await h.sendCommand('__prompt');
+    });
+  };
+  const bundelAnzahl = () => buendelAufrufe(run).length;
+  const naechstesBuendel = async () => {
+    const vorher = bundelAnzahl();
+    await prompt();
+    await waitFor(() => expect(bundelAnzahl()).toBe(vorher + 1));
+    // Das Ergebnis des Bündels ist angewendet, wenn der Lauf wieder ruht.
+    await act(async () => {
+      await Promise.resolve();
+    });
+  };
+
+  let bestanden: Set<string>;
+  let ausgabe: (() => string) | null;
+  let dateien: Array<[string, number, string]>;
+
+  beforeEach(() => {
+    HTMLDialogElement.prototype.showModal = function () {
+      this.setAttribute('open', '');
+    };
+    HTMLDialogElement.prototype.close = function () {
+      this.removeAttribute('open');
+    };
+    bestanden = new Set();
+    ausgabe = null;
+    dateien = [
+      ['notiz.txt', 5, 'notiz'],
+      ['protokoll.txt', 8, 'protokoll'],
+    ];
+    run.mockImplementation(async (skript: string) => {
+      if (skript === abfrageSkript(AKTENWAND_ABFRAGE)) {
+        return { exitCode: 0, output: aktenOutput(dateien) };
+      }
+      if (skript.startsWith('('))
+        return { exitCode: 0, output: (ausgabe ?? (() => buendel(bestanden)))() };
+      if (istAbfrage(skript)) return { exitCode: 0, output: 'host\trw-srv01\nende\t1\t0\n' };
+      return { exitCode: 0, output: '' };
+    });
+  });
+
+  const starte = async () => {
+    render(<ErmittlungApp ermittlung={mitAktenwand} />);
+    await waitFor(() => expect(run).toHaveBeenCalledTimes(4));
+  };
+
+  it('T8-1: Einsatzrahmen-Setup läuft zwischen Rahmen und Episode, bei Fehler gibt es keinen Prüflauf', async () => {
+    run.mockImplementation(async (skript: string) =>
+      skript === einsatzrahmenSetupSkript()
+        ? { exitCode: 1, output: 'sudoers-Konfiguration ungueltig' }
+        : { exitCode: 0, output: '' }
+    );
+    render(<ErmittlungApp ermittlung={mitAktenwand} />);
+
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
+    expect(run.mock.calls.map((call) => call[0])).toEqual([
+      rahmenSetupSkript(),
+      einsatzrahmenSetupSkript(),
+    ]);
+    await prompt();
+    expect(run).toHaveBeenCalledTimes(2);
+    expect(pagerText()).not.toContain(FOLGE);
+  });
+
+  it('T8-9: der Rahmen ist jederzeit lesbar, ohne Fokus, Terminal oder VM zu berühren', async () => {
+    await starte();
+    const terminal = screen.getByTestId('stub-terminal');
+    const zusammenfassung = screen.getByText('Einsatzrahmen');
+    expect(zusammenfassung.closest('details')).not.toHaveAttribute('open');
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Lager' }));
+    run.mockClear();
+    zusammenfassung.focus();
+    // jsdom wandelt Enter auf summary nicht um; Browser lösen dafür genau diesen Klick aus.
+    await user.click(zusammenfassung);
+
+    expect(zusammenfassung.closest('details')).toHaveAttribute('open');
+    expect(screen.getByText(mitAktenwand.einsatzrahmen.text[0] as string)).toBeInTheDocument();
+    expect(zusammenfassung).toHaveFocus();
+    expect(screen.getByTestId('stub-terminal')).toBe(terminal);
+    expect(run).not.toHaveBeenCalled();
+  });
+
+  it('T8-6: erst die nächste vollständige Prüfung setzt den Verstoß, die Folge kommt genau einmal', async () => {
+    await starte();
+    expect(screen.queryByText(/Einsatzrahmen verletzt/)).not.toBeInTheDocument();
+    expect(pagerAnzahl(FOLGE)).toBe(0);
+
+    bestanden.add('e.verstoss');
+    await naechstesBuendel();
+    await waitFor(() => expect(pagerAnzahl(FOLGE)).toBe(1), { timeout: 6000 });
+    expect(screen.getByText(/Einsatzrahmen verletzt/)).toBeInTheDocument();
+
+    for (let i = 0; i < 3; i++) await naechstesBuendel();
+    await new Promise((fertig) => setTimeout(fertig, 1500));
+    expect(pagerAnzahl(FOLGE)).toBe(1);
+    expect(pagerAnzahl(GESPERRT)).toBe(0);
+  }, 30_000);
+
+  it('T8-6: ein unvollständiges Bündel setzt keinen Verstoß', async () => {
+    await starte();
+    ausgabe = () => 'pruefung\te.verstoss\t0\n';
+    await naechstesBuendel();
+    expect(screen.queryByText(/Einsatzrahmen verletzt/)).not.toBeInTheDocument();
+    expect(pagerAnzahl(FOLGE)).toBe(0);
+  });
+
+  it('T8-7/8: Verstoß mit erkanntem Beleg sperrt den Vorwurf; Ansicht, unvollständige Prüfung und Zeit allein entsperren nicht', async () => {
+    await starte();
+    bestanden.add('b.notiz');
+    bestanden.add('e.verstoss');
+    await naechstesBuendel();
+    await waitFor(() => expect(screen.getByText(/vorübergehend gesperrt/)).toBeInTheDocument());
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Lager' }));
+    await user.click(screen.getByRole('button', { name: 'Aktenwand' }));
+    await waitFor(() => expect(screen.getAllByRole('checkbox')).toHaveLength(1));
+    expect(screen.getByText(/vorübergehend gesperrt/)).toBeInTheDocument();
+
+    ausgabe = () => 'pruefung\tb.notiz\t0\n';
+    for (let i = 0; i < 4; i++) await naechstesBuendel();
+    expect(screen.getByText(/vorübergehend gesperrt/)).toBeInTheDocument();
+    expect(pagerAnzahl(WIEDER)).toBe(0);
+  }, 30_000);
+
+  it('T8-8: ein neuer erkannter Beleg hebt die Sperre auf, einmal gemeldet', async () => {
+    await starte();
+    bestanden.add('b.notiz');
+    bestanden.add('e.verstoss');
+    await naechstesBuendel();
+    await waitFor(() => expect(screen.getByText(/vorübergehend gesperrt/)).toBeInTheDocument());
+
+    bestanden.add('b.protokoll');
+    await naechstesBuendel();
+    await waitFor(() =>
+      expect(screen.queryByText(/vorübergehend gesperrt/)).not.toBeInTheDocument()
+    );
+    await waitFor(() => expect(pagerAnzahl(WIEDER)).toBe(1), { timeout: 8000 });
+    await naechstesBuendel();
+    await new Promise((fertig) => setTimeout(fertig, 1500));
+    expect(pagerAnzahl(WIEDER)).toBe(1);
+    expect(screen.getByText(/Einsatzrahmen verletzt/)).toBeInTheDocument();
+  }, 30_000);
+
+  it('T8-8: die dritte vollständige Prüfung hebt die Sperre auf, einmal gemeldet', async () => {
+    await starte();
+    bestanden.add('b.notiz');
+    bestanden.add('e.verstoss');
+    await naechstesBuendel();
+    await waitFor(() => expect(screen.getByText(/vorübergehend gesperrt/)).toBeInTheDocument());
+
+    await naechstesBuendel();
+    await naechstesBuendel();
+    expect(screen.getByText(/vorübergehend gesperrt/)).toBeInTheDocument();
+    await naechstesBuendel();
+    await waitFor(() =>
+      expect(screen.queryByText(/vorübergehend gesperrt/)).not.toBeInTheDocument()
+    );
+    await waitFor(() => expect(pagerAnzahl(WIEDER)).toBe(1), { timeout: 8000 });
+  }, 30_000);
+
+  it('T8-7: Ablauf und Neusperre im selben Bündel erscheinen in der Reihenfolge der Engine-Ereignisse', async () => {
+    await starte();
+    const user = userEvent.setup();
+    bestanden.add('b.notiz');
+    await prompt();
+    await user.click(screen.getByRole('button', { name: 'Aktenwand' }));
+    await waitFor(() => expect(screen.getAllByRole('checkbox')).toHaveLength(1));
+    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByRole('button', { name: 'Vorwurf erheben' }));
+    await user.click(screen.getByRole('radio', { name: /Person B/ }));
+    await user.click(screen.getByRole('button', { name: 'Absenden' }));
+    // Die falsche Person sperrt den Vorwurf bereits vor dem Verstoß.
+    await waitFor(() => expect(screen.getAllByText('Gesperrt.').length).toBeGreaterThan(0), {
+      timeout: 8000,
+    });
+
+    // Zwei vollständige Prüfungen nach der Frischprüfung des Absendens: Rest 1.
+    await naechstesBuendel();
+    await naechstesBuendel();
+    bestanden.add('e.verstoss');
+    await naechstesBuendel();
+
+    await waitFor(() => expect(aktuellEnthaelt(FOLGE)).toBe(true), { timeout: 10_000 });
+    expect(verlaufEnthaelt(WIEDER)).toBe(true);
+    expect(pagerAnzahl(FOLGE)).toBe(1);
+    expect(pagerAnzahl(WIEDER)).toBe(1);
+    // Die Engine sperrt im selben Bündel erneut.
+    expect(screen.getAllByText(/vorübergehend gesperrt/).length).toBeGreaterThan(0);
+  }, 40_000);
 });

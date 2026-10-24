@@ -8,6 +8,7 @@ import type {
   Spur,
 } from '../../lib/missions/ermittlungTypes';
 import type { MissionCommand, MissionReply } from '../../lib/missions/missionTypes';
+import { einsatzrahmenSetupSkript } from '../../lib/missions/einsatzrahmenSetup';
 import { anhaengen, satz } from '../../lib/missions/pager';
 import type { PagerArt, PagerNachricht, Pose } from '../../lib/missions/pager';
 import { erzeugeErmittlungsRun } from '../../lib/missions/ermittlungsRun';
@@ -21,6 +22,7 @@ import {
   type VorwurfKandidat,
 } from '../../lib/missions/vorwurfAblauf';
 import Ansichten from './Ansichten';
+import EinsatzrahmenHinweis from './EinsatzrahmenHinweis';
 import ErmittlungsAbschluss from './ErmittlungsAbschluss';
 import Pager from './Pager';
 import Spurenliste from './Spurenliste';
@@ -99,6 +101,10 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
         } else if (ereignis.type === 'spur-erledigt') {
           const spur = ermittlung.spuren.find((eintrag) => eintrag.id === ereignis.spurId);
           if (spur) melde('erledigt', [satz(`Spur abgeschlossen: ${spur.titel}`)]);
+        } else if (ereignis.type === 'einsatzrahmen-verletzt') {
+          melde('auftrag', [...ermittlung.einsatzrahmen.folge]);
+        } else if (ereignis.type === 'sperre-aufgehoben') {
+          melde('erledigt', [satz('Der Vorwurf ist wieder möglich.')]);
         }
       }
     },
@@ -127,6 +133,14 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
         );
         if (version !== setupVersion.current) return;
         if (rahmen.exitCode !== 0) throw new Error(RAHMEN_FEHLER);
+        const einsatz = await runAdapter.run(
+          client,
+          einsatzrahmenSetupSkript(),
+          60_000,
+          () => version === setupVersion.current
+        );
+        if (version !== setupVersion.current) return;
+        if (einsatz.exitCode !== 0) throw new Error(RAHMEN_FEHLER);
         const episode = await runAdapter.run(
           client,
           ermittlung.setup,
@@ -392,6 +406,11 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
       </div>
       <div className="grid gap-4 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
         <div className={`min-w-0 ${bereich === 'ansicht' ? 'lg:block' : 'hidden lg:block'}`}>
+          <EinsatzrahmenHinweis
+            text={ermittlung.einsatzrahmen.text}
+            verletzt={anzeigeZustand.einsatzrahmenVerletzt}
+            gesperrt={istGesperrt(anzeigeZustand)}
+          />
           <Spurenliste
             spuren={ermittlung.spuren}
             zustand={anzeigeZustand}
