@@ -1,4 +1,4 @@
-// Reine Aktenwand (Ticket 6): Dateiliste, Vorschau und Belegauswahl als React-Text.
+// Reine Aktenwand (Ticket 6/7): Dateiliste, Vorschau und Belegauswahl als React-Text.
 // Kein Agent-Zugriff, kein Dateischreibpfad, keine Interpretation von Namen als Markup.
 import { useEffect, useId, useState } from 'react';
 import { ordneBelege, type AktenInhalt } from '../../lib/missions/aktenwand';
@@ -10,6 +10,9 @@ interface AktenwandProps {
   zustand: ErmittlungsZustand;
   ausgewaehlteBelegIds: readonly string[];
   onAuswahlAendern: (ids: readonly string[]) => void;
+  onVorwurfOeffnen?: () => void;
+  vorwurfOeffnenAktiv?: boolean;
+  vorwurfHinweis?: string | null;
 }
 
 const bytesText = (bytes: number): string => (bytes === 1 ? '1 Byte' : `${bytes} Bytes`);
@@ -42,7 +45,16 @@ function Vorschau({ text }: { text: string }) {
 }
 
 export default function Aktenwand(props: AktenwandProps) {
-  const { inhalt, belegRegeln, zustand, ausgewaehlteBelegIds, onAuswahlAendern } = props;
+  const {
+    inhalt,
+    belegRegeln,
+    zustand,
+    ausgewaehlteBelegIds,
+    onAuswahlAendern,
+    onVorwurfOeffnen,
+    vorwurfOeffnenAktiv = false,
+    vorwurfHinweis,
+  } = props;
   const eintraege = ordneBelege(inhalt, belegRegeln, zustand.belegeErkannt);
   const erlaubteIds = eintraege.flatMap((eintrag) =>
     eintrag.regel && eintrag.erkannt ? [eintrag.regel.id] : []
@@ -66,10 +78,28 @@ export default function Aktenwand(props: AktenwandProps) {
 
   return (
     <div className="mt-3 min-w-0">
-      <p className="break-words font-mono text-xs text-[color:var(--muted)]">
-        Dateien werden beim Öffnen oder Aktualisieren gelesen. Belege prüft das Terminal nach einem
-        Befehl.
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="break-words font-mono text-xs text-[color:var(--muted)]">
+          Dateien werden beim Öffnen oder Aktualisieren gelesen. Belege prüft das Terminal nach
+          einem Befehl.
+        </p>
+        {onVorwurfOeffnen && (
+          <button
+            type="button"
+            onClick={onVorwurfOeffnen}
+            disabled={!vorwurfOeffnenAktiv}
+            className="rounded-none border border-[var(--terminal-border)] px-2 py-1 font-mono text-xs tracking-wide text-[color:var(--ink)] uppercase disabled:opacity-50"
+            aria-disabled={!vorwurfOeffnenAktiv}
+          >
+            Vorwurf erheben
+          </button>
+        )}
+      </div>
+      {vorwurfHinweis && (
+        <p className="mt-2 break-words font-mono text-xs text-[color:var(--ink)]">
+          {vorwurfHinweis}
+        </p>
+      )}
 
       {inhalt.weitereDateien && (
         <p className="mt-2 break-words font-mono text-xs text-[color:var(--ink)]">
