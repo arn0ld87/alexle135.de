@@ -8,11 +8,7 @@ import {
   type ErmittlungsAbfragen,
 } from '../../lib/missions/ermittlungsAbfragen';
 import { leseAktenwand } from '../../lib/missions/aktenwand';
-import type {
-  Ansicht,
-  BelegRegel,
-  ErmittlungsZustand,
-} from '../../lib/missions/ermittlungTypes';
+import type { Ansicht, BelegRegel, ErmittlungsZustand } from '../../lib/missions/ermittlungTypes';
 import Aktenwand from './Aktenwand';
 import RaumAnsicht from './RaumAnsicht';
 
@@ -68,12 +64,7 @@ export default function Ansichten({
 
   const aktive = ansichten.find((eintrag) => eintrag.id === abfrage.ansichtId) ?? null;
   const aktenInhalt = useMemo(() => {
-    if (
-      !aktive ||
-      aktive.art !== 'aktenwand' ||
-      abfrage.status !== 'geladen' ||
-      !abfrage.ausgabe
-    ) {
+    if (!aktive || aktive.art !== 'aktenwand' || abfrage.status !== 'geladen' || !abfrage.ausgabe) {
       return null;
     }
     return leseAktenwand(abfrage.ausgabe);

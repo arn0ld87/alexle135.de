@@ -42,13 +42,7 @@ function Vorschau({ text }: { text: string }) {
 }
 
 export default function Aktenwand(props: AktenwandProps) {
-  const {
-    inhalt,
-    belegRegeln,
-    zustand,
-    ausgewaehlteBelegIds,
-    onAuswahlAendern,
-  } = props;
+  const { inhalt, belegRegeln, zustand, ausgewaehlteBelegIds, onAuswahlAendern } = props;
   const eintraege = ordneBelege(inhalt, belegRegeln, zustand.belegeErkannt);
   const erlaubteIds = eintraege.flatMap((eintrag) =>
     eintrag.regel && eintrag.erkannt ? [eintrag.regel.id] : []
@@ -73,8 +67,8 @@ export default function Aktenwand(props: AktenwandProps) {
   return (
     <div className="mt-3 min-w-0">
       <p className="break-words font-mono text-xs text-[color:var(--muted)]">
-        Dateien werden beim Öffnen oder Aktualisieren gelesen. Belege prüft das Terminal nach
-        einem Befehl.
+        Dateien werden beim Öffnen oder Aktualisieren gelesen. Belege prüft das Terminal nach einem
+        Befehl.
       </p>
 
       {inhalt.weitereDateien && (
@@ -96,10 +90,7 @@ export default function Aktenwand(props: AktenwandProps) {
       ) : (
         <ul className="mt-3 min-w-0 space-y-3">
           {eintraege.map(({ datei, regel, erkannt }) => (
-            <li
-              key={datei.name}
-              className="min-w-0 border-b border-[var(--terminal-border)] pb-3"
-            >
+            <li key={datei.name} className="min-w-0 border-b border-[var(--terminal-border)] pb-3">
               <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-2">
                 <span className="min-w-0 break-words whitespace-pre-wrap font-mono text-sm text-[color:var(--ink)]">
                   {datei.name}

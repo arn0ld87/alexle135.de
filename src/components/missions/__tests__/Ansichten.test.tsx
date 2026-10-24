@@ -228,15 +228,7 @@ describe('Ansichten', () => {
   it('T6-9: Raum→Aktenwand→Raum verwirft verspätete Antworten', async () => {
     const user = userEvent.setup();
     const { run, aufrufe } = aufbau();
-    render(
-      <Ansichten
-        {...basis}
-        ansichten={[buero, aktenwand]}
-        bereit
-        generation={1}
-        run={run}
-      />
-    );
+    render(<Ansichten {...basis} ansichten={[buero, aktenwand]} bereit generation={1} run={run} />);
     await waitFor(() => expect(run).toHaveBeenCalledTimes(1));
     aufrufe[0]?.fertig(wert('host', 'START'));
     await waitFor(() =>
