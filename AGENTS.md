@@ -58,7 +58,7 @@ Für einzelne Tests: `pnpm exec vitest run path/to/test`. Content-Helper: `pnpm 
 ## Workflow
 
 - Vor Änderungen Branch, Status und betroffene Dateien prüfen; PR-Workflow ist der Standard.
-- Tickets aus einem Epic abarbeiten: `docs/agents/ticket-ausfuehrung.md` (Ablauf, Code-Graph, Gates, CI-Spiegel, Fertig-Punkt).
+- Tickets aus einem Epic abarbeiten: `docs/agents/ticket-ausfuehrung.md` (Ablauf, Code-Graph, Gates, CI, Fertig-Punkt).
 - Ohne geplante Dependency-Änderung immer `pnpm install --frozen-lockfile` (wie in der CI). Ein Standard-`pnpm install` löst SemVer-Ranges gegen den aktuellen Registry-Stand neu auf und erzeugt tausende Lockfile-Diff-Zeilen (#279); Lockfile-Änderungen gehören ausschließlich in eigene Dependency- oder Chore-PRs.
 - Tests nach Risiko wählen: fokussierter Test zuerst, dann `pnpm test:run`, `pnpm lint` und `pnpm build` bei gemeinsam genutzten oder produktionsrelevanten Änderungen; vor Merge zusätzlich `pnpm check` und bei UI-/Build-Bezug `pnpm check:dist` sowie `pnpm check:bundle`.
 - Interne Plan-, Deployment- und Security-Details liegen nicht in der öffentlichen `docs/`-Doku; relevante Projektregeln stehen in dieser Datei und in `README.md`.

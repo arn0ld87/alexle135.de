@@ -10,10 +10,10 @@ Regeln für jedes Modell, das ein Ticket aus einem Epic abarbeitet, zuerst für 
 4. **Test zuerst:** Schreib den Test aus „Fertig heißt“ und lass ihn einmal rot laufen.
 5. **Umsetzen:** Ändere genau die Dateien der Dateiliste. Nach jedem Commit `build_or_update_graph_tool` laufen lassen, damit der Graph aktuell bleibt.
 6. **Gates:** Lass alle Befehle aus „Fertig heißt“ in einem `ctx_batch_execute` mit `concurrency: 4` laufen; Ausgaben über 20 Zeilen gehören immer in `ctx_batch_execute` oder `ctx_execute`, nie direkt in die Shell. Frühere Ergebnisse findest du mit `ctx_search`.
-7. **CI:** `bash scripts/ci-mirror.sh` startet die CI im öffentlichen Spiegel `arn0ld87/alexle135.de` (das private Repo hat keine Actions-Minuten). Ergebnis: `gh run list -R arn0ld87/alexle135.de --limit 6`.
+7. **CI:** läuft beim Push automatisch in diesem Repo (Workflows `ci`, `bundle-size`, `Lighthouse CI`). Ergebnis: `gh pr checks <PR-Nummer>`.
 8. **PR:** `detect_changes_tool` prüft den Diff; dann Push und `gh pr create` gegen `main`. Titel `<typ>(missionen): <Ticket-Titel> (<Ticket-ID>)`, im Body Epic-Nummer, Ticket-ID und die grünen Gate-Ausgaben. Danach im Epic den Haken des Tickets setzen und die PR verlinken.
 
-**Fertig** ist ein Ticket, sobald alle Befehle aus „Fertig heißt“ grün sind, die Spiegel-CI grün ist und die PR offen ist. Dann endet die Session: Bericht mit PR-Link, keine weiteren Prüfungen, kein Aufräumen.
+**Fertig** ist ein Ticket, sobald alle Befehle aus „Fertig heißt“ grün sind, die CI grün ist und die PR offen ist. Dann endet die Session: Bericht mit PR-Link, keine weiteren Prüfungen, kein Aufräumen.
 
 ## Parallel arbeiten
 
