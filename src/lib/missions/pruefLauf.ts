@@ -111,6 +111,11 @@ export function erzeugePruefLauf(optionen: PruefLaufOptionen): PruefLauf {
     // Nach stoppe() gilt nichts mehr, auch keine bereits eingetroffene Antwort.
     if (gestoppt) return;
 
+    if (typeof ergebnis.exitCode === 'number' && ergebnis.exitCode !== 0) {
+      melden({ type: 'agent', meldung: `Prüfung fehlgeschlagen (exit ${ergebnis.exitCode})` });
+      return;
+    }
+
     let neu: { zustand: ErmittlungsZustand; ereignisse: ErmittlungsEreignis[] };
     try {
       neu = wendePruefungAn(ermittlung, leseZustand(), leseBuendelAusgabe(ergebnis.output));
