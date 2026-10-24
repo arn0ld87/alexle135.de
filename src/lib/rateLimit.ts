@@ -65,8 +65,7 @@ const MAX_BUCKET_WINDOW_MS = Math.max(...Object.values(BUCKETS).map((b) => b.win
  * Failure contract: methods may throw; callers propagate the error.
  */
 export type RateLimitResult =
-  | { ok: true; remaining: number; resetMs: number }
-  | { ok: false; retryAfterMs: number };
+  { ok: true; remaining: number; resetMs: number } | { ok: false; retryAfterMs: number };
 
 export interface RateLimitStore {
   /**

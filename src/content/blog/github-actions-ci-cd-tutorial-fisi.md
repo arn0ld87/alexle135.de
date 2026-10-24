@@ -198,6 +198,7 @@ jobs:
 
 **Problem:** Workflow startet nicht
 
+<!-- prettier-ignore -->
 ```yaml
 # ❌ FALSCH - Einrückung nicht konsistent
 steps:
