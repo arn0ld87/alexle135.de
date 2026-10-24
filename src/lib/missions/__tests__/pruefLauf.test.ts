@@ -20,9 +20,7 @@ const fixture: Ermittlung = {
   titel: 'Prüfbündel',
   hostname: 'test',
   setup: 'true',
-  ansichten: [
-    { id: 'raum', art: 'raum', titel: 'Raum', abfrage: "printf 'x\\ty\\n'" },
-  ],
+  ansichten: [{ id: 'raum', art: 'raum', titel: 'Raum', abfrage: "printf 'x\\ty\\n'" }],
   spuren: [
     { id: 'a', titel: 'A', schritte: [schritt('s1', 'true')] },
     { id: 'b', titel: 'B', schritte: [schritt('s1', 'false')] },
@@ -97,6 +95,22 @@ function halter(): { warten: Promise<void>; freigeben: () => void } {
 }
 
 describe('pruefLauf', () => {
+  it.each([124, 17])(
+    'meldet einen fehlgeschlagenen RUN mit Exitcode %s ohne Zustandsübernahme',
+    async (exitCode) => {
+      const a = aufbau(() => ({ art: 'res', exitCode, output: 'pruefung\ts.a.s1\t0\nende\t1\n' }));
+      a.lauf.anstossen();
+      await a.lauf.leerlauf();
+
+      expect(a.fehler).toHaveLength(1);
+      expect(a.fehler[0].type).toBe('agent');
+      expect(a.fehler[0].meldung).toContain(String(exitCode));
+      expect(a.geschrieben).toEqual([]);
+      expect(a.lese().erledigt).toEqual({});
+      expect(a.lauf.laeuft()).toBe(false);
+    }
+  );
+
   it('führt das Bündel mit Bash aus und wendet das Ergebnis an', async () => {
     const a = aufbau(bashAntwort);
     a.lauf.anstossen();
