@@ -1,7 +1,10 @@
 ---
 import V2Layout from '../../../../layouts/V2Layout.astro';
 import ErmittlungApp from '../../../../components/missions/ErmittlungApp';
-import { platzhalter } from '../../../../data/staffeln/staffel-2/platzhalter';
+import {
+  episode1,
+  episode1Werkzeuge,
+} from '../../../../data/staffeln/staffel-2/episode-1';
 ---
 
 <V2Layout
@@ -26,6 +29,6 @@ import { platzhalter } from '../../../../data/staffeln/staffel-2/platzhalter';
         Zur Projektseite
       </a>
     </header>
-    <ErmittlungApp client:only="react" ermittlung={platzhalter} />
+    <ErmittlungApp client:only="react" ermittlung={episode1} werkzeuge={episode1Werkzeuge} />
   </main>
 </V2Layout>

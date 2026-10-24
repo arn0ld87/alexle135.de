@@ -1,6 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
 
 test.skip(!process.env.MISSION_VM, 'MISSION_VM ist nicht gesetzt.');
+// Prüft die Platzhalter-Episode aus T7, die mit Episode 1 entfällt. Ersatz an echten Daten:
+// e2e/08-staffel-2-episode.spec.ts in Ticket 10, das diese Datei dann löscht.
+test.skip(true, 'Platzhalter-Episode entfällt mit Episode 1; Ersatz in Ticket 10.');
 
 async function flaeche(page: Page, name: 'Ansicht' | 'Terminal') {
   const button = page.getByRole('button', { name, exact: true });

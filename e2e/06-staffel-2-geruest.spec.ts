@@ -5,6 +5,9 @@ test.skip(!process.env.MISSION_VM, 'MISSION_VM ist nicht gesetzt.');
 
 const STAFFEL2 = '/projekte/terminal-missionen/app/staffel-2';
 const STAFFEL1 = '/projekte/terminal-missionen/app';
+// Kleinster echter Beleg aus Episode 1: die Audit-Zeile zur Regeldatei unter /etc/sudoers.d.
+const ANFANG = 'Serverraum der Rechenwerk Ostwind GmbH';
+const AUDIT_BEFEHL = 'grep sudoers.d /var/log/rechenwerk-audit.log > ~/belege/log-zeile.txt';
 
 async function warteAufPrompt(page: import('@playwright/test').Page, name: string) {
   const rows = page.locator('.xterm-rows').first();
@@ -18,7 +21,7 @@ async function messePrompt(
   budgetMs: number
 ) {
   await expect
-    .poll(async () => /notiz\.txt[\s\S]*azubi@rw-srv01/.test((await rows.textContent()) ?? ''), {
+    .poll(async () => /log-zeile\.txt[\s\S]*azubi@rw-srv01/.test((await rows.textContent()) ?? ''), {
       timeout: Math.max(1, budgetMs - (Date.now() - start)),
       intervals: [20, 50, 100],
     })
@@ -27,7 +30,7 @@ async function messePrompt(
 }
 
 async function messePager(page: import('@playwright/test').Page, start: number, budgetMs: number) {
-  await expect(page.getByTestId('pager')).toContainText('Erledigt: Lege eine Notiz an', {
+  await expect(page.getByTestId('pager')).toContainText('Erledigt: Sichere die passende Audit-Zeile', {
     timeout: Math.max(1, budgetMs - (Date.now() - start)),
   });
   return Date.now() - start;
@@ -39,9 +42,11 @@ test('Staffel 2: der Prompt blockiert nicht und die Prüfung meldet im Pager', a
   await page.goto(STAFFEL2);
   await expect(page.getByTestId('v86-status')).toContainText('echtes Linux', { timeout: 90_000 });
   const rows = await warteAufPrompt(page, 'rw-srv01');
+  // Der Auftrag erscheint erst, wenn das Setup der Episode durch ist; gemessen wird ab Enter.
+  await expect(page.getByTestId('pager')).toContainText(ANFANG, { timeout: 30_000 });
   await page.getByTestId('v86-terminal').click();
 
-  const befehl = 'printf x > ~/belege/notiz.txt';
+  const befehl = AUDIT_BEFEHL;
   await page.keyboard.type(befehl);
   const start = Date.now();
   await page.keyboard.press('Enter');
@@ -63,11 +68,13 @@ test('Staffel 2: unter CPU-Drosselung meldet die Prüfung weiter im Pager', asyn
   await expect(page.getByTestId('v86-status')).toContainText('echtes Linux', { timeout: 90_000 });
   const rows = await warteAufPrompt(page, 'rw-srv01');
 
+  await expect(page.getByTestId('pager')).toContainText(ANFANG, { timeout: 90_000 });
+
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 6 });
   await page.getByTestId('v86-terminal').click();
 
-  await page.keyboard.type('printf x > ~/belege/notiz.txt');
+  await page.keyboard.type(AUDIT_BEFEHL);
   const start = Date.now();
   await page.keyboard.press('Enter');
 

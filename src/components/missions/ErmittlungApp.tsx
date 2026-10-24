@@ -7,7 +7,7 @@ import type {
   ErmittlungsZustand,
   Spur,
 } from '../../lib/missions/ermittlungTypes';
-import type { MissionCommand, MissionReply } from '../../lib/missions/missionTypes';
+import type { MissionCommand, MissionReply, MissionTool } from '../../lib/missions/missionTypes';
 import { einsatzrahmenSetupSkript } from '../../lib/missions/einsatzrahmenSetup';
 import { anhaengen, satz } from '../../lib/missions/pager';
 import type { PagerArt, PagerNachricht, Pose } from '../../lib/missions/pager';
@@ -24,6 +24,7 @@ import {
 import Ansichten from './Ansichten';
 import EinsatzrahmenHinweis from './EinsatzrahmenHinweis';
 import ErmittlungsAbschluss from './ErmittlungsAbschluss';
+import ErmittlungsHilfe from './ErmittlungsHilfe';
 import Pager from './Pager';
 import Spurenliste from './Spurenliste';
 import VorwurfDialog from './VorwurfDialog';
@@ -37,6 +38,8 @@ const MISSION_HINWEIS = 'In Staffel 2 gibt es mission noch nicht. Schau in den P
 interface ErmittlungAppProps {
   ermittlung: Ermittlung;
   hostname?: string;
+  /** Karten des Werkzeugkastens in der Hilfe; ohne sie gibt es nur die Tipps. */
+  werkzeuge?: readonly MissionTool[];
 }
 
 type Bereich = 'ansicht' | 'terminal';
@@ -47,13 +50,15 @@ function ersteSpur(spuren: readonly Spur[], zustand: ErmittlungsZustand): Spur |
 }
 
 export default function ErmittlungApp(props: ErmittlungAppProps) {
-  const { ermittlung, hostname = STAFFEL2_HOSTNAME } = props;
+  const { ermittlung, hostname = STAFFEL2_HOSTNAME, werkzeuge } = props;
   const [pager, setPager] = useState<PagerNachricht[]>([]);
   const [pruefHinweis, setPruefHinweis] = useState<string | null>(null);
   const [rahmenFehler, setRahmenFehler] = useState<string | null>(null);
   const [bereich, setBereich] = useState<Bereich>('terminal');
   const [anzeigeZustand, setAnzeigeZustand] = useState<ErmittlungsZustand>(startZustand);
   const [setupGeneration, setSetupGeneration] = useState(0);
+  // Zählt nur erfolgreiche Setups: Ein gescheitertes setzt die gezeigten Tipps nicht zurück.
+  const [hilfeStand, setHilfeStand] = useState(0);
   const [aktiveSpurId, setAktiveSpurId] = useState<string | null>(
     () => ersteSpur(ermittlung.spuren, startZustand())?.id ?? null
   );
@@ -160,6 +165,7 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
       setAktiveSpurId(startSpur?.id ?? null);
       setAusgewaehlteBelegIds([]);
       setSetupGeneration(version);
+      setHilfeStand(version);
       setPager([]);
       setPruefHinweis(null);
       lauf.current = erzeugePruefLauf({
@@ -372,8 +378,14 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
     if (anzeigeZustand.geloest) document.getElementById('ermittlung-abschluss')?.focus();
   }, [anzeigeZustand.geloest]);
 
+  const aktiveSpur = ermittlung.spuren.find((spur) => spur.id === aktiveSpurId) ?? null;
+
   return (
     <div className="grid gap-4 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
+      <h2 className="ds-display-s text-[color:var(--ink)]">
+        Episode {ermittlung.nr}{' '}
+        <span className="text-[color:var(--muted)]">· {ermittlung.titel}</span>
+      </h2>
       <Pager nachrichten={pager} />
       {rahmenFehler && <p role="alert">{rahmenFehler}</p>}
       {pruefHinweis && <p role="status">{pruefHinweis}</p>}
@@ -416,6 +428,13 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
             zustand={anzeigeZustand}
             aktiveSpurId={aktiveSpurId}
             onSpurWaehlen={waehleSpur}
+          />
+          {/* Neuer key nach erfolgreichem Setup: gezeigte Tipps beginnen wieder bei null. */}
+          <ErmittlungsHilfe
+            key={hilfeStand}
+            spurId={aktiveSpur?.id ?? null}
+            schritt={aktiveSpur ? aktuellerSchritt(aktiveSpur, anzeigeZustand) : null}
+            werkzeuge={werkzeuge}
           />
           <Ansichten
             ansichten={ermittlung.ansichten}
