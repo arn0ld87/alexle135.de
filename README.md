@@ -153,9 +153,8 @@ pnpm check:hygiene     # Repo-Hygiene gegen generierte Artefakte
 
 GitHub Actions führt diese Gates pro Pull Request und auf `main` aus:
 
-- **ci.yml** – Lint, Format, `astro check`, Unit- und Integrationstests mit Coverage-Gate (v8, global 70/60/70/70, Security-Leitplanken höher), Postgres-Migrationen mit Schema-Verifikation, SSR-Build, HTML-Validierung (`html-validate`), interner Link-Check, A11y-Regression (`axe-core`), `pnpm audit --audit-level=high` und Produktionsimage-Build mit Smoke-Test.
-- **bundle-size.yml** – Client-JS-Budget-Gate.
-- **lighthouse.yml** – Lighthouse-Gates für Performance, SEO, Best Practices, LCP, CLS und Byte-Budget (`unused-javascript` als hartes Gate).
+- **ci.yml** – Lint, Format, `astro check`, Unit- und Integrationstests mit Coverage-Gate (v8, global 70/60/70/70, Security-Leitplanken höher), Postgres-Migrationen mit Schema-Verifikation, SSR-Build, Bundle-Budget (`pnpm check:bundle`), HTML-Validierung (`html-validate`), interner Link-Check, A11y-Regression (`axe-core`), `pnpm audit --audit-level=high` und Produktionsimage-Build mit Smoke-Test.
+- **lighthouse.yml** – nur manuell (`workflow_dispatch`) und wöchentlich (`schedule`), nicht pro PR: Lighthouse-Gates für Performance, SEO, Best Practices, LCP, CLS und Byte-Budget (`unused-javascript` als hartes Gate).
 - **deploy.yml** – Image-Build (arm64) und Push nach ghcr.io, Pull auf dem VPS, Container-Neustart hinter Traefik, CSP/COEP-Header-Smoke, Health-Gate und Auto-Rollback bei rot.
 
 Zusätzlich werden E2E-Tests via Playwright ausgeführt (Kontakt, Admin-Login,
