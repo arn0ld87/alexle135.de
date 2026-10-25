@@ -14,9 +14,11 @@ import {
 import { LOESUNG } from '../staffeln/staffel-2/episode-1';
 
 describe('Staffel 2: registrierte Episoden', () => {
-  it('stehen in Spielreihenfolge ab 0 mit eindeutigen Nummern und IDs', () => {
+  it('stehen in Spielreihenfolge ab 0 mit aufsteigenden Nummern (Lücken erlaubt) und eindeutigen IDs', () => {
     expect(staffel2Episoden.length).toBeGreaterThanOrEqual(2);
-    expect(staffel2Episoden.map((e) => e.ermittlung.nr)).toEqual(staffel2Episoden.map((_, i) => i));
+    const nummern = staffel2Episoden.map((e) => e.ermittlung.nr);
+    expect(nummern[0]).toBe(0);
+    expect(nummern).toEqual([...new Set(nummern)].sort((a, b) => a - b));
     const ids = staffel2Episoden.map((e) => e.ermittlung.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
@@ -106,11 +108,11 @@ describe('Staffel 2: Verkettung weiter', () => {
   });
 
   it('führt der Link auf eine Episode, die waehleEpisode findet', () => {
-    for (const eintrag of staffel2Episoden) {
+    staffel2Episoden.forEach((eintrag, i) => {
       const weiter = weiterZurNaechsten(eintrag.ermittlung);
-      if (!weiter) continue;
+      if (!weiter) return;
       const wert = new URL(weiter.href, 'https://example.test').searchParams.get('episode');
-      expect(waehleEpisode(wert).ermittlung.nr).toBe(eintrag.ermittlung.nr + 1);
-    }
+      expect(waehleEpisode(wert)).toBe(staffel2Episoden[i + 1]);
+    });
   });
 });

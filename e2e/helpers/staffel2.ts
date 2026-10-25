@@ -7,8 +7,10 @@ import axe from 'axe-core';
 export const STAFFEL2_BASIS = '/projekte/terminal-missionen/app/staffel-2';
 export const STAFFEL2 = `${STAFFEL2_BASIS}?episode=1`;
 export const STAFFEL2_E0 = `${STAFFEL2_BASIS}?episode=0`;
+export const STAFFEL2_E3 = `${STAFFEL2_BASIS}?episode=3`;
 export const ANFANG = 'Serverraum der Rechenwerk Ostwind GmbH';
 export const ANFANG_E0 = 'Erster Einsatztag bei der Rechenwerk Ostwind GmbH';
+export const ANFANG_E3 = 'Nachtschicht bei der Rechenwerk Ostwind GmbH';
 
 // Geprüfte Lösungswege aus Episode 1 (identisch zu e2e/07).
 export const LOG = 'grep sudoers.d /var/log/rechenwerk-audit.log > ~/belege/log-zeile.txt';
@@ -47,6 +49,8 @@ export const BELEG_DATEI = {
   'rechte-metadaten': 'rechte-metadaten.txt',
   'kasse-meta': 'kasse-meta.txt',
   'kasse-zeilen': 'kasse-zeilen.txt',
+  'luecke-zeilen': 'luecke-zeilen.txt',
+  'konten-zaehlung': 'konten-zaehlung.txt',
 } as const;
 export type BelegId = keyof typeof BELEG_DATEI;
 
@@ -70,7 +74,7 @@ export async function startEpisode(
     width?: number;
     height?: number;
     reducedMotion?: boolean;
-    episode?: 0 | 1;
+    episode?: 0 | 1 | 3;
     /** Ruft die Seite ohne `?episode=` auf; `episode` bestimmt dann nur, worauf gewartet wird. */
     ohneAngabe?: boolean;
   } = {}
@@ -84,7 +88,9 @@ export async function startEpisode(
   } = opts;
   await page.setViewportSize({ width, height });
   if (reducedMotion) await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto(ohneAngabe ? STAFFEL2_BASIS : episode === 0 ? STAFFEL2_E0 : STAFFEL2);
+  await page.goto(
+    ohneAngabe ? STAFFEL2_BASIS : { 0: STAFFEL2_E0, 1: STAFFEL2, 3: STAFFEL2_E3 }[episode]
+  );
   const consent = page.locator('#cookie-banner');
   if (await consent.isVisible()) {
     await consent.getByRole('button', { name: 'Ablehnen', exact: true }).click();
@@ -92,7 +98,7 @@ export async function startEpisode(
   await expect(page.getByTestId('v86-status')).toContainText('echtes Linux', { timeout: 120_000 });
   await expect(rows(page)).toContainText(/azubi@rw-srv01/, { timeout: 120_000 });
   // Erst nach dem Setup steht die Startauswahl fest.
-  await expect(pager(page)).toContainText(episode === 0 ? ANFANG_E0 : ANFANG, {
+  await expect(pager(page)).toContainText({ 0: ANFANG_E0, 1: ANFANG, 3: ANFANG_E3 }[episode], {
     timeout: 60_000,
   });
 }

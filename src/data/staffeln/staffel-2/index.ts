@@ -2,6 +2,7 @@ import type { Ermittlung } from '../../../lib/missions/ermittlungTypes';
 import type { MissionTool } from '../../../lib/missions/missionTypes';
 import { episode0, episode0Werkzeuge } from './episode-0';
 import { episode1, episode1Werkzeuge } from './episode-1';
+import { episode3, episode3Werkzeuge } from './episode-3';
 
 export const STAFFEL2_PFAD = '/projekte/terminal-missionen/app/staffel-2';
 
@@ -18,6 +19,7 @@ export interface EpisodeEintrag {
 export const staffel2Episoden: readonly EpisodeEintrag[] = [
   { ermittlung: episode0, werkzeuge: episode0Werkzeuge },
   { ermittlung: episode1, werkzeuge: episode1Werkzeuge },
+  { ermittlung: episode3, werkzeuge: episode3Werkzeuge },
 ];
 
 /** Die Episode zum Wert von `?episode=`; fehlt er oder ist er unbekannt, gilt die erste. */

@@ -58,3 +58,5 @@ crontab	Zeigt mit -l die geplanten Aufgaben eines Benutzers, mit - liest es eine
 ps	Zeigt laufende Prozesse mit Nummer (PID), Benutzer und Befehl.	ps
 kill	Beendet einen Prozess über seine Nummer (PID).	kill 4711
 pkill	Beendet Prozesse nach Name, mit -u alle Prozesse eines Benutzers.	pkill -u gast
+awk	Liest Zeile für Zeile und holt Spalten oder filtert nach Mustern; $2 ist die zweite Spalte.	awk -F: '{print $1}' /etc/passwd
+diff	Vergleicht zwei Dateien Zeile für Zeile und zeigt, was nur in der einen oder der anderen steht.	diff alt.txt neu.txt
