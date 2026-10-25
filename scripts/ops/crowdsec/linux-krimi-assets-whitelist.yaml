@@ -9,8 +9,8 @@
 # Eng gefasst: nur GET, nur /missions/linux/, nur erfolgreiche Antworten.
 # 404-Probing auf erfundene Pfade zählt weiter.
 name: local/linux-krimi-assets-whitelist
-description: "Linux-Krimi-VM-Assets (inhaltsadressiert) nicht als Crawler werten"
+description: 'Linux-Krimi-VM-Assets (inhaltsadressiert) nicht als Crawler werten'
 whitelist:
-  reason: "Linux-Krimi VM-Dateisystem, legitime Massenabrufe"
+  reason: 'Linux-Krimi VM-Dateisystem, legitime Massenabrufe'
   expression:
     - "evt.Meta.http_verb == 'GET' && evt.Meta.http_path startsWith '/missions/linux/' && evt.Meta.http_status in ['200', '206', '304']"
