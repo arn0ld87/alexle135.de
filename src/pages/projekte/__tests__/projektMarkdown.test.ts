@@ -47,7 +47,7 @@ function ueberschriften(rumpf: string): { ebene: number; titel: string }[] {
 }
 
 describe('Projekteinträge: Bestand', () => {
-  it.each([...STANDARD_EINTRAEGE, 'agora', 'terminal-missionen'])('%s ist noch da', (slug) => {
+  it.each([...STANDARD_EINTRAEGE, 'agora', 'terminal-missionen', 'linux-krimi-staffel-2'])('%s ist noch da', (slug) => {
     expect(eintraege).toContain(`${slug}.md`);
   });
 });

@@ -1,23 +1,31 @@
 // @vitest-environment node
-// Trailer „Linux-Krimi“ (E3.1): zwei MP4-Größen und ein Poster unter public/missions/trailer/.
+// Trailer „Linux-Krimi“ (E3.1): je Staffel zwei MP4-Größen und ein Poster unter public/missions/trailer/.
 // Der Master bleibt außerhalb des Repos (ADR 0003); die Dateinamen tragen einen Inhalts-Hash.
 import { readFileSync, readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 const ORDNER = 'public/missions/trailer';
 
-const eindeutig = (muster: RegExp) => {
+// Hash-Präfixe der Dateien je Staffel; jede Staffel hat genau eine Datei je Art.
+const STAFFELN = [
+  { name: 'Staffel 1', v1080: '9a1831d9', v720: '8ce2ab02', karte: '8558534e', og: 'd5e9bbfa' },
+  { name: 'Staffel 2', v1080: '0a602062', v720: '89a712a0', karte: '1d372779', og: '65a03034' },
+];
+
+const eindeutig = (muster: RegExp, hash: string) => {
   const treffer = readdirSync(ORDNER).filter((name) => muster.test(name));
-  expect(treffer).toHaveLength(1);
-  return `${ORDNER}/${treffer[0]}`;
+  expect(treffer).toHaveLength(STAFFELN.length);
+  const eigene = treffer.filter((name) => name.includes(`-${hash}.`));
+  expect(eigene).toHaveLength(1);
+  return `${ORDNER}/${eigene[0]}`;
 };
 
-describe('Trailer', () => {
+describe.each(STAFFELN)('Trailer $name', ({ v1080, v720, karte, og }) => {
   it.each([
-    ['1080p', /^trailer-1080-[0-9a-f]{8}\.mp4$/, 7],
-    ['720p', /^trailer-720-[0-9a-f]{8}\.mp4$/, 4],
-  ])('%s: genau ein MP4 mit moov vor mdat, höchstens %i MB', (_name, muster, maxMb) => {
-    const video = readFileSync(eindeutig(muster));
+    ['1080p', /^trailer-1080-[0-9a-f]{8}\.mp4$/, v1080, 7],
+    ['720p', /^trailer-720-[0-9a-f]{8}\.mp4$/, v720, 4],
+  ])('%s: genau ein MP4 mit moov vor mdat, höchstens %i MB', (_name, muster, hash, maxMb) => {
+    const video = readFileSync(eindeutig(muster, hash));
     expect(video.length).toBeLessThanOrEqual(maxMb * 1024 * 1024);
     expect(video.subarray(4, 8).toString('latin1')).toBe('ftyp');
     // Faststart: Index (moov) steht vorn, damit das Video ohne vollständigen Download startet.
@@ -29,7 +37,7 @@ describe('Trailer', () => {
   });
 
   it('Titelkarte: genau ein JPEG, höchstens 300 KB', () => {
-    const bild = readFileSync(eindeutig(/^titelkarte-[0-9a-f]{8}\.jpg$/));
+    const bild = readFileSync(eindeutig(/^titelkarte-[0-9a-f]{8}\.jpg$/, karte));
     expect(bild.length).toBeLessThanOrEqual(300 * 1024);
     expect(bild[0]).toBe(0xff);
     expect(bild[1]).toBe(0xd8);
@@ -37,7 +45,7 @@ describe('Trailer', () => {
 
   // V2Layout zeichnet jedes og:image mit 1200 × 630 aus; das Vorschaubild muss genau so groß sein.
   it('Vorschaubild: genau ein JPEG mit 1200 × 630, höchstens 300 KB', () => {
-    const bild = readFileSync(eindeutig(/^titelkarte-og-[0-9a-f]{8}\.jpg$/));
+    const bild = readFileSync(eindeutig(/^titelkarte-og-[0-9a-f]{8}\.jpg$/, og));
     expect(bild.length).toBeLessThanOrEqual(300 * 1024);
     expect(bild[0]).toBe(0xff);
     expect(bild[1]).toBe(0xd8);

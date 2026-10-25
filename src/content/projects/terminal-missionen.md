@@ -30,7 +30,7 @@ trailer:
     - 'Das Problem beim Linux-Lernen: Sonst heißt es erst mal stundenlang einrichten. Server mieten, eine virtuelle Maschine aufsetzen, Software installieren, bevor der erste Befehl läuft.'
     - 'Hier nicht: Link öffnen, loslegen. Das echte Linux läuft direkt in deinem Browser-Tab. Du musst nichts installieren und keine VM einrichten.'
     - 'Ein Linux-Krimi, Staffel 1: Fall Kehrwoche. Ein Spiel mit echtem Linux: acht Episoden, eine Rätselgeschichte. Jetzt im Browser spielen.'
-publishedAt: 2025-11-19
+publishedAt: 2026-10-23
 featured: true
 appUrl: '/projekte/terminal-missionen/app/'
 ---
@@ -57,9 +57,9 @@ Episode 0 bringt nur die Bedienung bei und zählt nicht zur Gesamtzeit. Das Fina
 
 [Staffel 1 „Fall Kehrwoche“ spielen →](/projekte/terminal-missionen/app/)
 
-## Staffel 2: Rechenwerk Ostwind (Vorschau)
+## Staffel 2: Rechenwerk Ostwind
 
-In Staffel 2 prüfst du mit dem Testkonto azubi die Server der Rechenwerk Ostwind GmbH, innerhalb eines schriftlich vereinbarten Einsatzrahmens. Du verfolgst mehrere Spuren in freier Reihenfolge, sicherst Belege mit Shell-Befehlen in `~/belege/` und erhebst auf der Aktenwand einen Vorwurf, den du belegen musst. Spielbar sind Episode 0 „Probelauf“ und Episode 1 „Zu viele Rechte“; weitere Episoden folgen.
+In Staffel 2 prüfst du als Junior-Pentester die Server einer Firma, sicherst Belege und beweist einen Verdacht. Episode 0 bis 3 sind spielbar. Mehr dazu auf der [Projektseite zu Staffel 2](/projekte/linux-krimi-staffel-2/).
 
 [Staffel 2 „Rechenwerk Ostwind“ spielen →](/projekte/terminal-missionen/app/staffel-2/)
 

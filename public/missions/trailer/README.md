@@ -25,3 +25,17 @@ Das WebP-Hero `linux-krimi-titelkarte.webp` (1600×900, 88 KB) entsteht aus dems
 | `titelkarte-og-d5e9bbfa.jpg` | 92 KB   |
 
 E3.3 trägt diese Dateinamen in die Projektseite ein. `titelkarte-8558534e.jpg` ist das Poster des Videos; `titelkarte-og-d5e9bbfa.jpg` (1200 × 630, wie `V2Layout` es für `og:image` ausweist) ist das Vorschaubild für Projektseite und App.
+
+## Staffel 2
+
+Der Master `linux-krimi-s2-trailer_master.mp4` (1920×1080, 30 fps, 71 s, mit Sprache) liegt auf gns3 unter `~/assets/linux-krimi/trailer-s2/` und kommt nicht ins Repo (ADR 0003). Kodiert mit denselben Befehlen wie oben, nur Titelkarte und OG-Bild aus dem Frame bei 67 s (die Schlusskarte). Die Untertitel `untertitel-076b19d3.vtt` stammen unverändert aus der Lieferung (`sprechertext.vtt`).
+
+| Datei                        | Größe   |
+| ---------------------------- | ------- |
+| `trailer-1080-0a602062.mp4`  | 3655 KB |
+| `trailer-720-89a712a0.mp4`   | 2266 KB |
+| `titelkarte-1d372779.jpg`    | 100 KB  |
+| `titelkarte-og-65a03034.jpg` | 31 KB   |
+| `untertitel-076b19d3.vtt`    | 2 KB    |
+
+Das WebP-Hero `linux-krimi-staffel-2-titelkarte.webp` (1600×900) liegt in `src/assets/projects/`.
