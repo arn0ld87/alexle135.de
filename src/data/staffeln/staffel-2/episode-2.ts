@@ -111,6 +111,14 @@ touch -d ${sh(ZEIT_CRON)} ${sh(CRONTAB)}
 printf '%s\n' ${JOURNAL_ZEILEN.map(sh).join(' ')} > "$tmp/journal"
 install -o root -g root -m 0644 "$tmp/journal" ${sh(JOURNAL)}
 touch -d ${sh(ZEIT_JOURNAL)} ${sh(JOURNAL)}
+# Prozesse vor dem Foto: bildbeleg lädt im Browser beim ersten Mal Schriften und Bibliotheken nach
+# und braucht dafür Minuten. Wer gleich mit ps anfängt, soll den Wiedergänger schon sehen.
+pgrep -x crond >/dev/null || crond -c /etc/crontabs
+for _ in 1 2 3 4 5 6 7 8 9 10; do pgrep -x crond >/dev/null && break; sleep 0.5; done
+pgrep -x crond >/dev/null || fehler 'crond startet nicht.'
+setsid su -s /bin/sh ${DIENST} -c ${sh(SKRIPT)} </dev/null >/dev/null 2>&1 &
+for _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do pgrep -x ${PROZESS} >/dev/null && break; sleep 0.5; done
+pgrep -x ${PROZESS} >/dev/null || fehler 'Der Prozess läuft nicht.'
 install -d -o azubi -g azubi -m 0755 ${sh(FOTOS)}
 rm -f -- ${sh(ZETTEL)}
 LC_ALL=C.UTF-8 bildbeleg ${sh(ZETTEL)} <<'EOF'
@@ -118,12 +126,6 @@ ${ZETTEL_TEXT.join('\n')}
 EOF
 chown azubi:azubi ${sh(ZETTEL)}
 chmod 0644 ${sh(ZETTEL)}
-pgrep -x crond >/dev/null || crond -c /etc/crontabs
-for _ in 1 2 3 4 5 6 7 8 9 10; do pgrep -x crond >/dev/null && break; sleep 0.5; done
-pgrep -x crond >/dev/null || fehler 'crond startet nicht.'
-setsid su -s /bin/sh ${DIENST} -c ${sh(SKRIPT)} </dev/null >/dev/null 2>&1 &
-for _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do pgrep -x ${PROZESS} >/dev/null && break; sleep 0.5; done
-pgrep -x ${PROZESS} >/dev/null || fehler 'Der Prozess läuft nicht.'
 [ "$(stat -c '%U:%G:%a' ${sh(CRONTAB)})" = root:root:600 ] || fehler 'Die Cron-Liste hat falsche Rechte.'
 [ "$(stat -c '%U:%G:%a' ${sh(JOURNAL)})" = root:root:644 ] || fehler 'Das Journal hat falsche Rechte.'
 [ "$(stat -c '%U:%G:%a' ${sh(ZETTEL)})" = azubi:azubi:644 ] || fehler 'Das Foto hat falsche Rechte.'
