@@ -1,0 +1,16 @@
+# Linux-Krimi: VM-Dateisystem nicht als Crawling werten.
+#
+# Grund: Die Spielseiten unter /projekte/terminal-missionen/app/ laden das
+# Alpine-Image als viele einzelne, inhaltsadressierte Dateien
+# (/missions/linux/alpine-rootfs-flat/<hash>.bin.zst). Ab Staffel 2, Episode 2
+# (Bildschirm) sind das tausende Anfragen pro Spielstart. Am 25.10.2026 hat
+# crowdsecurity/http-crawl-non_statics deshalb einen echten Spieler gesperrt.
+#
+# Eng gefasst: nur GET, nur /missions/linux/, nur erfolgreiche Antworten.
+# 404-Probing auf erfundene Pfade zählt weiter.
+name: local/linux-krimi-assets-whitelist
+description: 'Linux-Krimi-VM-Assets (inhaltsadressiert) nicht als Crawler werten'
+whitelist:
+  reason: 'Linux-Krimi VM-Dateisystem, legitime Massenabrufe'
+  expression:
+    - "evt.Meta.http_verb == 'GET' && evt.Meta.http_path startsWith '/missions/linux/' && evt.Meta.http_status in ['200', '206', '304']"

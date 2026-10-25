@@ -195,6 +195,12 @@ Details zum konkreten Produktionssystem sind bewusst nicht Teil der
 öffentlichen Dokumentation. Rollback-Abläufe sind in
 [`docs/DEPLOY-ROLLBACK.md`](docs/DEPLOY-ROLLBACK.md) beschrieben.
 
+Die Terminal-Missionen laden das VM-Dateisystem als tausende kleine Dateien
+unter `/missions/linux/`. Ein IPS wie CrowdSec wertet das sonst als Crawling
+und sperrt Spieler. Die passende Ausnahme liegt unter
+`scripts/ops/crowdsec/linux-krimi-assets-whitelist.yaml` und gehört nach
+`/etc/crowdsec/parsers/s02-enrich/` (danach `systemctl reload crowdsec`).
+
 ## Sicherheit
 
 Die Anwendung kombiniert mehrere Schutzschichten:
