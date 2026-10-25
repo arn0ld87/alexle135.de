@@ -8,7 +8,8 @@ on:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Nur PR-Läufe abbrechen: Auf main bekommt jeder Merge seinen vollständigen Lauf.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   lint:
@@ -236,6 +237,10 @@ jobs:
 
       - name: Build (SSR)
         run: pnpm build
+
+      # Client-JS- und Bildbudget auf dem SSR-Build (vorher eigener Workflow bundle-size)
+      - name: Check bundle size
+        run: pnpm check:bundle
 
       # Technische Prüfungen nach dem Build (#200)
       - name: HTML validation (html-validate)

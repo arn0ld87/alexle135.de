@@ -165,33 +165,18 @@ const isActive = (href: string) => currentPath.startsWith(href);
 </style>
 
 <script>
-  // Close mobile menu on outside click and on navigation.
+  // Close mobile menu on outside click and on navigation; Aufräumen in astro:before-swap.
+  import { bindMobileMenu } from '../../lib/mobileMenu';
+
+  const cleanups: (() => void)[] = [];
+
   function initMobileMenu() {
     const details = document.getElementById('mobile-menu') as HTMLDetailsElement | null;
-    if (!details) return;
-    if (details.dataset.initialized === 'true') return;
-    details.dataset.initialized = 'true';
-
-    document.addEventListener('click', (e) => {
-      if (!details.open) return;
-      if (!details.contains(e.target as Node)) details.open = false;
-    });
-
-    // Listener am details-Element (nicht document): wird mit dem Element per
-    // View Transition entfernt → kein akkumulierendes Leak (Gemini #185).
-    details.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && details.open) {
-        details.open = false;
-        details.querySelector('summary')?.focus();
-      }
-    });
-
-    details.querySelectorAll('a').forEach((a) => {
-      a.addEventListener('click', () => {
-        details.open = false;
-      });
-    });
+    if (details) cleanups.push(bindMobileMenu(details));
   }
 
   document.addEventListener('astro:page-load', initMobileMenu);
+  document.addEventListener('astro:before-swap', () => {
+    for (const cleanup of cleanups.splice(0)) cleanup();
+  });
 </script>
