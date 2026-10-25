@@ -2,11 +2,16 @@
 import { describe, expect, it, vi } from 'vitest';
 import { startZustand } from '../ermittlung';
 import { erzeugePruefLauf, type PruefFehler, type PruefLaufOptionen } from '../pruefLauf';
-import type { Ermittlung, ErmittlungsEreignis, ErmittlungsZustand } from '../ermittlungTypes';
-import type { VorfallSchritt } from '../staffelTypes';
+import type {
+  Ermittlung,
+  ErmittlungsEreignis,
+  ErmittlungsSchritt,
+  ErmittlungsZustand,
+} from '../ermittlungTypes';
 import { bashAntwort, fakeAgentClient, type FakeAntwort } from './fakeAgent';
 
-const schritt = (id: string, verify: string): VorfallSchritt => ({
+const schritt = (id: string, verify: string): ErmittlungsSchritt => ({
+  art: 'sichern',
   id,
   title: `Schritt ${id}`,
   pager: [`Schritt ${id}`],

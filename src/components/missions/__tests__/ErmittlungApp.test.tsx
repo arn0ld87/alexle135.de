@@ -6,7 +6,7 @@ import { abfrageSkript } from '../../../lib/missions/abfrage';
 import { AKTENWAND_ABFRAGE } from '../../../lib/missions/aktenwand';
 import type { AgentClient, AgentResult } from '../../../lib/missions/agentClient';
 import { pruefeDaten } from '../../../lib/missions/ermittlung';
-import type { Ermittlung } from '../../../lib/missions/ermittlungTypes';
+import type { Ermittlung, Schrittart } from '../../../lib/missions/ermittlungTypes';
 import type { MissionCommand, MissionReply } from '../../../lib/missions/missionTypes';
 import { einsatzrahmenSetupSkript } from '../../../lib/missions/einsatzrahmenSetup';
 import { rahmenSetupSkript } from '../../../lib/missions/staffel2Rahmen';
@@ -299,7 +299,13 @@ describe('ErmittlungApp', () => {
   });
 });
 
-const schrittFixture = (id: string, title: string, pager: string[]) => ({
+const schrittFixture = (
+  id: string,
+  title: string,
+  pager: string[],
+  art: Schrittart = 'sichern'
+) => ({
+  art,
   id,
   title,
   pager,
@@ -322,14 +328,24 @@ const zweiSpuren: Ermittlung = {
       titel: 'Ankommen',
       schritte: [
         schrittFixture('notiz', 'Lege eine Notiz an', ['A1: Lege notiz.txt an.']),
-        schrittFixture('abschluss', 'Ergänze fertig in notiz.txt', ['A2: Ergänze fertig.']),
+        schrittFixture(
+          'abschluss',
+          'Ergänze fertig in notiz.txt',
+          ['A2: Ergänze fertig.'],
+          'eingreifen'
+        ),
       ],
     },
     {
       id: 'protokoll',
       titel: 'Protokoll',
       schritte: [
-        schrittFixture('protokoll', 'Lege ein Protokoll an', ['B1: Lege protokoll.txt an.']),
+        schrittFixture(
+          'protokoll',
+          'Lege ein Protokoll an',
+          ['B1: Lege protokoll.txt an.'],
+          'reparieren'
+        ),
         schrittFixture('abschluss', 'Ergänze fertig in protokoll.txt', ['B2: Ergänze fertig.']),
       ],
     },
@@ -1186,5 +1202,109 @@ describe('ErmittlungApp: Episodenkopf und Hilfe (T9)', () => {
     });
     expect(screen.getByRole('alert')).toBeInTheDocument();
     expect(screen.getByText('Richtung')).toBeInTheDocument();
+  });
+});
+
+describe('ErmittlungApp: Schrittart ablesen', () => {
+  const frage = 'Wann beginnt die Lücke? (HH:MM)';
+  // Fixture im Test: erste Spur beginnt mit einem Ablesen-Schritt, die zweite mit einem Sichern-Schritt.
+  const ablesenErmittlung: Ermittlung = {
+    ...zweiSpuren,
+    spuren: [
+      {
+        ...zweiSpuren.spuren[0],
+        schritte: [
+          {
+            ...schrittFixture('luecke', 'Lies die Lücke ab', ['A1: Lies die Lücke ab.'], 'ablesen'),
+            verify: 'false',
+            antwort: { frage, format: 'HH:MM', pruefung: '[ "$ANTWORT" = "02:30" ]' },
+          },
+          schrittFixture('danach', 'Sichere den Rest', ['A2: Sichere.'], 'eingreifen'),
+        ],
+      },
+      zweiSpuren.spuren[1],
+    ],
+  };
+  const istAntwort = (skript: string) => skript.startsWith('ANTWORT=$(printf');
+  const antwortAufrufe = () => run.mock.calls.filter((call) => istAntwort(call[0] as string));
+  const feld = () => screen.getByLabelText(frage);
+  const antworte = async (text: string) => {
+    const user = userEvent.setup();
+    await user.clear(feld());
+    await user.type(feld(), text);
+    await user.click(screen.getByRole('button', { name: 'Antworten' }));
+  };
+
+  const starteAblesen = async (antwortExit = 0) => {
+    run.mockImplementation(async (skript: string) => {
+      if (istAntwort(skript)) return { exitCode: antwortExit, output: '' };
+      return istAbfrage(skript)
+        ? { exitCode: 0, output: 'host\trw-srv01\nende\t1\t0\n' }
+        : { exitCode: 0, output: '' };
+    });
+    render(<ErmittlungApp ermittlung={ablesenErmittlung} />);
+    await waitFor(() => expect(pagerText()).toContain('A1: Lies die Lücke ab.'));
+  };
+
+  it('ist ein gültiger Datensatz', () => {
+    expect(pruefeDaten(ablesenErmittlung)).toEqual([]);
+  });
+
+  it('zeigt das Antwortfeld nur bei aktivem Ablesen-Schritt', async () => {
+    await starteAblesen();
+    const eingabe = feld();
+    expect(eingabe).toHaveAttribute('maxlength', '64');
+    expect(eingabe).toHaveAttribute('autocomplete', 'off');
+    expect(eingabe).toHaveAttribute('placeholder', 'HH:MM');
+    const beschreibung = document.getElementById(eingabe.getAttribute('aria-describedby') ?? '');
+    expect(beschreibung?.textContent).toContain('HH:MM');
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Protokoll, 0 von 2 Schritten erledigt' }));
+    expect(screen.queryByLabelText(frage)).not.toBeInTheDocument();
+  });
+
+  it('zeigt kein Antwortfeld bei Schritten anderer Arten', async () => {
+    run.mockImplementation(async (skript: string) =>
+      istAbfrage(skript)
+        ? { exitCode: 0, output: 'host\trw-srv01\nende\t1\t0\n' }
+        : { exitCode: 0, output: '' }
+    );
+    render(<ErmittlungApp ermittlung={zweiSpuren} />);
+    await waitFor(() => expect(pagerText()).toContain('A1: Lege notiz.txt an.'));
+    expect(screen.queryByRole('button', { name: 'Antworten' })).not.toBeInTheDocument();
+  });
+
+  it('startet bei ungültigen Zeichen keinen RUN und sagt warum', async () => {
+    await starteAblesen();
+    const vorher = run.mock.calls.length;
+    await antworte('02:30; rm -rf /');
+    await waitFor(() =>
+      expect(pagerText()).toContain('Bitte nur Buchstaben, Ziffern und . : _ / -')
+    );
+    expect(run.mock.calls.length).toBe(vorher);
+  });
+
+  it('erledigt den Schritt bei richtiger Antwort', async () => {
+    await starteAblesen(0);
+    await antworte('  02:30 ');
+    await waitFor(() => expect(pagerText()).toContain('Erledigt: Lies die Lücke ab'));
+    expect(antwortAufrufe()).toHaveLength(1);
+    expect(antwortAufrufe()[0]?.[1]).toBe(10_000);
+    expect(antwortAufrufe()[0]?.[0]).toContain(Buffer.from('02:30').toString('base64'));
+    expect(screen.queryByLabelText(frage)).not.toBeInTheDocument();
+  });
+
+  it('gibt bei falscher Antwort einen freundlichen Hinweis und lässt den Schritt offen', async () => {
+    await starteAblesen(1);
+    await antworte('03:00');
+    await waitFor(() =>
+      expect(pagerText()).toContain(
+        'Das passt nicht zu dem, was das System zeigt. Schau noch mal genau hin.'
+      )
+    );
+    expect(pagerText()).not.toContain('Erledigt: Lies die Lücke ab');
+    expect(feld()).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Antworten' })).toBeEnabled();
   });
 });

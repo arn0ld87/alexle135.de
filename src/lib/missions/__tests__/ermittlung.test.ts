@@ -3,8 +3,10 @@ import { execFileSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
 import {
   PRUEF_ID_VERSTOSS,
+  SCHRITTART_REGELN_AB_EPISODE,
   SPERRE_PRUEFUNGEN,
   aktuellerSchritt,
+  antwortSkript,
   buendelSkript,
   istGesperrt,
   leseBuendelAusgabe,
@@ -16,19 +18,22 @@ import {
   pruefIdBeleg,
   pruefIdSchritt,
   startZustand,
+  wendeAntwortAn,
   wendePruefungAn,
 } from '../ermittlung';
 import type {
   Ermittlung,
   ErmittlungsEreignis,
+  ErmittlungsSchritt,
   ErmittlungsZustand,
   Pruefung,
   PruefungsAusgabe,
+  Schrittart,
 } from '../ermittlungTypes';
-import type { VorfallSchritt } from '../staffelTypes';
 
 // Frei erfundene Episode; kein Import aus src/data/.
-const schritt = (id: string, verify: string): VorfallSchritt => ({
+const schritt = (id: string, verify: string, art: Schrittart = 'sichern'): ErmittlungsSchritt => ({
+  art,
   id,
   title: `Schritt ${id}`,
   pager: [`Schritt ${id}`],
@@ -445,6 +450,195 @@ describe('pruefeDaten', () => {
     );
     expect(fehler).toHaveLength(1);
     expect(fehler[0]).toContain('Einsatzrahmen: leeres verstoss');
+  });
+});
+
+describe('pruefeDaten: Schrittarten', () => {
+  const ab2 = (spuren: Ermittlung['spuren']) => mit({ nr: 2, spuren });
+  const gueltig = [
+    {
+      ...fixture.spuren[0],
+      schritte: [schritt('s1', 'true'), schritt('s2', 'false', 'eingreifen')],
+    },
+    { ...fixture.spuren[1], schritte: [schritt('s1', 'true', 'reparieren')] },
+  ];
+
+  it('akzeptiert Episode 2 mit drei Arten ohne Wiederholung', () => {
+    expect(SCHRITTART_REGELN_AB_EPISODE).toBe(2);
+    expect(pruefeDaten(ab2(gueltig))).toEqual([]);
+  });
+
+  it('meldet eine fehlende oder unbekannte Art', () => {
+    const ohne = { ...schritt('s1', 'true'), art: undefined } as unknown as ErmittlungsSchritt;
+    const falsch = { ...schritt('s2', 'true'), art: 'raten' } as unknown as ErmittlungsSchritt;
+    const fehler = pruefeDaten(
+      mit({ spuren: [{ ...fixture.spuren[0], schritte: [ohne, falsch] }, fixture.spuren[1]] })
+    );
+    expect(fehler).toContain('Schritt "rechte/s1": Schrittart fehlt oder ist unbekannt');
+    expect(fehler).toContain('Schritt "rechte/s2": Schrittart fehlt oder ist unbekannt');
+  });
+
+  it('verlangt eine antwort genau bei ablesen', () => {
+    const antwort = { frage: 'Wann?', format: 'HH:MM', pruefung: 'true' };
+    const fehler = pruefeDaten(
+      mit({
+        spuren: [
+          {
+            ...fixture.spuren[0],
+            schritte: [
+              schritt('s1', 'false', 'ablesen'),
+              { ...schritt('s2', 'true', 'sichern'), antwort },
+            ],
+          },
+          fixture.spuren[1],
+        ],
+      })
+    );
+    expect(fehler).toEqual([
+      'Schritt "rechte/s1": ablesen braucht eine antwort',
+      'Schritt "rechte/s2": antwort gibt es nur bei ablesen',
+    ]);
+  });
+
+  it('verlangt ab Episode 2 mindestens drei verschiedene Arten, davor nicht', () => {
+    const zwei = [
+      {
+        ...fixture.spuren[0],
+        schritte: [schritt('s1', 'true'), schritt('s2', 'false', 'eingreifen')],
+      },
+      fixture.spuren[1],
+    ];
+    expect(pruefeDaten(mit({ nr: 1, spuren: zwei }))).toEqual([]);
+    expect(pruefeDaten(ab2(zwei))).toEqual(['Mindestens 3 verschiedene Schrittarten nötig']);
+  });
+
+  it('lässt in Episode 0 zwei verschiedene Arten genügen', () => {
+    const zwei = [
+      {
+        ...fixture.spuren[0],
+        schritte: [schritt('s1', 'true'), schritt('s2', 'false', 'eingreifen')],
+      },
+      fixture.spuren[1],
+    ];
+    expect(pruefeDaten(mit({ nr: 0, spuren: zwei }))).toEqual([]);
+    expect(pruefeDaten(mit({ nr: 0 }))).toEqual(['Mindestens 2 verschiedene Schrittarten nötig']);
+  });
+
+  it('verbietet ab Episode 2 dieselbe Art zweimal direkt hintereinander, davor nicht', () => {
+    const doppelt = [
+      {
+        ...fixture.spuren[0],
+        schritte: [schritt('s1', 'true'), schritt('s2', 'false'), schritt('s3', 'true', 'ordnen')],
+      },
+      { ...fixture.spuren[1], schritte: [schritt('s1', 'true', 'reparieren')] },
+    ];
+    expect(pruefeDaten(mit({ nr: 1, spuren: doppelt }))).toEqual([]);
+    expect(pruefeDaten(ab2(doppelt))).toEqual([
+      'Spur "rechte": Schrittart "sichern" steht zweimal direkt hintereinander (bei s2)',
+    ]);
+  });
+});
+
+describe('antwortSkript', () => {
+  it('trägt die Antwort nur als Base64 ein', () => {
+    const roh = "'; rm -rf /";
+    const skript = antwortSkript('[ "$ANTWORT" = "02:30" ]', roh);
+    expect(skript).not.toContain(roh);
+    expect(skript).not.toContain('rm -rf');
+    expect(skript).toContain(Buffer.from(roh).toString('base64'));
+    expect(skript).toContain('base64 -d');
+  });
+
+  it('gibt den Exit-Code der Prüfung durch und schweigt', () => {
+    const lauf = (antwort: string) =>
+      execFileSync(
+        'bash',
+        ['-c', `${antwortSkript('[ "$ANTWORT" = "02:30" ]', antwort)}\necho "exit=$?"`],
+        {
+          encoding: 'utf8',
+        }
+      );
+    expect(lauf('02:30')).toBe('exit=0\n');
+    expect(lauf('02:31')).toBe('exit=1\n');
+    expect(lauf("'; echo PWNED #")).toBe('exit=1\n');
+  });
+
+  it('lässt eine Prüfung die Shell des Skripts nicht beenden', () => {
+    const ausgabe = execFileSync(
+      'bash',
+      ['-c', `${antwortSkript('exit 7', 'x')}\necho "exit=$?"`],
+      { encoding: 'utf8' }
+    );
+    expect(ausgabe).toBe('exit=7\n');
+  });
+});
+
+describe('wendeAntwortAn', () => {
+  const ablesen: ErmittlungsSchritt = {
+    ...schritt('lesen', 'false', 'ablesen'),
+    antwort: {
+      frage: 'Wann beginnt die Lücke? (HH:MM)',
+      format: 'HH:MM',
+      pruefung: '[ "$ANTWORT" = "02:30" ]',
+    },
+  };
+  const e = mit({
+    spuren: [
+      {
+        id: 'log',
+        titel: 'Logbuch',
+        schritte: [ablesen, schritt('danach', 'false', 'eingreifen')],
+      },
+      { id: 'rechte', titel: 'Rechte', schritte: [schritt('s1', 'false')] },
+    ],
+  });
+
+  it('erledigt den aktuellen Schritt bei richtiger Antwort', () => {
+    const { zustand: neu, ereignisse } = wendeAntwortAn(e, startZustand(), 'log', 'lesen', true);
+    expect(neu.erledigt).toEqual({ log: 1 });
+    expect(ereignisse).toEqual([{ type: 'schritt-erledigt', spurId: 'log', schrittId: 'lesen' }]);
+  });
+
+  it('meldet bei letztem Schritt auch die Spur', () => {
+    const z = zustand({ erledigt: { log: 1 } });
+    const letzter = mit({
+      spuren: [{ ...e.spuren[0], schritte: [e.spuren[0].schritte[0], ablesen] }],
+    });
+    const { ereignisse } = wendeAntwortAn(letzter, z, 'log', 'lesen', true);
+    expect(ereignisse.map((x) => x.type)).toEqual(['schritt-erledigt', 'spur-erledigt']);
+  });
+
+  it('ändert bei falscher Antwort nichts', () => {
+    const z = startZustand();
+    const ergebnis = wendeAntwortAn(e, z, 'log', 'lesen', false);
+    expect(ergebnis.zustand).toBe(z);
+    expect(ergebnis.ereignisse).toEqual([]);
+  });
+
+  it('ignoriert einen veralteten Schritt', () => {
+    const z = zustand({ erledigt: { log: 1 } });
+    const ergebnis = wendeAntwortAn(e, z, 'log', 'lesen', true);
+    expect(ergebnis.zustand).toBe(z);
+    expect(ergebnis.ereignisse).toEqual([]);
+  });
+
+  it('ignoriert eine andere oder unbekannte Spur', () => {
+    const z = startZustand();
+    for (const spurId of ['rechte', 'gibt-es-nicht']) {
+      const ergebnis = wendeAntwortAn(e, z, spurId, 'lesen', true);
+      expect(ergebnis.zustand).toBe(z);
+      expect(ergebnis.ereignisse).toEqual([]);
+    }
+  });
+
+  it('ändert nach der Lösung nichts mehr', () => {
+    const z = zustand({ geloest: true });
+    expect(wendeAntwortAn(e, z, 'log', 'lesen', true).zustand).toBe(z);
+  });
+
+  it('lässt den Ablesen-Schritt mit seinem verify im Bündel', () => {
+    const ids = offenePruefungen(e, startZustand()).map((p) => p.id);
+    expect(ids).toContain(pruefIdSchritt('log', 'lesen'));
   });
 });
 

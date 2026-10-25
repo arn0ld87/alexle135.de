@@ -1,6 +1,14 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import type { AgentClient } from '../../lib/missions/agentClient';
-import { aktuellerSchritt, istGesperrt, startZustand } from '../../lib/missions/ermittlung';
+import {
+  ANTWORT_MUSTER,
+  ANTWORT_TIMEOUT_MS,
+  aktuellerSchritt,
+  antwortSkript,
+  istGesperrt,
+  startZustand,
+  wendeAntwortAn,
+} from '../../lib/missions/ermittlung';
 import type {
   Ermittlung,
   ErmittlungsEreignis,
@@ -22,6 +30,7 @@ import {
   type VorwurfKandidat,
 } from '../../lib/missions/vorwurfAblauf';
 import Ansichten from './Ansichten';
+import AntwortFeld from './AntwortFeld';
 import EinsatzrahmenHinweis from './EinsatzrahmenHinweis';
 import ErmittlungsAbschluss from './ErmittlungsAbschluss';
 import ErmittlungsHilfe from './ErmittlungsHilfe';
@@ -33,6 +42,12 @@ const LazyV86Terminal = lazy(() => import('./V86Terminal'));
 
 const PRUEF_HINWEIS = 'Prüfung gerade nicht erreichbar. Der nächste Befehl versucht es erneut.';
 const RAHMEN_FEHLER = 'Der Rahmen für Staffel 2 konnte nicht gesetzt werden.';
+const ANTWORT_ZEICHEN_HINWEIS = 'Bitte nur Buchstaben, Ziffern und . : _ / -';
+const ANTWORT_LEER_HINWEIS = 'Bitte trag erst eine Antwort ein.';
+const ANTWORT_FALSCH_HINWEIS =
+  'Das passt nicht zu dem, was das System zeigt. Schau noch mal genau hin.';
+const ANTWORT_FEHLER_HINWEIS =
+  'Die Antwort konnte gerade nicht geprüft werden. Versuch es gleich noch einmal.';
 const MISSION_HINWEIS = 'In Staffel 2 gibt es mission noch nicht. Schau in den Pager.';
 
 interface ErmittlungAppProps {
@@ -66,9 +81,11 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
   const [runAdapter] = useState(() => erzeugeErmittlungsRun());
   const [dialogOffen, setDialogOffen] = useState(false);
   const [prueftVorwurf, setPrueftVorwurf] = useState(false);
+  const [prueftAntwort, setPrueftAntwort] = useState(false);
   const [vorwurfHinweis, setVorwurfHinweis] = useState<string | null>(null);
   const oeufnerRef = useRef<HTMLButtonElement | null>(null);
   const submitGuard = useRef(false);
+  const antwortGuard = useRef(false);
   const zustand = useRef<ErmittlungsZustand>(startZustand());
   const lauf = useRef<PruefLauf | null>(null);
   const clientRef = useRef<AgentClient | null>(null);
@@ -120,6 +137,8 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
     async (client: AgentClient) => {
       const version = ++setupVersion.current;
       submitGuard.current = false;
+      antwortGuard.current = false;
+      setPrueftAntwort(false);
       setPrueftVorwurf(false);
       setDialogOffen(false);
       setVorwurfHinweis(null);
@@ -336,6 +355,45 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
     [ermittlung, melde, pruefeFrischFn, prueftVorwurf]
   );
 
+  // Prüft die getrimmte Antwort des aktuellen Ablesen-Schritts der aktiven Spur in der VM.
+  const antworten = useCallback(
+    async (roh: string) => {
+      const client = clientRef.current;
+      const version = setupVersion.current;
+      const spur = ermittlung.spuren.find((eintrag) => eintrag.id === aktiveSpurId);
+      const schritt = spur ? aktuellerSchritt(spur, zustand.current) : null;
+      if (!client || setupGeneration === 0 || !spur || schritt?.art !== 'ablesen') return;
+      if (!schritt.antwort || antwortGuard.current || zustand.current.geloest) return;
+      const text = roh.trim();
+      if (!text) return melde('auftrag', [satz(ANTWORT_LEER_HINWEIS)]);
+      if (!ANTWORT_MUSTER.test(text)) return melde('auftrag', [satz(ANTWORT_ZEICHEN_HINWEIS)]);
+      const istAktuell = () => version === setupVersion.current;
+      antwortGuard.current = true;
+      setPrueftAntwort(true);
+      try {
+        const res = await runAdapter.run(
+          client,
+          antwortSkript(schritt.antwort.pruefung, text),
+          ANTWORT_TIMEOUT_MS,
+          istAktuell
+        );
+        if (!istAktuell()) return;
+        const richtig = res.exitCode === 0;
+        const neu = wendeAntwortAn(ermittlung, zustand.current, spur.id, schritt.id, richtig);
+        if (neu.ereignisse.length) schreibeZustand(neu.zustand, neu.ereignisse);
+        else if (!richtig) melde('auftrag', [satz(ANTWORT_FALSCH_HINWEIS)]);
+      } catch {
+        if (istAktuell()) melde('auftrag', [satz(ANTWORT_FEHLER_HINWEIS)]);
+      } finally {
+        if (istAktuell()) {
+          antwortGuard.current = false;
+          setPrueftAntwort(false);
+        }
+      }
+    },
+    [aktiveSpurId, ermittlung, melde, runAdapter, schreibeZustand, setupGeneration]
+  );
+
   // Eine Auswahl ändert nur die sichtbare Spur; Prüfungen bleiben beim bestehenden Bündel.
   const waehleSpur = useCallback(
     (spurId: string) => {
@@ -379,6 +437,7 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
   }, [anzeigeZustand.geloest]);
 
   const aktiveSpur = ermittlung.spuren.find((spur) => spur.id === aktiveSpurId) ?? null;
+  const aktiverSchritt = aktiveSpur ? aktuellerSchritt(aktiveSpur, anzeigeZustand) : null;
 
   // Desktop: Kopf und Pager stehen, nur die linke Spalte scrollt; das Terminal bleibt fest.
   return (
@@ -388,6 +447,17 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
         <span className="text-[color:var(--muted)]">· {ermittlung.titel}</span>
       </h2>
       <Pager nachrichten={pager} />
+      {setupGeneration > 0 &&
+        aktiveSpur &&
+        aktiverSchritt?.art === 'ablesen' &&
+        aktiverSchritt.antwort && (
+          <AntwortFeld
+            key={`${aktiveSpur.id}/${aktiverSchritt.id}`}
+            antwort={aktiverSchritt.antwort}
+            prueft={prueftAntwort}
+            onAntworten={antworten}
+          />
+        )}
       {rahmenFehler && <p role="alert">{rahmenFehler}</p>}
       {pruefHinweis && <p role="status">{pruefHinweis}</p>}
       {anzeigeZustand.geloest && <ErmittlungsAbschluss ermittlung={ermittlung} />}
@@ -436,7 +506,7 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
           <ErmittlungsHilfe
             key={hilfeStand}
             spurId={aktiveSpur?.id ?? null}
-            schritt={aktiveSpur ? aktuellerSchritt(aktiveSpur, anzeigeZustand) : null}
+            schritt={aktiverSchritt}
             werkzeuge={werkzeuge}
           />
           <Ansichten

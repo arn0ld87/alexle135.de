@@ -16,6 +16,7 @@ const ermittlung: Ermittlung = {
       titel: 'A',
       schritte: [
         {
+          art: 'sichern',
           id: 'a1',
           title: 'Schritt',
           pager: ['x'],
