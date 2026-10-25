@@ -1,7 +1,7 @@
 ---
 title: 'Ein Linux-Krimi · Staffel 2 · Rechenwerk Ostwind'
 category: Web
-summary: 'Echtes Alpine Linux im Browser. Staffel 2: Du prüfst als Junior-Pentester die Server der Rechenwerk Ostwind GmbH, findest die Spuren eines Eindringlings und beweist mit selbst gesicherten Belegen, wer es war. Episode 0 und 1 sind spielbar.'
+summary: 'Echtes Alpine Linux im Browser. Staffel 2: Du prüfst als Junior-Pentester die Server der Rechenwerk Ostwind GmbH, findest die Spuren eines Eindringlings und beweist mit selbst gesicherten Belegen, wer es war. Episode 0 bis 3 sind spielbar.'
 tags:
   - Linux
   - Security
@@ -61,7 +61,7 @@ Dazu kommt der Einsatzrahmen. Er legt fest, was du anfassen darfst und was nicht
 | 2   | Der Prozess, der nicht stirbt | Etwas läuft, das niemand gestartet haben will, und kommt zurück; `ps`, `kill`, `crond`, `rc-service`     |
 | 3   | Die Lücke im Log              | Eine Zeitlinie aus Logs bauen, bis auffällt, was fehlt; `awk`, `cut`, `sort`, `uniq -c`                  |
 
-Episode 0 und 1 sind spielbar. Staffel 2 hat sieben Episoden; die weiteren sind noch in Arbeit. Episode 2 ist die erste mit Bildschirm: Dort läuft im Gast-Linux eine grafische Oberfläche, und manches erfährst du nur, indem du es dir ansiehst.
+Episode 0 bis 3 sind spielbar. Staffel 2 hat sieben Episoden; die weiteren sind noch in Arbeit. Episode 2 ist die erste mit Bildschirm: Dort läuft im Gast-Linux eine grafische Oberfläche, und manches erfährst du nur, indem du es dir ansiehst.
 
 ## Was du dabei lernst
 

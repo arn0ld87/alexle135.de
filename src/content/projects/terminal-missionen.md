@@ -59,7 +59,7 @@ Episode 0 bringt nur die Bedienung bei und zählt nicht zur Gesamtzeit. Das Fina
 
 ## Staffel 2: Rechenwerk Ostwind
 
-In Staffel 2 prüfst du als Junior-Pentester die Server einer Firma, sicherst Belege und beweist einen Verdacht. Episode 0 und 1 sind spielbar. Mehr dazu auf der [Projektseite zu Staffel 2](/projekte/linux-krimi-staffel-2/).
+In Staffel 2 prüfst du als Junior-Pentester die Server einer Firma, sicherst Belege und beweist einen Verdacht. Episode 0 bis 3 sind spielbar. Mehr dazu auf der [Projektseite zu Staffel 2](/projekte/linux-krimi-staffel-2/).
 
 [Staffel 2 „Rechenwerk Ostwind“ spielen →](/projekte/terminal-missionen/app/staffel-2/)
 
