@@ -12,7 +12,8 @@ const BEFEHL_MUSTER = BEFEHL.replaceAll('.', '\\.');
 const UEBUNGSTEXT = 'Fiktive Uebungsdatei der Rechenwerk Ostwind GmbH. Keine echten Daten.';
 
 /** Absoluter Befehl mit festen Argumenten: keine Platzhalter, Trenn- und Sonderzeichen von sudoers. */
-const SUDO_BEFEHL_MUSTER = /^\/(?:bin|sbin|usr\/bin|usr\/sbin)\/[a-z][a-z-]*(?: [A-Za-z0-9_./-]+)*$/;
+const SUDO_BEFEHL_MUSTER =
+  /^\/(?:bin|sbin|usr\/bin|usr\/sbin)\/[a-z][a-z-]*(?: [A-Za-z0-9_./-]+)*$/;
 
 /**
  * Bash-Skript als root: geschützter Ordner, root-eigenes Log, validierter sudoers-Drop-in.

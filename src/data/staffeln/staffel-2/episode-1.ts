@@ -491,4 +491,14 @@ export const episode1: Ermittlung = {
 };
 
 /** Werkzeugkasten der Hilfe; Begriffe und Beispiele stammen aus dem gemeinsamen Glossar. */
-export const episode1Werkzeuge = tools('ls -l', 'stat', 'find', 'grep', '>', '>>', 'cat', 'mv', 'sudo');
+export const episode1Werkzeuge = tools(
+  'ls -l',
+  'stat',
+  'find',
+  'grep',
+  '>',
+  '>>',
+  'cat',
+  'mv',
+  'sudo'
+);

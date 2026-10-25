@@ -70,7 +70,9 @@ test('Staffel 2: Spur Log vor Spur Rechte lösen, je ein Schritt pro Bündel', a
   await expect(spur(page, 'Log, 1 von 1 Schritten erledigt, abgeschlossen')).toBeVisible();
 
   // Der zweite Schritt ist ein Ablesen: Er wartet auf die Antwort, nicht auf den Befehl.
-  await page.getByLabel('Unter welcher Änderungskennung wurde die Regel eingespielt?').fill('RW-1042');
+  await page
+    .getByLabel('Unter welcher Änderungskennung wurde die Regel eingespielt?')
+    .fill('RW-1042');
   await page.getByRole('button', { name: 'Antworten', exact: true }).click();
   await expect(page.getByTestId('pager')).toContainText('Erledigt: Lies die Änderungskennung ab', {
     timeout: 30_000,

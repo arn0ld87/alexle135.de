@@ -211,7 +211,10 @@ describe('pruefeDaten', () => {
     const fehler = pruefeDaten(
       mit({
         spuren: [
-          { ...fixture.spuren[0], schritte: [schritt('S1', 'true'), schritt('s2', 'false', 'eingreifen')] },
+          {
+            ...fixture.spuren[0],
+            schritte: [schritt('S1', 'true'), schritt('s2', 'false', 'eingreifen')],
+          },
           fixture.spuren[1],
         ],
       })
@@ -288,7 +291,10 @@ describe('pruefeDaten', () => {
     const fehler = pruefeDaten(
       mit({
         spuren: [
-          { ...fixture.spuren[0], schritte: [schritt('s1', 'true'), schritt('s1', 'false', 'eingreifen')] },
+          {
+            ...fixture.spuren[0],
+            schritte: [schritt('s1', 'true'), schritt('s1', 'false', 'eingreifen')],
+          },
           fixture.spuren[1],
         ],
       })
@@ -519,7 +525,9 @@ describe('pruefeDaten: Schrittarten', () => {
         schritte: [schritt('s1', 'true'), schritt('s2', 'false', 'eingreifen')],
       },
       fixture.spuren[1],
-    ].map((spur, i) => (i === 1 ? { ...spur, schritte: [schritt('s1', 'true', 'sichern')] } : spur));
+    ].map((spur, i) =>
+      i === 1 ? { ...spur, schritte: [schritt('s1', 'true', 'sichern')] } : spur
+    );
     for (const nr of [0, 1, 2]) {
       expect(pruefeDaten(mit({ nr, spuren: zwei }))).toEqual([
         'Mindestens 3 verschiedene Schrittarten nötig',

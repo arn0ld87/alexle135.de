@@ -809,7 +809,16 @@ describe.skipIf(!enabled)('Episode 1 „Zu viele Rechte“ in der echten VM', ()
     await alsAzubi(tippLoesung('rechte', 'sudo-zeile'));
     await pruefLauf();
     expect(zustand.erledigt).toEqual({ rechte: 1 });
-    for (const falsch of ['', 'RW-1041', 'RW-', 'RW-1042x', 'nadia', 'RW1042', 'RW-10420', 'timo']) {
+    for (const falsch of [
+      '',
+      'RW-1041',
+      'RW-',
+      'RW-1042x',
+      'nadia',
+      'RW1042',
+      'RW-10420',
+      'timo',
+    ]) {
       expect(await antworte(falsch), `"${falsch}"`).toBe(false);
     }
     expect(zustand.erledigt).toEqual({ rechte: 1 });

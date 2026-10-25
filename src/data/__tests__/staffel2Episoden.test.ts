@@ -16,9 +16,7 @@ import { LOESUNG } from '../staffeln/staffel-2/episode-1';
 describe('Staffel 2: registrierte Episoden', () => {
   it('stehen in Spielreihenfolge ab 0 mit eindeutigen Nummern und IDs', () => {
     expect(staffel2Episoden.length).toBeGreaterThanOrEqual(2);
-    expect(staffel2Episoden.map((e) => e.ermittlung.nr)).toEqual(
-      staffel2Episoden.map((_, i) => i)
-    );
+    expect(staffel2Episoden.map((e) => e.ermittlung.nr)).toEqual(staffel2Episoden.map((_, i) => i));
     const ids = staffel2Episoden.map((e) => e.ermittlung.id);
     expect(new Set(ids).size).toBe(ids.length);
   });

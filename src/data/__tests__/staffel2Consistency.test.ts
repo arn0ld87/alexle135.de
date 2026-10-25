@@ -201,7 +201,9 @@ describe('Staffel 2, Episode 1: Schrittarten und sudo-Rahmen (ADR 0009)', () => 
   });
 
   it('legt die Quarantäne im Setup an und räumt nur genau ihre beiden Dateien auf', () => {
-    expect(episode1.setup).toContain("install -d -o azubi -g azubi -m 0755 '/home/azubi/quarantaene'");
+    expect(episode1.setup).toContain(
+      "install -d -o azubi -g azubi -m 0755 '/home/azubi/quarantaene'"
+    );
     expect(episode1.setup).toContain('for name in rw-fernwartung rw-status');
     expect(episode1.setup).not.toMatch(/rm -rf (?!"\$tmp")/);
   });
