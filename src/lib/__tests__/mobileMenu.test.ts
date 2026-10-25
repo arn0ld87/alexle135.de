@@ -16,7 +16,7 @@ describe('bindMobileMenu', () => {
   it('schließt bei Klick außerhalb, nicht bei Klick im Menü', () => {
     const details = renderMenu();
     bindMobileMenu(details);
-    details.querySelector('summary')!.click();
+    details.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     expect(details.open).toBe(true);
     document.getElementById('outside')!.click();
     expect(details.open).toBe(false);
