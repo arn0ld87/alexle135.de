@@ -82,6 +82,41 @@ describe('einsatzrahmenSetupSkript', () => {
     expect(skript).not.toMatch(/sudoers\.d\/azubi/);
   });
 
+  it('ADR 0009: zusätzliche Befehle der Episode stehen als eigene Zeilen exakt im Drop-in', () => {
+    const befehle = ['/bin/mv /a/b /home/azubi/q/', '/sbin/rc-service x restart'];
+    const mit = einsatzrahmenSetupSkript(befehle);
+    expect(() => execFileSync('bash', ['-n'], { input: mit })).not.toThrow();
+    const regel = mit
+      .split('\n')
+      .find((zeile) => zeile.includes('"$tmp/regel"') && zeile.includes('printf')) as string;
+    const inhalt = [...regel.matchAll(/'([^']*)'/g)].map((treffer) => treffer[1]).slice(1);
+    expect(inhalt).toEqual([
+      'Defaults:azubi logfile=/var/log/staffel2-sudo.log',
+      'Defaults:azubi loglinelen=0',
+      'azubi ALL=(root) NOPASSWD: /bin/cat /home/nadia/vertraulich.txt',
+      'azubi ALL=(root) NOPASSWD: /bin/mv /a/b /home/azubi/q/',
+      'azubi ALL=(root) NOPASSWD: /sbin/rc-service x restart',
+    ]);
+    expect(einsatzrahmenSetupSkript([])).toBe(skript);
+  });
+
+  it.each([
+    'mv /a /b',
+    '/bin/mv /a/* /b',
+    '/bin/mv /a, /bin/sh',
+    '/bin/mv /a /b; id',
+    '/bin/mv /a "/b"',
+    '/bin/mv /a \\ /b',
+    '/bin/mv /a=b /c',
+    '/bin/mv /a !/b',
+    'ALL',
+    '/bin/mv  /a',
+    '/bin/mv /a ',
+    '',
+  ])('ADR 0009: lehnt den sudo-Befehl %j ab', (befehl) => {
+    expect(() => einsatzrahmenSetupSkript([befehl])).toThrow('Ungültiger sudo-Befehl');
+  });
+
   it('T8-2: geschützter Ordner und Datei gehören root, belegter Pfad bricht ab statt zu löschen', () => {
     expect(skript).toContain("install -d -o root -g root -m 0700 '/home/nadia'");
     expect(skript).toContain("chown root:root '/home/nadia/vertraulich.txt'");

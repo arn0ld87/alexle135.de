@@ -169,7 +169,7 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
         if (rahmen.exitCode !== 0) throw new Error(RAHMEN_FEHLER);
         const einsatz = await runAdapter.run(
           client,
-          einsatzrahmenSetupSkript(),
+          einsatzrahmenSetupSkript(ermittlung.einsatzrahmen.sudoBefehle),
           60_000,
           () => version === setupVersion.current
         );

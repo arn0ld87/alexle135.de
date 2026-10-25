@@ -30,12 +30,8 @@ const SCHRITTARTEN: readonly Schrittart[] = [
   'ordnen',
   'bearbeiten',
 ];
-/**
- * Ab dieser Episode gelten Mindestzahl der Schrittarten und das Verbot gleicher Arten direkt
- * hintereinander. Episode 1 ist schon gebaut und bleibt inhaltlich unverändert (zweimal sichern).
- * Episode 0 (Einstieg) braucht nur zwei Arten.
- */
-export const SCHRITTART_REGELN_AB_EPISODE = 2;
+/** Jede Episode nutzt mindestens so viele verschiedene Schrittarten (ADR 0009). */
+export const MINDEST_SCHRITTARTEN = 3;
 /** Längste Diagnose-Meldung in Zeichen. */
 export const DIAGNOSE_MAX_ZEICHEN = 200;
 /** Erlaubte Zeichen einer getrimmten Antwort; alles andere lässt die App gar nicht erst laufen. */
@@ -168,7 +164,7 @@ export function pruefeDaten(e: Ermittlung): string[] {
       } else if (schritt.art !== 'ablesen' && schritt.antwort) {
         fehler.push(`${name}: antwort gibt es nur bei ablesen`);
       }
-      if (e.nr >= SCHRITTART_REGELN_AB_EPISODE && schritt.art === vorige) {
+      if (schritt.art === vorige) {
         fehler.push(
           `Spur "${spur.id}": Schrittart "${schritt.art}" steht zweimal direkt hintereinander (bei ${schritt.id})`
         );
@@ -176,9 +172,8 @@ export function pruefeDaten(e: Ermittlung): string[] {
       vorige = schritt.art;
     }
   }
-  const mindestArten = e.nr === 0 ? 2 : e.nr >= SCHRITTART_REGELN_AB_EPISODE ? 3 : 0;
-  if (arten.size < mindestArten) {
-    fehler.push(`Mindestens ${mindestArten} verschiedene Schrittarten nötig`);
+  if (arten.size < MINDEST_SCHRITTARTEN) {
+    fehler.push(`Mindestens ${MINDEST_SCHRITTARTEN} verschiedene Schrittarten nötig`);
   }
 
   return fehler;

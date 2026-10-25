@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
 import {
   PRUEF_ID_VERSTOSS,
-  SCHRITTART_REGELN_AB_EPISODE,
+  MINDEST_SCHRITTARTEN,
   SPERRE_PRUEFUNGEN,
   aktuellerSchritt,
   antwortSkript,
@@ -58,8 +58,16 @@ const fixture: Ermittlung = {
     },
   ],
   spuren: [
-    { id: 'rechte', titel: 'Rechte', schritte: [schritt('s1', 'true'), schritt('s2', 'false')] },
-    { id: 'log', titel: 'Logbuch', schritte: [schritt('s1', 'test -f ~/belege/log')] },
+    {
+      id: 'rechte',
+      titel: 'Rechte',
+      schritte: [schritt('s1', 'true'), schritt('s2', 'false', 'eingreifen')],
+    },
+    {
+      id: 'log',
+      titel: 'Logbuch',
+      schritte: [schritt('s1', 'test -f ~/belege/log', 'reparieren')],
+    },
   ],
   vorwurf: {
     verdaechtige: [
@@ -455,7 +463,6 @@ describe('pruefeDaten', () => {
 });
 
 describe('pruefeDaten: Schrittarten', () => {
-  const ab2 = (spuren: Ermittlung['spuren']) => mit({ nr: 2, spuren });
   const gueltig = [
     {
       ...fixture.spuren[0],
@@ -464,9 +471,10 @@ describe('pruefeDaten: Schrittarten', () => {
     { ...fixture.spuren[1], schritte: [schritt('s1', 'true', 'reparieren')] },
   ];
 
-  it('akzeptiert Episode 2 mit drei Arten ohne Wiederholung', () => {
-    expect(SCHRITTART_REGELN_AB_EPISODE).toBe(2);
-    expect(pruefeDaten(ab2(gueltig))).toEqual([]);
+  it('akzeptiert drei Arten ohne Wiederholung in jeder Episode, auch Episode 0', () => {
+    expect(MINDEST_SCHRITTARTEN).toBe(3);
+    expect(pruefeDaten(mit({ nr: 2, spuren: gueltig }))).toEqual([]);
+    expect(pruefeDaten(mit({ nr: 0, spuren: gueltig }))).toEqual([]);
   });
 
   it('meldet eine fehlende oder unbekannte Art', () => {
@@ -501,31 +509,22 @@ describe('pruefeDaten: Schrittarten', () => {
     ]);
   });
 
-  it('verlangt ab Episode 2 mindestens drei verschiedene Arten, davor nicht', () => {
+  it('verlangt mindestens drei verschiedene Arten, auch in Episode 0 und 1', () => {
     const zwei = [
       {
         ...fixture.spuren[0],
         schritte: [schritt('s1', 'true'), schritt('s2', 'false', 'eingreifen')],
       },
       fixture.spuren[1],
-    ];
-    expect(pruefeDaten(mit({ nr: 1, spuren: zwei }))).toEqual([]);
-    expect(pruefeDaten(ab2(zwei))).toEqual(['Mindestens 3 verschiedene Schrittarten nötig']);
+    ].map((spur, i) => (i === 1 ? { ...spur, schritte: [schritt('s1', 'true', 'sichern')] } : spur));
+    for (const nr of [0, 1, 2]) {
+      expect(pruefeDaten(mit({ nr, spuren: zwei }))).toEqual([
+        'Mindestens 3 verschiedene Schrittarten nötig',
+      ]);
+    }
   });
 
-  it('lässt in Episode 0 zwei verschiedene Arten genügen', () => {
-    const zwei = [
-      {
-        ...fixture.spuren[0],
-        schritte: [schritt('s1', 'true'), schritt('s2', 'false', 'eingreifen')],
-      },
-      fixture.spuren[1],
-    ];
-    expect(pruefeDaten(mit({ nr: 0, spuren: zwei }))).toEqual([]);
-    expect(pruefeDaten(mit({ nr: 0 }))).toEqual(['Mindestens 2 verschiedene Schrittarten nötig']);
-  });
-
-  it('verbietet ab Episode 2 dieselbe Art zweimal direkt hintereinander, davor nicht', () => {
+  it('verbietet dieselbe Art zweimal direkt hintereinander in einer Spur, in jeder Episode', () => {
     const doppelt = [
       {
         ...fixture.spuren[0],
@@ -533,10 +532,26 @@ describe('pruefeDaten: Schrittarten', () => {
       },
       { ...fixture.spuren[1], schritte: [schritt('s1', 'true', 'reparieren')] },
     ];
-    expect(pruefeDaten(mit({ nr: 1, spuren: doppelt }))).toEqual([]);
-    expect(pruefeDaten(ab2(doppelt))).toEqual([
-      'Spur "rechte": Schrittart "sichern" steht zweimal direkt hintereinander (bei s2)',
-    ]);
+    for (const nr of [0, 1, 2]) {
+      expect(pruefeDaten(mit({ nr, spuren: doppelt }))).toEqual([
+        'Spur "rechte": Schrittart "sichern" steht zweimal direkt hintereinander (bei s2)',
+      ]);
+    }
+  });
+
+  it('erlaubt dieselbe Art in verschiedenen Spuren und mit Abstand in einer Spur', () => {
+    const abstand = [
+      {
+        ...fixture.spuren[0],
+        schritte: [
+          schritt('s1', 'true'),
+          schritt('s2', 'false', 'eingreifen'),
+          schritt('s3', 'true'),
+        ],
+      },
+      { ...fixture.spuren[1], schritte: [schritt('s1', 'true', 'reparieren')] },
+    ];
+    expect(pruefeDaten(mit({ spuren: abstand }))).toEqual([]);
   });
 });
 

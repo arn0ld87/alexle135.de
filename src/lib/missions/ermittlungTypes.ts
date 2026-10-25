@@ -103,6 +103,11 @@ export interface Einsatzrahmen {
   verstoss: string;
   /** Pager-Text, wenn der Verstoß zum ersten Mal erkannt wird. */
   folge: readonly string[];
+  /**
+   * Genau die sudo-Aufrufe, die azubi in dieser Episode ohne Passwort ausführen darf (ADR 0009):
+   * absoluter Befehl samt Argumenten, ohne Platzhalter. Fehlt das Feld, erlaubt die Episode keine.
+   */
+  sudoBefehle?: readonly string[];
 }
 
 export interface Ermittlung {
