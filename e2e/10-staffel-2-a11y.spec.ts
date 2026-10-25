@@ -81,7 +81,7 @@ test('T10-10a Desktop 1440x1000: Tastatur, Dialog, Fokus, Abschluss und axe', as
   const raum = await tabHalte(page, 40);
   for (const erwartet of [
     /Einsatzrahmen/,
-    /^Rechte, 0 von 2/,
+    /^Rechte, 0 von 5/,
     /^Log, 0 von 1/,
     /Werkzeugkasten/,
     /Ersten Tipp|Tipp/i,
