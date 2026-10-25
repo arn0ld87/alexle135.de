@@ -264,13 +264,27 @@ test('T10-10c 200 % Zoom (720x500 CSS-Pixel) und reduzierte Bewegung', async ({ 
   await aktualisiere(page);
 });
 
-test('T10-10d Tab verlässt das Terminal (Tastaturfalle)', async ({ page }) => {
-  test.fail(true, 'Tastaturfalle, Issue #151');
+test('T10-10d Tab bleibt im Terminal, Esc dann Tab verlässt es (Tastaturfalle, #151)', async ({
+  page,
+}) => {
   await startEpisode(page, { width: 1440, height: 1000 });
+  const imTerminal = () =>
+    page.evaluate(() => !!document.activeElement?.closest('[data-testid="v86-terminal"]'));
+  await expect(page.getByTestId('v86-tab-hinweis')).toBeVisible();
+  await expect(page.getByTestId('v86-tab-hinweis')).toHaveText('Tab verlassen: Esc, dann Tab');
+
   await page.getByTestId('v86-terminal').click({ position: { x: 30, y: 30 } });
+  expect(await imTerminal()).toBe(true);
+  // Nacktes Tab gehört der Shell (Vervollständigung): Der Fokus bleibt im Terminal.
   await page.keyboard.press('Tab');
-  const imTerminal = await page.evaluate(
-    () => !!document.activeElement?.closest('[data-testid="v86-terminal"]')
-  );
-  expect(imTerminal).toBe(false);
+  expect(await imTerminal()).toBe(true);
+  // Esc, dann Tab: Der Fokus wandert auf das nächste fokussierbare Element außerhalb.
+  await page.keyboard.press('Escape');
+  await page.keyboard.press('Tab');
+  await expect.poll(imTerminal).toBe(false);
+  expect(
+    await page.evaluate(
+      () => document.activeElement !== null && document.activeElement !== document.body
+    )
+  ).toBe(true);
 });
