@@ -51,6 +51,8 @@ export const BELEG_DATEI = {
   'kasse-zeilen': 'kasse-zeilen.txt',
   'luecke-zeilen': 'luecke-zeilen.txt',
   'konten-zaehlung': 'konten-zaehlung.txt',
+  'prozess-zeile': 'prozess-zeile.txt',
+  'wartung-zeile': 'wartung-zeile.txt',
 } as const;
 export type BelegId = keyof typeof BELEG_DATEI;
 

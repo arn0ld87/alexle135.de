@@ -4,7 +4,7 @@ import type { Ermittlung } from '../../src/lib/missions/ermittlungTypes';
 import { STAFFEL2_E0 } from './staffel2';
 
 // Test-Ermittlung für den Bildschirm (Ticket 13, ADR 0008). Es gibt dafür keine Route: Der Test
-// lädt die echte Staffel-2-Seite und tauscht nur die Props der ErmittlungApp-Insel aus.
+// lädt die echte Staffel-2-Seite und tauscht nur die Props der Staffel2Seite-Insel aus.
 
 export const GESEHEN = '4711';
 export const BILDSCHIRM_ERLEDIGT = 'Erledigt: Notiere die Zahl vom Zettel';
@@ -66,24 +66,34 @@ const attribut = (text: string) =>
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 
-/** Lädt die Staffel-2-Seite mit `ermittlung` in der ErmittlungApp-Insel. */
+/** Lädt die Staffel-2-Seite mit `ermittlung` als einziger Episode der Staffel2Seite-Insel. */
 export async function oeffneMitErmittlung(page: Page, ermittlung: Ermittlung): Promise<void> {
   await page.route(
     (url) => url.pathname.startsWith('/projekte/terminal-missionen/app/staffel-2'),
     async (route) => {
       const antwort = await route.fetch();
       const html = await antwort.text();
-      const props = attribut(JSON.stringify(serialisiere({ ermittlung })[1]));
+      const href = `/projekte/terminal-missionen/app/staffel-2?episode=${ermittlung.nr}`;
+      const props = attribut(
+        JSON.stringify(
+          serialisiere({
+            episoden: [{ ermittlung, werkzeuge: [] }],
+            uebersicht: [{ nr: ermittlung.nr, id: ermittlung.id, titel: ermittlung.titel, href }],
+            gewaehlt: ermittlung.nr,
+            startHref: href,
+          })[1]
+        )
+      );
       let getauscht = 0;
       const neu = html.replace(
-        /<astro-island\b[^>]*component-url="[^"]*ErmittlungApp[^"]*"[^>]*>/,
+        /<astro-island\b[^>]*component-url="[^"]*Staffel2Seite[^"]*"[^>]*>/,
         (insel) =>
           insel.replace(/ props="[^"]*"/, () => {
             getauscht++;
             return ` props="${props}"`;
           })
       );
-      if (getauscht !== 1) throw new Error('ErmittlungApp-Insel nicht gefunden');
+      if (getauscht !== 1) throw new Error('Staffel2Seite-Insel nicht gefunden');
       await route.fulfill({ response: antwort, body: neu });
     }
   );
