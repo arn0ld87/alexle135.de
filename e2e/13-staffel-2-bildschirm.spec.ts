@@ -52,12 +52,13 @@ test('Bildschirm: Gastprogramm schreibt als azubi, „Stand prüfen“ prüft', 
   await tippeImTerminal(page, 'file ~/fotos/zettel.png');
   await expect(rows).toContainText('PNG image data', { timeout: 30_000 });
 
-  // Bildbetrachter zeigt den Zettel auf dem Bildschirm.
+  // Bildbetrachter zeigt den Zettel auf dem Bildschirm. Die Marke entsteht erst in der Ausgabe
+  // (ZETTEL-42), sonst träfe schon das Echo des getippten Befehls.
   await tippeImTerminal(
     page,
-    `feh ~/fotos/zettel.png & until xwininfo -root -tree | grep -q '"feh'; do sleep 1; done; echo ZETTEL-OFFEN`
+    `feh ~/fotos/zettel.png & until xwininfo -root -tree | grep -q '"feh'; do sleep 1; done; echo ZETTEL-$((40+2))`
   );
-  await expect(rows).toContainText('ZETTEL-OFFEN', { timeout: 120_000 });
+  await expect(rows).toContainText('ZETTEL-42', { timeout: 120_000 });
   await page.getByRole('button', { name: 'Bildschirm', exact: true }).click();
   await expect(page.getByTestId('pager')).toContainText('Das ist der Bildschirm des Rechners.');
   const bildschirm = page.getByTestId('v86-bildschirm');
