@@ -10,12 +10,19 @@ interface ErmittlungsHilfeProps {
   /** Aktueller offener Schritt der gewählten Spur; null, wenn alles erledigt oder nichts gewählt ist. */
   schritt: VorfallSchritt | null;
   werkzeuge?: readonly MissionTool[];
+  /** Ein Tipp wurde aufgedeckt; `stufe` 1 bis 3, Stufe 3 ist die Lösung. */
+  onTippGezeigt?: (stufe: number) => void;
 }
 
 const TIPP_LABEL = ['Tipp 1', 'Tipp 2', 'Tipp 3 (Lösung)'] as const;
 const KNOPF_TEXT = ['Ersten Tipp zeigen', 'Nächsten Tipp zeigen', 'Lösung zeigen'] as const;
 
-export default function ErmittlungsHilfe({ spurId, schritt, werkzeuge }: ErmittlungsHilfeProps) {
+export default function ErmittlungsHilfe({
+  spurId,
+  schritt,
+  werkzeuge,
+  onTippGezeigt,
+}: ErmittlungsHilfeProps) {
   const [gezeigt, setGezeigt] = useState<Readonly<Record<string, number>>>({});
   const schluessel = spurId !== null && schritt ? `${spurId}/${schritt.id}` : null;
   const anzahl =
@@ -23,6 +30,7 @@ export default function ErmittlungsHilfe({ spurId, schritt, werkzeuge }: Ermittl
 
   const zeigeNaechsten = () => {
     if (schluessel === null) return;
+    if (anzahl < 3) onTippGezeigt?.(anzahl + 1);
     setGezeigt((alt) => ({
       ...alt,
       [schluessel]: Math.min(3, (Object.hasOwn(alt, schluessel) ? alt[schluessel] : 0) + 1),

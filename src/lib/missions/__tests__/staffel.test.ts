@@ -262,6 +262,71 @@ describe('createStaffelStore', () => {
     expect(Object.keys(store.read('test').akte)).toEqual(['v0']);
     expect(Object.keys(store.read('andere').akte)).toEqual(['v1']);
   });
+
+  describe('Staffel 2', () => {
+    // Stand aus der Zeit vor Staffel 2: Format und Inhalt von Staffel 1 dürfen sich nicht ändern.
+    const alt = {
+      test: {
+        akte: { v0: { durationMs: 5, withSolution: false, hintsUsed: 2, finishedAt: 9 } },
+        abzeichen: ['rot'],
+        rotePrompts: 3,
+      },
+    };
+
+    it('liest einen alten Stand von Staffel 1 unverändert und lässt ihn beim Eintragen stehen', () => {
+      const storage = memoryStorage({ [STAFFEL_STORE_KEY]: JSON.stringify(alt) });
+      const store = createStaffelStore(storage);
+      expect(store.read('test')).toEqual(alt.test);
+      store.loeseEpisode('staffel-2', 'probelauf', eintrag({ vorwurfVersuche: 2 }));
+      expect(JSON.parse(storage.data.get(STAFFEL_STORE_KEY)!)).toEqual({
+        ...alt,
+        'staffel-2': {
+          akte: { probelauf: eintrag({ vorwurfVersuche: 2 }) },
+          abzeichen: [],
+          rotePrompts: 0,
+        },
+      });
+    });
+
+    it('behält beim erneuten Lösen den besseren Lauf', () => {
+      const store = createStaffelStore(memoryStorage());
+      store.loeseEpisode('staffel-2', 'e', eintrag({ withSolution: true, durationMs: 1 }));
+      store.loeseEpisode('staffel-2', 'e', eintrag({ durationMs: 500 }));
+      store.loeseEpisode('staffel-2', 'e', eintrag({ durationMs: 900 }));
+      expect(store.read('staffel-2').akte.e.durationMs).toBe(500);
+    });
+
+    it('führt zwei Tabs zusammen', () => {
+      const storage = memoryStorage();
+      createStaffelStore(storage).loeseEpisode('staffel-2', 'a', eintrag());
+      createStaffelStore(storage).loeseEpisode('staffel-2', 'b', eintrag());
+      expect(Object.keys(createStaffelStore(storage).read('staffel-2').akte).sort()).toEqual([
+        'a',
+        'b',
+      ]);
+    });
+
+    it('löscht nur Staffel 2', () => {
+      const storage = memoryStorage({ [STAFFEL_STORE_KEY]: JSON.stringify(alt) });
+      const store = createStaffelStore(storage);
+      store.loeseEpisode('staffel-2', 'a', eintrag());
+      store.loescheStaffel('staffel-2');
+      expect(store.read('staffel-2')).toEqual(leererStand());
+      expect(createStaffelStore(storage).read('staffel-2')).toEqual(leererStand());
+      expect(JSON.parse(storage.data.get(STAFFEL_STORE_KEY)!)).toEqual(alt);
+      store.loescheStaffel('test');
+      expect(storage.data.has(STAFFEL_STORE_KEY)).toBe(false);
+    });
+
+    it('verwirft einen Eintrag mit kaputten Versuchen', () => {
+      const storage = memoryStorage({
+        [STAFFEL_STORE_KEY]: JSON.stringify({
+          'staffel-2': { akte: { a: { ...eintrag(), vorwurfVersuche: 'x' }, b: eintrag() } },
+        }),
+      });
+      expect(Object.keys(createStaffelStore(storage).read('staffel-2').akte)).toEqual(['b']);
+    });
+  });
 });
 
 // Engine → Store: Was die Seite bei einem Vorfall der Reihe nach erfährt.

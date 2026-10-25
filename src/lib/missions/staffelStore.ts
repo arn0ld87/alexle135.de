@@ -13,6 +13,8 @@ import {
 import type { Staffel } from './staffelTypes';
 
 export const STAFFEL_STORE_KEY = 'staffeln:v1';
+/** Staffel 2 hält je Episode nur den Abschluss in der Akte, keinen laufenden Stand. */
+export const STAFFEL2_ID = 'staffel-2';
 export const LEGACY_STORE_KEY = 'missionen:v1';
 /** Die Missionen 01–08, die Staffel 1 ersetzt. */
 export const ABGELOESTE_MISSIONEN = [
@@ -49,7 +51,8 @@ function isEintrag(v: unknown): v is AkteEintrag {
     typeof v.durationMs === 'number' &&
     typeof v.withSolution === 'boolean' &&
     typeof v.hintsUsed === 'number' &&
-    typeof v.finishedAt === 'number'
+    typeof v.finishedAt === 'number' &&
+    (v.vorwurfVersuche === undefined || typeof v.vorwurfVersuche === 'number')
   );
 }
 
@@ -157,6 +160,29 @@ export function createStaffelStore(storage: StorageLike | null = defaultStorage(
       events.push(...award(staffel, stand, eintrag));
       write(staffel.id, stand);
       return events;
+    },
+    /**
+     * Trägt den Abschluss einer Episode ohne Staffel-Definition ein (Staffel 2: keine Beweisstück-
+     * Ereignisse, keine Abzeichen). Es gilt dieselbe Regel wie bei `loese`: der bessere Lauf bleibt.
+     */
+    loeseEpisode(staffelId: string, episodeId: string, eintrag: AkteEintrag) {
+      const stand = read(staffelId);
+      const previous = stand.akte[episodeId];
+      if (!previous || besser(eintrag, previous)) stand.akte[episodeId] = eintrag;
+      write(staffelId, stand);
+    },
+    /** Löscht den Stand einer Staffel; andere Staffeln bleiben unberührt. */
+    loescheStaffel(staffelId: string) {
+      delete memory[staffelId];
+      try {
+        const rest = Object.fromEntries(
+          Object.entries(readAll()).filter(([id]) => id !== staffelId)
+        );
+        if (Object.keys(rest).length) storage?.setItem(STAFFEL_STORE_KEY, JSON.stringify(rest));
+        else storage?.removeItem(STAFFEL_STORE_KEY);
+      } catch {
+        // Speicher gesperrt: Der Speicher dieser Sitzung ist trotzdem leer.
+      }
     },
     /** Ein Befehl endete mit Exit ≠ 0 (roter Prompt). */
     roterPrompt(staffel: Staffel): StaffelEreignis[] {

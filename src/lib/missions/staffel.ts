@@ -11,6 +11,8 @@ export interface AkteEintrag {
   /** Abgerufene Tipps über alle Schritte. */
   hintsUsed: number;
   finishedAt: number;
+  /** Nur Staffel 2: Vorwürfe, die der gelöste Lauf bis zum richtigen brauchte. */
+  vorwurfVersuche?: number;
 }
 
 export type Akte = Record<string, AkteEintrag>;

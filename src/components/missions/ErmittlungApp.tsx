@@ -18,6 +18,7 @@ import type {
 } from '../../lib/missions/ermittlungTypes';
 import type { MissionCommand, MissionReply, MissionTool } from '../../lib/missions/missionTypes';
 import { einsatzrahmenSetupSkript } from '../../lib/missions/einsatzrahmenSetup';
+import type { AkteEintrag } from '../../lib/missions/staffel';
 import { anhaengen, satz } from '../../lib/missions/pager';
 import type { PagerArt, PagerNachricht, Pose } from '../../lib/missions/pager';
 import { erzeugeErmittlungsRun } from '../../lib/missions/ermittlungsRun';
@@ -64,6 +65,8 @@ interface ErmittlungAppProps {
   werkzeuge?: readonly MissionTool[];
   /** Link im Abschluss zur nächsten Episode; fehlt bei der letzten. */
   weiter?: WeiterLink;
+  /** Der Fall ist gelöst; meldet einmal je Lauf den Abschluss, den die Seite speichern kann. */
+  onGeloest?: (abschluss: AkteEintrag) => void;
 }
 
 type Bereich = 'ansicht' | 'terminal';
@@ -74,7 +77,7 @@ function ersteSpur(spuren: readonly Spur[], zustand: ErmittlungsZustand): Spur |
 }
 
 export default function ErmittlungApp(props: ErmittlungAppProps) {
-  const { ermittlung, hostname = STAFFEL2_HOSTNAME, werkzeuge, weiter } = props;
+  const { ermittlung, hostname = STAFFEL2_HOSTNAME, werkzeuge, weiter, onGeloest } = props;
   const [pager, setPager] = useState<PagerNachricht[]>([]);
   const [pruefHinweis, setPruefHinweis] = useState<string | null>(null);
   const [rahmenFehler, setRahmenFehler] = useState<string | null>(null);
@@ -99,6 +102,11 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
   const lauf = useRef<PruefLauf | null>(null);
   const clientRef = useRef<AgentClient | null>(null);
   const promptAusstehend = useRef(false);
+  // Beginn des Laufs und genutzte Tipps; ein Neustart der VM beginnt beides neu.
+  const laufStart = useRef(Date.now());
+  const tippNutzung = useRef({ hintsUsed: 0, withSolution: false });
+  const onGeloestRef = useRef(onGeloest);
+  onGeloestRef.current = onGeloest;
   const setupVersion = useRef(0);
   const pruefRueckmeldung = useRef<PruefRueckmeldung>({
     sequenz: 0,
@@ -196,6 +204,8 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
       const startSpur = ersteSpur(ermittlung.spuren, start);
       setAktiveSpurId(startSpur?.id ?? null);
       setAusgewaehlteBelegIds([]);
+      laufStart.current = Date.now();
+      tippNutzung.current = { hintsUsed: 0, withSolution: false };
       setSetupGeneration(version);
       setHilfeStand(version);
       setPager([]);
@@ -461,8 +471,23 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
 
   useEffect(() => {
     // Nach den Kind-Effekten: Der native Dialog muss Außenfokus wieder erlauben.
-    if (anzeigeZustand.geloest) document.getElementById('ermittlung-abschluss')?.focus();
+    if (!anzeigeZustand.geloest) return;
+    document.getElementById('ermittlung-abschluss')?.focus();
+    const jetzt = Date.now();
+    onGeloestRef.current?.({
+      durationMs: jetzt - laufStart.current,
+      finishedAt: jetzt,
+      vorwurfVersuche: zustand.current.vorwurfVersuche,
+      ...tippNutzung.current,
+    });
   }, [anzeigeZustand.geloest]);
+
+  const merkeTipp = useCallback((stufe: number) => {
+    tippNutzung.current = {
+      hintsUsed: tippNutzung.current.hintsUsed + 1,
+      withSolution: tippNutzung.current.withSolution || stufe === 3,
+    };
+  }, []);
 
   const aktiveSpur = ermittlung.spuren.find((spur) => spur.id === aktiveSpurId) ?? null;
   const aktiverSchritt = aktiveSpur ? aktuellerSchritt(aktiveSpur, anzeigeZustand) : null;
@@ -536,6 +561,7 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
             spurId={aktiveSpur?.id ?? null}
             schritt={aktiverSchritt}
             werkzeuge={werkzeuge}
+            onTippGezeigt={merkeTipp}
           />
           <Ansichten
             ansichten={ermittlung.ansichten}
