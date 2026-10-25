@@ -13,6 +13,7 @@ on:
       - 'docker-compose.prod.yml'
       - 'scripts/mission-image/**'
       - 'scripts/mission-image-gui/**'
+      - '.github/actions/mission-assets/**'
 
 permissions:
   contents: read
@@ -33,12 +34,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Missions-Assets bauen
-        run: bash scripts/mission-image/build.sh
-
-      # Ergänzt public/missions/linux/ um bildschirm/ und die Rootfs-Dateien des Bildschirm-Images.
-      - name: Bildschirm-Assets bauen
-        run: bash scripts/mission-image-gui/build.sh
+      # Missions- und Bildschirm-Image, aus dem Cache oder neu gebaut (.github/actions/mission-assets).
+      - name: Missions- und Bildschirm-Assets
+        uses: ./.github/actions/mission-assets
+        with:
+          bildschirm: 'true'
 
       - name: Missions-Assets hochladen
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

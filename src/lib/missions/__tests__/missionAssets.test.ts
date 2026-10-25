@@ -80,13 +80,22 @@ describe('Bildschirm-Assets (ADR 0008)', () => {
     expect(dockerfile).toContain('PUBLIC_MISSION_BILDSCHIRM_VERSION="$B" pnpm run build');
   });
 
-  it('CI und Deploy bauen das Bildschirm-Image nach dem Missions-Image', () => {
+  it('CI und Deploy holen beide Images über die gecachte Action, GUI nach Missions-Image', () => {
+    const action = read('.github/actions/mission-assets/action.yml');
+    const s1 = action.indexOf('run: bash scripts/mission-image/build.sh');
+    const gui = action.indexOf('run: bash scripts/mission-image-gui/build.sh');
+    expect(s1).toBeGreaterThan(-1);
+    expect(gui).toBeGreaterThan(s1);
+    // Der Schlüssel des Bildschirm-Images hängt auch an den Eingaben des Missions-Images.
+    expect(action).toContain(
+      "hashFiles('scripts/mission-image/**', 'scripts/mission-image-gui/**')"
+    );
     for (const workflow of ['.github/workflows/ci.yml', '.github/workflows/deploy.yml']) {
       const text = read(workflow);
-      const s1 = text.indexOf('run: bash scripts/mission-image/build.sh');
-      const gui = text.indexOf('run: bash scripts/mission-image-gui/build.sh');
-      expect(s1, workflow).toBeGreaterThan(-1);
-      expect(gui, workflow).toBeGreaterThan(s1);
+      expect(text, workflow).toMatch(
+        /uses: \.\/\.github\/actions\/mission-assets\n\s+with:\n\s+bildschirm: 'true'/
+      );
+      expect(text, workflow).not.toContain('run: bash scripts/mission-image');
     }
   });
 

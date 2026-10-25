@@ -185,8 +185,8 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
 
       # Das Bildschirm-Image braucht hier niemand: Die Bildschirm-E2E läuft nur mit MISSION_VM.
-      - name: Missions-Assets bauen (v86-Image nach public/missions/linux/)
-        run: bash scripts/mission-image/build.sh
+      - name: Missions-Assets (v86-Image nach public/missions/linux/, gecacht)
+        uses: ./.github/actions/mission-assets
 
       - name: App bauen (SSR)
         run: pnpm build
@@ -258,9 +258,10 @@ jobs:
   docker:
     name: Docker image
     runs-on: ubuntu-24.04
-    # Missions-Image (i386-Alpine + Savestate per headless v86) kostet einige Minuten, das
-    # Bildschirm-Image (ADR 0008) noch einmal gut zehn (gns3, ohne Cache: 11 min).
-    timeout-minutes: 50
+    # Mit Cache-Treffer laden beide Images in Sekunden. Ohne Treffer kostet das Missions-Image
+    # (i386-Alpine + Savestate per headless v86) einige Minuten, das Bildschirm-Image (ADR 0008)
+    # noch einmal gut zehn (gns3, ohne Docker-Cache: 11 min); das Limit lässt dafür Luft.
+    timeout-minutes: 45
     services:
       postgres:
         image: postgres:18
@@ -278,11 +279,10 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Missions-Assets bauen (wie im Deploy auf dem Runner)
-        run: bash scripts/mission-image/build.sh
-
-      - name: Bildschirm-Assets bauen (wie im Deploy auf dem Runner)
-        run: bash scripts/mission-image-gui/build.sh
+      - name: Missions- und Bildschirm-Assets (wie im Deploy, gecacht)
+        uses: ./.github/actions/mission-assets
+        with:
+          bildschirm: 'true'
 
       - name: Produktionsimage bauen
         run: docker build -t alexle135:ci .
