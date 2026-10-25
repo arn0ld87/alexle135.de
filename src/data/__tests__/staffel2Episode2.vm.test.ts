@@ -507,7 +507,11 @@ describe.skipIf(!enabled)('Episode 2 „Der Prozess, der nicht stirbt“ in der 
     // Der letzte Weg bleibt stehen: zwei volle Minuten bleibt der Prozess weg.
     const wiedergekehrt = await warteAuf(true, 80);
     const lage = wiedergekehrt
-      ? (await run("ps -o pid,ppid,user,comm,args | grep -E 'abgleich|crond|sh -c'; ls -l /etc/crontabs; grep cron /var/log/messages | tail -8; date")).output
+      ? (
+          await run(
+            "ps -o pid,ppid,user,comm,args | grep -E 'abgleich|crond|sh -c'; ls -l /etc/crontabs; grep cron /var/log/messages | tail -8; date"
+          )
+        ).output
       : '';
     expect(wiedergekehrt, lage).toBe(false);
     expect(await eingriffOk()).toBe(true);
