@@ -1012,6 +1012,24 @@ describe.skipIf(!enabled)('Episode 1 „Zu viele Rechte“ in der echten VM', ()
     await run(`rm -f ${QUARANTAENE}/eigene-notiz.txt`);
   }, 300_000);
 
+  it('ADR 0009: ersetzt azubi die Quarantäne durch einen Link, zählt nichts und die Diagnose sagt es', async () => {
+    await frischerLauf();
+    const kaputt =
+      'Deine Quarantäne ~/quarantaene ist kein Ordner mehr. Lade die Seite neu, dann ist sie wieder da.';
+    try {
+      await run('mkdir -p /tmp/ziel && chmod 777 /tmp/ziel');
+      expect((await alsAzubi(`rmdir ${QUARANTAENE} && ln -s /tmp/ziel ${QUARANTAENE}`)).rc).toBe(0);
+      expect(await schrittPruefung('regel-weg')).toEqual({ geloest: false, diagnose: kaputt });
+      // Das erlaubte sudo mv folgt dem Link; gezählt wird das nicht.
+      expect((await alsAzubi(tippLoesung('rechte', 'regel-weg'))).rc).toBe(0);
+      expect(await schrittPruefung('regel-weg')).toEqual({ geloest: false, diagnose: kaputt });
+      expect((await alsAzubi(tippLoesung('rechte', 'status-weg'))).rc).toBe(0);
+      expect(await schrittPruefung('status-weg')).toEqual({ geloest: false, diagnose: kaputt });
+    } finally {
+      await run(`rm -rf /tmp/ziel ${QUARANTAENE}; rm -f ${SUDOERS}`);
+    }
+  }, 300_000);
+
   it('T9-8 (Grenze): ein erneutes T8-Setup nach der Episode scheitert sichtbar und lässt Quellen unberührt', async () => {
     // Die absichtlich lesbare Regeldatei (0644) beanstandet `visudo -c` im T8-Setup; im Spiel
     // läuft die Setup-Folge nur einmal je frischer VM. Der Fehler darf nichts zerstören.
