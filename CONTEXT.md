@@ -43,6 +43,17 @@ Lernspiel auf echtem Alpine Linux im Browser (v86) unter `/projekte/terminal-mis
 - **Aktenwand** _(geplant, Staffel 2)_: Ansicht auf `~/belege/`. Sie zeigt, was dort wirklich liegt; aus ihr heraus werden Vorwürfe erhoben.
 - **Vorwurf** _(geplant, Staffel 2)_: Spielentscheidung, die einen Verdacht gegen eine Figur äußert und ihn mit Belegen stützen muss. Ein falscher oder unbelegter Vorwurf hat erzählerische Folgen, führt aber nie in eine Sackgasse. _Vermeiden:_ Anklage, Lösung.
 - **Einsatzrahmen** _(geplant, Staffel 2)_: schriftlich vereinbarte Grenzen des Pentests in Staffel 2, also was angefasst werden darf und was nicht. Wer ihn verletzt, spürt die Folgen in der Geschichte. _Vermeiden:_ Auftrag (so heißt schon die Pager-Nachricht `auftrag`), Scope in sichtbaren Texten.
+- **Bildschirm** _(geplant, Staffel 2)_: grafische Oberfläche des Gast-Linux, startet bei Bedarf als Spielerkonto. Nur in Episoden, die ihn brauchen (ADR 0008). _Vermeiden:_ Desktop in sichtbaren Texten, Ansicht (so heißen die React-Ansichten wie Serverschrank und Aktenwand).
+- **Gastprogramm** _(geplant, Staffel 2)_: grafisches Programm, das im Gast-Linux auf dem Bildschirm läuft, etwa Dateimanager, Bildbetrachter oder Editor. _Vermeiden:_ App.
+- **Bildbeleg** _(geplant, Staffel 2)_: Bild im Gast-Linux, dessen Inhalt man nur durch Ansehen erfährt, ohne Textebene und ohne OCR. Erzwingt den Bildschirm über den Inhalt, nicht über die Prüfung.
+- **Schrittart** _(geplant, Staffel 2)_: Art eines Schritts in einer Spur. Jede Episode nutzt mindestens drei, geprüft wird immer der Zustand, nie der Befehl (ADR 0009). Es gibt sechs:
+  - **Sichern:** Ausgabe als Beleg nach `~/belege/` ablegen.
+  - **Eingreifen:** laufendes Geschehen stoppen, etwa einen Prozess oder cron-Eintrag, der nicht wiederkommt.
+  - **Reparieren:** Rechte, Dienste oder Dateien richtigstellen.
+  - **Ablesen:** einen Wert aus Bildbeleg oder Log finden und angeben.
+  - **Ordnen:** Dateien unverändert in die Quarantäne verschieben.
+  - **Bearbeiten:** eine Datei inhaltlich ändern.
+- **Quarantäne** _(geplant, Staffel 2)_: Ordner `~/quarantaene/` des Spielerkontos für verdächtige Dateien.
 - **Spielstand-Code** _(geplant, Staffel 2)_: exportierter Stand einer Staffel zum Mitnehmen auf ein anderes Gerät, ohne Konto (ADR 0005).
 - **Abzeichen:** Auszeichnung nach Regel (ohne Tipp, schnell, nie Lösung, rote Prompts), je Staffel einmal.
 - **Gesamtlauf:** Summe der Zeiten aller Missionen ohne Mission 00 „Erster Tag“.
