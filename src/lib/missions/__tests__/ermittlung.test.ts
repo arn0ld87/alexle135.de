@@ -936,7 +936,11 @@ describe('Abschluss: richtiger Vorwurf und alle Spuren', () => {
   });
 
   it('schließt ab, sobald nach dem Vorwurf die letzten Schritte per Prüfung erledigt sind', () => {
-    let z = pruefeVorwurf(fixture, zustand({ belegeErkannt: alleBelege, erledigt: { log: 1 } }), richtig).zustand;
+    let z = pruefeVorwurf(
+      fixture,
+      zustand({ belegeErkannt: alleBelege, erledigt: { log: 1 } }),
+      richtig
+    ).zustand;
     let e = lauf(fixture, z, { 's.rechte.s1': true });
     expect(e.zustand.geloest).toBe(false);
     expect(e.zustand.vorwurfRichtig).toBe(true);
@@ -962,7 +966,11 @@ describe('Abschluss: richtiger Vorwurf und alle Spuren', () => {
   });
 
   it('schließt sofort ab, wenn der Vorwurf erst nach allen Spuren kommt', () => {
-    const r = pruefeVorwurf(fixture, zustand({ belegeErkannt: alleBelege, erledigt: fertig }), richtig);
+    const r = pruefeVorwurf(
+      fixture,
+      zustand({ belegeErkannt: alleBelege, erledigt: fertig }),
+      richtig
+    );
     expect(r.ergebnis).toBe('richtig');
     expect(r.zustand.geloest).toBe(true);
     expect(r.antwort).toEqual(fixture.vorwurf.antworten.richtig);
@@ -1044,7 +1052,10 @@ describe('pruefeVorwurf', () => {
   // T5: isoliert die Mengenprüfung, weil jedeSpur hier aus ist.
   it('prüft die Mindestzahl auch ohne jedeSpur', () => {
     const e = mit({ vorwurf: { ...fixture.vorwurf, jedeSpur: false } });
-    const z = zustand({ belegeErkannt: ['b-log', 'b-nadia', 'b-stat', 'b-sudoers'] });
+    const z = zustand({
+      belegeErkannt: ['b-log', 'b-nadia', 'b-stat', 'b-sudoers'],
+      erledigt: { rechte: 2, log: 1 },
+    });
     expect(pruefeVorwurf(e, z, { verdaechtigeId: 'timo', belegIds: ['b-sudoers'] }).ergebnis).toBe(
       'zu-wenig-belege'
     );
@@ -1054,7 +1065,10 @@ describe('pruefeVorwurf', () => {
   });
 
   it('nimmt einen Beleg gegen eine andere Person weder übel noch als Stütze', () => {
-    const z = zustand({ belegeErkannt: ['b-sudoers', 'b-log', 'b-nadia'] });
+    const z = zustand({
+      belegeErkannt: ['b-sudoers', 'b-log', 'b-nadia'],
+      erledigt: { rechte: 2, log: 1 },
+    });
     expect(vorwurf(z, 'timo', ['b-sudoers', 'b-log', 'b-nadia']).ergebnis).toBe('richtig');
     expect(vorwurf(zustand({ belegeErkannt: ['b-nadia'] }), 'timo', ['b-nadia']).ergebnis).toBe(
       'zu-wenig-belege'
@@ -1077,7 +1091,7 @@ describe('pruefeVorwurf', () => {
   });
 
   it('löst den Fall mit einem richtigen Vorwurf', () => {
-    const z = zustand({ belegeErkannt: ['b-log', 'b-sudoers'] });
+    const z = zustand({ belegeErkannt: ['b-log', 'b-sudoers'], erledigt: { rechte: 2, log: 1 } });
     expect(vorwurf(z, 'timo', ['b-sudoers', 'b-log'])).toEqual({
       zustand: {
         ...z,
@@ -1139,10 +1153,11 @@ describe('Sperre ohne Sackgasse', () => {
     expect(r.zustand.sperreBis).toBeNull();
     expect(r.zustand.sperreRestPruefungen).toBe(0);
     expect(
-      pruefeVorwurf(fixture, r.zustand, {
-        verdaechtigeId: 'timo',
-        belegIds: ['b-sudoers', 'b-log'],
-      }).ergebnis
+      pruefeVorwurf(
+        fixture,
+        { ...r.zustand, erledigt: { rechte: 2, log: 1 } },
+        { verdaechtigeId: 'timo', belegIds: ['b-sudoers', 'b-log'] }
+      ).ergebnis
     ).toBe('richtig');
   });
 
