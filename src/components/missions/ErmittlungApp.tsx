@@ -32,7 +32,7 @@ import {
 import Ansichten from './Ansichten';
 import AntwortFeld from './AntwortFeld';
 import EinsatzrahmenHinweis from './EinsatzrahmenHinweis';
-import ErmittlungsAbschluss from './ErmittlungsAbschluss';
+import ErmittlungsAbschluss, { type WeiterLink } from './ErmittlungsAbschluss';
 import ErmittlungsHilfe from './ErmittlungsHilfe';
 import Pager from './Pager';
 import Spurenliste from './Spurenliste';
@@ -55,6 +55,8 @@ interface ErmittlungAppProps {
   hostname?: string;
   /** Karten des Werkzeugkastens in der Hilfe; ohne sie gibt es nur die Tipps. */
   werkzeuge?: readonly MissionTool[];
+  /** Link im Abschluss zur nächsten Episode; fehlt bei der letzten. */
+  weiter?: WeiterLink;
 }
 
 type Bereich = 'ansicht' | 'terminal';
@@ -65,7 +67,7 @@ function ersteSpur(spuren: readonly Spur[], zustand: ErmittlungsZustand): Spur |
 }
 
 export default function ErmittlungApp(props: ErmittlungAppProps) {
-  const { ermittlung, hostname = STAFFEL2_HOSTNAME, werkzeuge } = props;
+  const { ermittlung, hostname = STAFFEL2_HOSTNAME, werkzeuge, weiter } = props;
   const [pager, setPager] = useState<PagerNachricht[]>([]);
   const [pruefHinweis, setPruefHinweis] = useState<string | null>(null);
   const [rahmenFehler, setRahmenFehler] = useState<string | null>(null);
@@ -123,6 +125,8 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
         } else if (ereignis.type === 'spur-erledigt') {
           const spur = ermittlung.spuren.find((eintrag) => eintrag.id === ereignis.spurId);
           if (spur) melde('erledigt', [satz(`Spur abgeschlossen: ${spur.titel}`)]);
+        } else if (ereignis.type === 'diagnose') {
+          melde('auftrag', [satz(ereignis.text)]);
         } else if (ereignis.type === 'einsatzrahmen-verletzt') {
           melde('auftrag', [...ermittlung.einsatzrahmen.folge]);
         } else if (ereignis.type === 'sperre-aufgehoben') {
@@ -460,7 +464,7 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
         )}
       {rahmenFehler && <p role="alert">{rahmenFehler}</p>}
       {pruefHinweis && <p role="status">{pruefHinweis}</p>}
-      {anzeigeZustand.geloest && <ErmittlungsAbschluss ermittlung={ermittlung} />}
+      {anzeigeZustand.geloest && <ErmittlungsAbschluss ermittlung={ermittlung} weiter={weiter} />}
       <div className="flex gap-2 lg:hidden">
         <button
           type="button"

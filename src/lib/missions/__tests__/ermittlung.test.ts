@@ -16,6 +16,7 @@ import {
   pruefeDaten,
   pruefeVorwurf,
   pruefIdBeleg,
+  pruefIdDiagnose,
   pruefIdSchritt,
   startZustand,
   wendeAntwortAn,
@@ -1187,5 +1188,151 @@ describe('mitZustandsDefaults', () => {
     expect(eingabe).toEqual(kopie);
     expect(Object.hasOwn(eingabe, 'sperreRestPruefungen')).toBe(false);
     expect(Object.hasOwn(ergebnis, 'sperreRestPruefungen')).toBe(true);
+  });
+});
+
+describe('Diagnose bei unvollständigem Beleg', () => {
+  const MELDUNG = 'In deinem Beleg fehlt noch eine Datei.';
+  const ANDERE = 'Die Zeile steht nicht unverändert im Beleg.';
+  const mitDiagnose = (diagnose: string): Ermittlung =>
+    mit({
+      spuren: [
+        {
+          id: 'rechte',
+          titel: 'Rechte',
+          schritte: [{ ...schritt('s1', 'false'), diagnose }, schritt('s2', 'false')],
+        },
+        { id: 'log', titel: 'Logbuch', schritte: [schritt('s1', 'false')] },
+      ],
+    });
+  const ID = pruefIdDiagnose('rechte', 's1');
+  const mitText = (text: string, verify: boolean, z = startZustand()) =>
+    wendePruefungAn(mitDiagnose('true'), z, {
+      ergebnisse: { [pruefIdSchritt('rechte', 's1')]: verify },
+      diagnosen: { [ID]: text },
+      vollstaendig: true,
+    });
+
+  it('benennt die Prüf-ID aus Spur und Schritt', () => {
+    expect(ID).toBe('d.rechte.s1');
+  });
+
+  it('prüft die Diagnose nur beim aktuellen Schritt, direkt nach dessen verify', () => {
+    const e = mitDiagnose('echo x');
+    expect(offenePruefungen(e, startZustand()).map((p) => p.id)).toEqual([
+      's.rechte.s1',
+      'd.rechte.s1',
+      's.log.s1',
+      'b.b-sudoers',
+      'b.b-stat',
+      'b.b-log',
+      'b.b-nadia',
+      'e.verstoss',
+    ]);
+    const weiter = offenePruefungen(e, zustand({ erledigt: { rechte: 1 } })).map((p) => p.id);
+    expect(weiter).not.toContain('d.rechte.s1');
+    expect(offenePruefungen(e, startZustand()).find((p) => p.id === ID)).toEqual({
+      id: ID,
+      skript: 'echo x',
+      diagnose: true,
+    });
+  });
+
+  it('gibt Schritten ohne Diagnose keine Diagnose-Prüfung', () => {
+    expect(offenePruefungen(fixture, startZustand()).some((p) => p.diagnose)).toBe(false);
+  });
+
+  it('liefert die Meldung als eine Datenzeile, ohne Steuerzeichen und höchstens 200 Zeichen', () => {
+    const skript = buendelSkript([
+      { id: 'd.a.b', skript: `printf 'Zeile\\tEins\\033[31m\\nZwei\\n'`, diagnose: true },
+      { id: 'd.a.c', skript: `printf '%0300d' 0`, diagnose: true },
+      { id: 'd.a.d', skript: 'exit 3', diagnose: true },
+    ]);
+    const roh = execFileSync('bash', ['-c', skript], { encoding: 'utf8' });
+    const zeilen = roh.split('\n').filter((z) => z.startsWith('diagnose\t'));
+    expect(zeilen).toHaveLength(3);
+    const gelesen = leseBuendelAusgabe(roh);
+    expect(gelesen.diagnosen?.['d.a.b']).toBe('ZeileEins[31m');
+    expect(gelesen.diagnosen?.['d.a.c']).toHaveLength(200);
+    expect(gelesen.diagnosen?.['d.a.d']).toBe('');
+    expect(gelesen.vollstaendig).toBe(true);
+  });
+
+  it('zählt Diagnosezeilen nicht als Prüfungen und hält deren Ausgabe aus dem Bündel heraus', () => {
+    const skript = buendelSkript([
+      { id: 'a', skript: 'true' },
+      { id: 'd.a', skript: 'echo hallo; echo laut >&2', diagnose: true },
+    ]);
+    expect(skript).toContain("printf 'ende\\t%s\\n' '1'");
+    const roh = execFileSync('bash', ['-c', skript], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    expect(roh.split('\n')).not.toContain('hallo');
+    expect(roh).not.toContain('laut');
+    expect(leseBuendelAusgabe(roh)).toEqual({
+      ergebnisse: { a: true },
+      diagnosen: { 'd.a': 'hallo' },
+      vollstaendig: true,
+    });
+  });
+
+  it('liest die Diagnose nur aus Zeilen mit Schlüsselwort und bereinigt sie auch im Browser', () => {
+    const gelesen = leseBuendelAusgabe(
+      `diagnose\td.x.y\tText\u0007 mit\ttab\n${'diagnose\td.x.z\t' + 'a'.repeat(250)}\nende\t0\n`
+    );
+    expect(gelesen.diagnosen?.['d.x.y']).toBe('Text mittab');
+    expect(gelesen.diagnosen?.['d.x.z']).toHaveLength(200);
+    expect(leseBuendelAusgabe('pruefung\ta\t0\nende\t1\n').diagnosen).toBeUndefined();
+  });
+
+  it('meldet nur bei verify false und nicht leerer Diagnose', () => {
+    const r = mitText(MELDUNG, false);
+    expect(r.ereignisse).toEqual([
+      { type: 'diagnose', spurId: 'rechte', schrittId: 's1', text: MELDUNG },
+    ]);
+    expect(mitText(MELDUNG, true).ereignisse.map((x) => x.type)).toEqual(['schritt-erledigt']);
+    expect(mitText('', false).ereignisse).toEqual([]);
+  });
+
+  it('erledigt nie einen Schritt und ändert sonst keinen Zustand', () => {
+    const r = mitText(MELDUNG, false);
+    expect(r.zustand.erledigt).toEqual({});
+    expect(r.zustand.belegeErkannt).toEqual([]);
+    expect(r.zustand.geloest).toBe(false);
+    const ohneVerify = wendePruefungAn(mitDiagnose('true'), startZustand(), {
+      ergebnisse: {},
+      diagnosen: { [ID]: MELDUNG },
+      vollstaendig: true,
+    });
+    expect(ohneVerify.ereignisse).toEqual([]);
+    expect(ohneVerify.zustand.erledigt).toEqual({});
+  });
+
+  it('meldet denselben Text einmal je Schritt, erst nach anderem Text oder Pause wieder', () => {
+    const a = mitText(MELDUNG, false);
+    const b = mitText(MELDUNG, false, a.zustand);
+    expect(b.ereignisse).toEqual([]);
+    const c = mitText(ANDERE, false, b.zustand);
+    expect(c.ereignisse).toEqual([
+      { type: 'diagnose', spurId: 'rechte', schrittId: 's1', text: ANDERE },
+    ]);
+    const d = mitText(MELDUNG, false, c.zustand);
+    expect(d.ereignisse).toHaveLength(1);
+    const pause = mitText('', false, d.zustand);
+    const e = mitText(MELDUNG, false, pause.zustand);
+    expect(e.ereignisse).toHaveLength(1);
+  });
+
+  it('ändert den übergebenen Zustand nicht und lässt unvollständige Läufe unberührt', () => {
+    const z = startZustand();
+    mitText(MELDUNG, false, z);
+    expect(z).toEqual(startZustand());
+    const r = wendePruefungAn(mitDiagnose('true'), z, {
+      ergebnisse: {},
+      diagnosen: { [ID]: MELDUNG },
+      vollstaendig: false,
+    });
+    expect(r.ereignisse).toEqual([{ type: 'pruefung-unvollstaendig' }]);
   });
 });

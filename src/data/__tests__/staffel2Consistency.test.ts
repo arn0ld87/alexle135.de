@@ -19,6 +19,7 @@ import {
 } from '../../lib/missions/ermittlung';
 import type { Ermittlung } from '../../lib/missions/ermittlungTypes';
 import { glossar } from '../../lib/missions/glossar';
+import { episode0, episode0Werkzeuge } from '../staffeln/staffel-2/episode-0';
 import { episode1, episode1Werkzeuge, LOESUNG } from '../staffeln/staffel-2/episode-1';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '../../..');
@@ -37,6 +38,15 @@ function skripte(e: Ermittlung): { name: string; text: string }[] {
   for (const spur of e.spuren) {
     for (const schritt of spur.schritte) {
       liste.push({ name: `${e.id}: Schritt ${spur.id}/${schritt.id}`, text: schritt.verify });
+      if (schritt.diagnose) {
+        liste.push({ name: `${e.id}: Diagnose ${spur.id}/${schritt.id}`, text: schritt.diagnose });
+      }
+      if (schritt.antwort) {
+        liste.push({
+          name: `${e.id}: Antwortprüfung ${spur.id}/${schritt.id}`,
+          text: schritt.antwort.pruefung,
+        });
+      }
     }
   }
   for (const beleg of e.vorwurf.belege) {
@@ -137,7 +147,9 @@ describe('Staffel 2, Episode 1: Struktur (T9-1)', () => {
     const pruefungen = offenePruefungen(episode1, startZustand());
     expect(pruefungen.map((p) => p.id)).toEqual([
       's.rechte.sudo-zeile',
+      'd.rechte.sudo-zeile',
       's.log.audit-zeile',
+      'd.log.audit-zeile',
       'b.log-zeile',
       'b.rechte-metadaten',
       'b.rechte-zeile',
@@ -247,4 +259,148 @@ describe('Staffel 2, Episode 1: Werkzeuge (T9-10)', () => {
       expect(werkzeug.beispiel).not.toMatch(/rw-fernwartung|rechenwerk|belege/);
     }
   });
+});
+
+describe('Staffel 2, Episode 1: Diagnosen (T12)', () => {
+  const diagnosen = episode1.spuren.flatMap((spur) =>
+    spur.schritte.map((schritt) => ({
+      name: `${spur.id}/${schritt.id}`,
+      diagnose: schritt.diagnose,
+    }))
+  );
+
+  it('gibt allen drei Schritten eine Diagnose, die als Bash gültig ist', () => {
+    expect(diagnosen.map((d) => d.name)).toEqual([
+      'rechte/sudo-zeile',
+      'rechte/datei-metadaten',
+      'log/audit-zeile',
+    ]);
+    for (const d of diagnosen) {
+      expect(d.diagnose?.trim(), d.name).toBeTruthy();
+      expect(bashN(d.diagnose ?? '').status, d.name).toBe(0);
+    }
+  });
+
+  it('liest nur: keine Umleitung in Dateien, kein sudo, keine Änderung', () => {
+    for (const d of diagnosen) {
+      expect(d.diagnose, d.name).not.toMatch(
+        /\bsudo\b|\btee\b|\brm\b|\bchmod\b|\bchown\b|\bmv\b|\btouch\b/
+      );
+      expect(d.diagnose, d.name).not.toMatch(/>\s*["$/~]/);
+    }
+  });
+});
+
+describe('Staffel 2, Episode 0 „Probelauf“ (T12)', () => {
+  it('ist ein gültiger Datensatz mit den vereinbarten Kerndaten', () => {
+    expect(pruefeDaten(episode0)).toEqual([]);
+    expect(episode0.nr).toBe(0);
+    expect(episode0.id).toBe('probelauf');
+    expect(episode0.titel).toBe('Probelauf');
+    expect(episode0.vorwurf.taeterId).toBe('kaffee');
+    expect(episode0.vorwurf.verdaechtige.map((v) => v.id)).toEqual(['timo', 'nadia', 'kaffee']);
+    expect(episode0.vorwurf.mindestBelege).toBe(2);
+    expect(episode0.vorwurf.jedeSpur).toBe(true);
+    expect(episode0.beweisstueck.code).toBe('S2-E0-KASSE');
+  });
+
+  it('hat zwei Spuren mit mindestens zwei Schrittarten und nur die Aktenwand als Ansicht', () => {
+    expect(episode0.spuren.map((s) => s.id)).toEqual(['akte', 'inhalt']);
+    const arten = new Set(episode0.spuren.flatMap((s) => s.schritte.map((x) => x.art)));
+    expect(arten.size).toBeGreaterThanOrEqual(2);
+    expect(arten.has('ablesen')).toBe(true);
+    expect(episode0.ansichten.map((a) => a.art)).toEqual(['aktenwand']);
+    expect(episode0.ansichten[0].abfrage).toBe(AKTENWAND_ABFRAGE);
+  });
+
+  it('hat je drei Tipps mit markierter Lösung und einen kurzen Einstieg im Pager', () => {
+    for (const spur of episode0.spuren) {
+      for (const schritt of spur.schritte) {
+        expect(schritt.tipps).toHaveLength(3);
+        expect(schritt.tipps[0].startsWith(LOESUNG)).toBe(false);
+        expect(schritt.tipps[1].startsWith(LOESUNG)).toBe(false);
+        expect(schritt.tipps[2].startsWith(LOESUNG)).toBe(true);
+      }
+    }
+    const einstieg = episode0.spuren[0].schritte[0].pager.join(' ');
+    expect(einstieg).toContain('Erster Einsatztag bei der Rechenwerk Ostwind GmbH');
+    expect(einstieg).toMatch(/Beleg/);
+    expect(einstieg).toMatch(/nano/);
+    expect(einstieg).toMatch(/Tipps/);
+  });
+
+  it('hat Diagnosen für beide Belegschritte, aber keinen Verstoß im Einsatzrahmen', () => {
+    const schritte = episode0.spuren.flatMap((s) => s.schritte);
+    expect(schritte.filter((s) => s.diagnose).map((s) => s.id)).toEqual([
+      'kasse-meta',
+      'kasse-zeilen',
+    ]);
+    expect(episode0.einsatzrahmen.verstoss).toBe('false');
+    expect(episode0.einsatzrahmen.text.join(' ')).toContain('~/uebung/');
+    expect(episode0.einsatzrahmen.text.join(' ')).not.toContain('nadia');
+  });
+
+  it('prüft das Antwortfeld über den Besitzer der Liste', () => {
+    const ablesen = episode0.spuren[0].schritte[1];
+    expect(ablesen.art).toBe('ablesen');
+    expect(ablesen.antwort?.frage).toBe('Wem gehört die geänderte Liste? (Benutzername)');
+    expect(ablesen.antwort?.pruefung).toBe(
+      '[ "$ANTWORT" = "$(stat -c %U /home/azubi/uebung/kaffeekasse.csv)" ]'
+    );
+  });
+
+  it('ordnet jedem Beleg eine Datei <id>.txt, Spur und Person zu', () => {
+    expect(Object.fromEntries(episode0.vorwurf.belege.map((b) => [b.id, b.spurId]))).toEqual({
+      'kasse-meta': 'akte',
+      'kasse-zeilen': 'inhalt',
+    });
+    for (const beleg of episode0.vorwurf.belege) {
+      expect(beleg.stuetzt).toBe('kaffee');
+      expect(beleg.verify).toContain(`/${beleg.id}.txt`);
+    }
+  });
+
+  it('bündelt die offenen Prüfungen des Starts mit Diagnosen zu einem gültigen Skript', () => {
+    const pruefungen = offenePruefungen(episode0, startZustand());
+    expect(pruefungen.map((p) => p.id)).toEqual([
+      's.akte.kasse-meta',
+      'd.akte.kasse-meta',
+      's.inhalt.kasse-zeilen',
+      'd.inhalt.kasse-zeilen',
+      'b.kasse-meta',
+      'b.kasse-zeilen',
+      'e.verstoss',
+    ]);
+    expect(bashN(buendelSkript(pruefungen)).status).toBe(0);
+  });
+
+  it('hat einen eigenen Porträtdatensatz, ein Setup mit expliziter Fehlerfortpflanzung und Werkzeuge', () => {
+    const personen = episode0.vorwurf.verdaechtige;
+    expect(new Set(personen.map((p) => p.portraet)).size).toBe(personen.length);
+    for (const person of personen) {
+      expect(existsSync(join(root, 'src/assets/missions/staffel-2', `${person.id}.webp`))).toBe(
+        true
+      );
+    }
+    expect(episode0.setup.startsWith('set -eu')).toBe(true);
+    expect(episode0.setup).not.toMatch(/rm -rf (?!"\$tmp")/);
+    expect(episode0Werkzeuge.map((w) => w.befehl)).toEqual([
+      'ls -l',
+      'stat',
+      'cat',
+      'grep',
+      '>',
+      '>>',
+    ]);
+    for (const werkzeug of episode0Werkzeuge) {
+      expect(glossar.get(werkzeug.befehl)).toEqual(werkzeug);
+    }
+  });
+
+  it.each(skripte(episode0).map((s) => [s.name, s.text]))(
+    'ist syntaktisch gültiges Bash: %s',
+    (name, text) => {
+      expect({ name, ...bashN(text) }).toEqual({ name, status: 0, fehler: '' });
+    }
+  );
 });

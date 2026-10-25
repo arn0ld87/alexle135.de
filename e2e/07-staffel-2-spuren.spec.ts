@@ -5,7 +5,7 @@ import { expect, test } from '@playwright/test';
 // Ohne MISSION_VM laufen nur die übrigen E2E-Tests; eine übersprungene Probe ist kein Nachweis.
 test.skip(!process.env.MISSION_VM, 'MISSION_VM ist nicht gesetzt.');
 
-const STAFFEL2 = '/projekte/terminal-missionen/app/staffel-2';
+const STAFFEL2 = '/projekte/terminal-missionen/app/staffel-2?episode=1';
 
 // Geprüfte Lösungswege aus Episode 1; jeder Befehl ist ein eigener Beleg.
 const LOG = 'grep sudoers.d /var/log/rechenwerk-audit.log > ~/belege/log-zeile.txt';
@@ -44,9 +44,12 @@ test('Staffel 2: Spur Log vor Spur Rechte lösen, je ein Schritt pro Bündel', a
   await page.getByTestId('v86-terminal').click();
   await page.keyboard.type(LOG);
   await page.keyboard.press('Enter');
-  await expect(page.getByTestId('pager')).toContainText('Erledigt: Sichere die passende Audit-Zeile', {
-    timeout: 15_000,
-  });
+  await expect(page.getByTestId('pager')).toContainText(
+    'Erledigt: Sichere die passende Audit-Zeile',
+    {
+      timeout: 15_000,
+    }
+  );
   await expect(spur(page, 'Log, 1 von 1 Schritten erledigt, abgeschlossen')).toBeVisible();
   await expect(spur(page, RECHTE_0)).toBeVisible();
   await expect(page.getByText('Alle Schritte dieser Spur sind erledigt.')).toBeVisible();
@@ -57,17 +60,23 @@ test('Staffel 2: Spur Log vor Spur Rechte lösen, je ein Schritt pro Bündel', a
   await page.getByTestId('v86-terminal').click();
   await page.keyboard.type(RECHTE_REGEL);
   await page.keyboard.press('Enter');
-  await expect(page.getByTestId('pager')).toContainText('Erledigt: Sichere die unerwartete sudo-Regel', {
-    timeout: 15_000,
-  });
+  await expect(page.getByTestId('pager')).toContainText(
+    'Erledigt: Sichere die unerwartete sudo-Regel',
+    {
+      timeout: 15_000,
+    }
+  );
   await expect(spur(page, 'Rechte, 1 von 2 Schritten erledigt')).toBeVisible();
   await expect(spur(page, 'Log, 1 von 1 Schritten erledigt, abgeschlossen')).toBeVisible();
 
   await page.keyboard.type(RECHTE_METADATEN);
   await page.keyboard.press('Enter');
-  await expect(page.getByTestId('pager')).toContainText('Erledigt: Sichere Besitzer, Rechte und Datum', {
-    timeout: 15_000,
-  });
+  await expect(page.getByTestId('pager')).toContainText(
+    'Erledigt: Sichere Besitzer, Rechte und Datum',
+    {
+      timeout: 15_000,
+    }
+  );
   await expect(spur(page, 'Rechte, 2 von 2 Schritten erledigt, abgeschlossen')).toBeVisible();
 
   // 3. Beide bleiben auswählbar und zeigen ihr Abschlussdetail.
@@ -77,7 +86,9 @@ test('Staffel 2: Spur Log vor Spur Rechte lösen, je ein Schritt pro Bündel', a
   await expect(page.getByText('Alle Schritte dieser Spur sind erledigt.')).toBeVisible();
 
   // 4. Browser-Zoom ist nicht zuverlässig automatisierbar; ausdrücklich manuell offen.
-  console.log('T04-ZOOM: 200-%-Zoom auf Desktop ist ein manueller Check und hier nicht automatisiert.');
+  console.log(
+    'T04-ZOOM: 200-%-Zoom auf Desktop ist ein manueller Check und hier nicht automatisiert.'
+  );
 });
 
 test('Staffel 2: mobile Flächen behalten Terminalausgabe und Spurenauswahl', async ({ page }) => {

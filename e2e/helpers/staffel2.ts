@@ -4,8 +4,11 @@ import axe from 'axe-core';
 // Browserhilfen für die Staffel-2-Abnahme (Ticket 10). Alle Befehle laufen als azubi durch die
 // echte Terminaloberfläche; nichts setzt Erfolg oder Reducer direkt.
 
-export const STAFFEL2 = '/projekte/terminal-missionen/app/staffel-2';
+export const STAFFEL2_BASIS = '/projekte/terminal-missionen/app/staffel-2';
+export const STAFFEL2 = `${STAFFEL2_BASIS}?episode=1`;
+export const STAFFEL2_E0 = `${STAFFEL2_BASIS}?episode=0`;
 export const ANFANG = 'Serverraum der Rechenwerk Ostwind GmbH';
+export const ANFANG_E0 = 'Erster Einsatztag bei der Rechenwerk Ostwind GmbH';
 
 // Geprüfte Lösungswege aus Episode 1 (identisch zu e2e/07).
 export const LOG = 'grep sudoers.d /var/log/rechenwerk-audit.log > ~/belege/log-zeile.txt';
@@ -33,6 +36,8 @@ export const BELEG_DATEI = {
   'log-zeile': 'log-zeile.txt',
   'rechte-zeile': 'rechte-zeile.txt',
   'rechte-metadaten': 'rechte-metadaten.txt',
+  'kasse-meta': 'kasse-meta.txt',
+  'kasse-zeilen': 'kasse-zeilen.txt',
 } as const;
 export type BelegId = keyof typeof BELEG_DATEI;
 
@@ -52,12 +57,12 @@ export async function flaeche(page: Page, name: 'Ansicht' | 'Terminal'): Promise
 /** Öffnet die Episode, wartet auf das gebootete Linux, den Prompt und den fertigen Auftrag. */
 export async function startEpisode(
   page: Page,
-  opts: { width?: number; height?: number; reducedMotion?: boolean } = {}
+  opts: { width?: number; height?: number; reducedMotion?: boolean; episode?: 0 | 1 } = {}
 ): Promise<void> {
-  const { width = 1440, height = 1000, reducedMotion = true } = opts;
+  const { width = 1440, height = 1000, reducedMotion = true, episode = 1 } = opts;
   await page.setViewportSize({ width, height });
   if (reducedMotion) await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto(STAFFEL2);
+  await page.goto(episode === 0 ? STAFFEL2_E0 : STAFFEL2);
   const consent = page.locator('#cookie-banner');
   if (await consent.isVisible()) {
     await consent.getByRole('button', { name: 'Ablehnen', exact: true }).click();
@@ -65,7 +70,9 @@ export async function startEpisode(
   await expect(page.getByTestId('v86-status')).toContainText('echtes Linux', { timeout: 120_000 });
   await expect(rows(page)).toContainText(/azubi@rw-srv01/, { timeout: 120_000 });
   // Erst nach dem Setup steht die Startauswahl fest.
-  await expect(pager(page)).toContainText(ANFANG, { timeout: 60_000 });
+  await expect(pager(page)).toContainText(episode === 0 ? ANFANG_E0 : ANFANG, {
+    timeout: 60_000,
+  });
 }
 
 /**
@@ -137,7 +144,7 @@ export const vorwurfKnopf = (page: Page): Locator =>
 /** Öffnet den Dialog aus der Aktenwand, wählt die Person und sendet ab (optional als Doppelklick). */
 export async function erhebeVorwurf(
   page: Page,
-  person: 'Timo Kessler' | 'Nadia Brem' | 'Margit Ostwind',
+  person: 'Timo Kessler' | 'Nadia Brem' | 'Margit Ostwind' | 'Kaffeeautomat',
   opts: { doppelklick?: boolean } = {}
 ): Promise<void> {
   await flaeche(page, 'Ansicht');

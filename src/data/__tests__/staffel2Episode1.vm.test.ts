@@ -695,6 +695,55 @@ describe.skipIf(!enabled)('Episode 1 „Zu viele Rechte“ in der echten VM', ()
     expect(typen()).not.toContain('einsatzrahmen-verletzt');
   }, 600_000);
 
+  it('T12: Diagnosen nennen halben, abgetippten und fehlerhaften Beleg und erledigen nichts', async () => {
+    await frischerLauf();
+    const quellen = await hashes([SUDOERS, STATUS, AUDIT], true);
+    const diagnosen = () =>
+      ereignisse.flatMap((e) =>
+        e.type === 'diagnose' ? [`${e.spurId}/${e.schrittId}: ${e.text}`] : []
+      );
+    const ZEILE = 'Die Zeile steht nicht unverändert im Beleg.';
+    const BEIDE = 'Beide Dateien gehören in denselben Beleg.';
+
+    await alsAzubi('echo hallo > ~/belege/rechte-zeile.txt; echo hallo > ~/belege/log-zeile.txt');
+    await pruefLauf();
+    expect(diagnosen()).toEqual([`rechte/sudo-zeile: ${ZEILE}`, `log/audit-zeile: ${ZEILE}`]);
+    expect(zustand.erledigt).toEqual({});
+    await pruefLauf();
+    expect(diagnosen()).toEqual([]);
+
+    await alsAzubi(tippLoesung('rechte', 'sudo-zeile'));
+    await alsAzubi(tippLoesung('log', 'audit-zeile'));
+    await pruefLauf();
+    expect(diagnosen()).toEqual([]);
+    expect(zustand.erledigt).toEqual({ rechte: 1, log: 1 });
+
+    await alsAzubi(`ls -l ${SUDOERS} > ~/belege/rechte-metadaten.txt`);
+    await pruefLauf();
+    expect(diagnosen()).toEqual([
+      `rechte/datei-metadaten: In deinem Beleg fehlt noch rw-status. ${BEIDE}`,
+    ]);
+    await alsAzubi(`ls -l ${STATUS} > ~/belege/rechte-metadaten.txt`);
+    await pruefLauf();
+    expect(diagnosen()).toEqual([
+      `rechte/datei-metadaten: In deinem Beleg fehlt noch rw-fernwartung. ${BEIDE}`,
+    ]);
+    await alsAzubi(
+      `echo 'rw-fernwartung rw-status root -rw-r--r--' > ~/belege/rechte-metadaten.txt`
+    );
+    await pruefLauf();
+    expect(diagnosen()).toEqual([
+      'rechte/datei-metadaten: Der Beleg sieht abgetippt aus. Leite die echte Ausgabe von ls -l um.',
+    ]);
+    expect(zustand.erledigt).toEqual({ rechte: 1, log: 1 });
+
+    await alsAzubi(tippLoesung('rechte', 'datei-metadaten'));
+    await pruefLauf();
+    expect(diagnosen()).toEqual([]);
+    expect(zustand.erledigt).toEqual({ rechte: 2, log: 1 });
+    expect(await hashes([SUDOERS, STATUS, AUDIT], true)).toBe(quellen);
+  }, 300_000);
+
   it('T9-8 (Grenze): ein erneutes T8-Setup nach der Episode scheitert sichtbar und lässt Quellen unberührt', async () => {
     // Die absichtlich lesbare Regeldatei (0644) beanstandet `visudo -c` im T8-Setup; im Spiel
     // läuft die Setup-Folge nur einmal je frischer VM. Der Fehler darf nichts zerstören.

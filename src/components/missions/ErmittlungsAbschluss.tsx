@@ -3,8 +3,15 @@ import { useEffect, useRef } from 'react';
 import type { Ermittlung } from '../../lib/missions/ermittlungTypes';
 import { figurGanzUrl, figurUrl } from '../../lib/missions/pager';
 
+export interface WeiterLink {
+  href: string;
+  text: string;
+}
+
 interface ErmittlungsAbschlussProps {
   ermittlung: Ermittlung;
+  /** Link zur nächsten Episode, falls es eine gibt. */
+  weiter?: WeiterLink;
 }
 
 function TerminalZeilen({ zeilen }: { zeilen: readonly string[] }) {
@@ -19,7 +26,7 @@ function TerminalZeilen({ zeilen }: { zeilen: readonly string[] }) {
   );
 }
 
-export default function ErmittlungsAbschluss({ ermittlung }: ErmittlungsAbschlussProps) {
+export default function ErmittlungsAbschluss({ ermittlung, weiter }: ErmittlungsAbschlussProps) {
   const pose = ermittlung.szenePose ?? 'zeigt';
   const bild = pose === 'zeigt' || pose === 'urlaub' ? figurGanzUrl(pose) : figurUrl(pose);
   const titelRef = useRef<HTMLHeadingElement>(null);
@@ -53,6 +60,16 @@ export default function ErmittlungsAbschluss({ ermittlung }: ErmittlungsAbschlus
               Code: {ermittlung.beweisstueck.code}
             </p>
           </div>
+          {weiter && (
+            <p className="mt-4">
+              <a
+                href={weiter.href}
+                className="font-mono text-sm text-[color:var(--accent-strong)] underline underline-offset-4"
+              >
+                {weiter.text}
+              </a>
+            </p>
+          )}
         </div>
         <div className="hidden md:flex justify-center items-start">
           <img src={bild} alt="" className="max-h-[28rem] w-auto" loading="lazy" />
