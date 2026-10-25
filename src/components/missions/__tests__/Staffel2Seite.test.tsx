@@ -43,7 +43,12 @@ beforeEach(() => localStorage.clear());
 
 const rendere = (gewaehlt: number | null, navigiere = vi.fn()) =>
   render(
-    <Staffel2Seite episoden={alle} uebersicht={uebersicht} gewaehlt={gewaehlt} navigiere={navigiere} />
+    <Staffel2Seite
+      episoden={alle}
+      uebersicht={uebersicht}
+      gewaehlt={gewaehlt}
+      navigiere={navigiere}
+    />
   );
 
 describe('Staffel2Seite', () => {

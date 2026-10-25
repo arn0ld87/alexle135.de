@@ -37,12 +37,14 @@ export interface EpisodeKarte {
   href: string;
 }
 
-export const staffel2Uebersicht: readonly EpisodeKarte[] = staffel2Episoden.map(({ ermittlung }) => ({
-  nr: ermittlung.nr,
-  id: ermittlung.id,
-  titel: ermittlung.titel,
-  href: `${STAFFEL2_PFAD}?episode=${ermittlung.nr}`,
-}));
+export const staffel2Uebersicht: readonly EpisodeKarte[] = staffel2Episoden.map(
+  ({ ermittlung }) => ({
+    nr: ermittlung.nr,
+    id: ermittlung.id,
+    titel: ermittlung.titel,
+    href: `${STAFFEL2_PFAD}?episode=${ermittlung.nr}`,
+  })
+);
 
 /** Link im Abschluss zur nächsten Episode der Liste; bei der letzten fehlt er. */
 export function weiterZurNaechsten(

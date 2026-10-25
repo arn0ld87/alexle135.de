@@ -43,9 +43,7 @@ test('Spielstand: Episode 0 lösen, ohne Angabe geht es mit Episode 1 weiter, Re
     timeout: 30_000,
   });
   await expect(page.getByTestId('episoden-zaehler')).toHaveText('1 von 2 gelöst');
-  await expect(
-    page.getByRole('link', { name: 'Episode 0 · Probelauf · gelöst' })
-  ).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Episode 0 · Probelauf · gelöst' })).toBeVisible();
 
   // Reset: Dialog bestätigen, danach beginnt Episode 0 wieder.
   await page.getByRole('button', { name: 'Fortschritt von Staffel 2 löschen' }).click();

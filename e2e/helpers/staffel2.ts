@@ -75,7 +75,13 @@ export async function startEpisode(
     ohneAngabe?: boolean;
   } = {}
 ): Promise<void> {
-  const { width = 1440, height = 1000, reducedMotion = true, episode = 1, ohneAngabe = false } = opts;
+  const {
+    width = 1440,
+    height = 1000,
+    reducedMotion = true,
+    episode = 1,
+    ohneAngabe = false,
+  } = opts;
   await page.setViewportSize({ width, height });
   if (reducedMotion) await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto(ohneAngabe ? STAFFEL2_BASIS : episode === 0 ? STAFFEL2_E0 : STAFFEL2);

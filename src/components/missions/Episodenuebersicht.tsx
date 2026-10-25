@@ -64,8 +64,7 @@ export default function Episodenuebersicht(props: EpisodenuebersichtProps) {
                     : 'border-[color:var(--line)] text-[color:var(--muted)]'
                 }`}
               >
-                Episode {e.nr} · {e.titel} ·{' '}
-                {geloest.has(e.nr) ? 'gelöst' : 'offen'}
+                Episode {e.nr} · {e.titel} · {geloest.has(e.nr) ? 'gelöst' : 'offen'}
               </a>
             </li>
           ))}
@@ -80,8 +79,8 @@ export default function Episodenuebersicht(props: EpisodenuebersichtProps) {
         </button>
       </div>
       <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
-        Gespeichert wird nur, welche Episoden du gelöst hast. Neuladen oder „Neu starten“ im Terminal
-        beginnt die laufende Episode von vorn.
+        Gespeichert wird nur, welche Episoden du gelöst hast. Neuladen oder „Neu starten“ im
+        Terminal beginnt die laufende Episode von vorn.
       </p>
       <dialog
         ref={dialogRef}
