@@ -7,12 +7,18 @@
 // Missions-Route die gelockerte Policy auf Seiten mit, die sie nicht wollen.
 // Deshalb laufen Wechsel in eine oder aus einer Missions-Route immer als
 // voller Seitenaufruf.
+// Das gilt auch innerhalb einer Missions-Route, sobald sich die Abfrage ändert
+// (Staffel 2: ?episode=N): Ein DOM-Tausch ließe die VM der alten Episode im
+// Dokument weiterlaufen, die neue startet dann nicht. Nur ein Sprung zu einem
+// Anker bleibt beim Router.
 
 import { isMissionRoute } from './security-headers';
 
 export function needsFullNavigation(from: URL, to: URL): boolean {
   if (from.origin !== to.origin) return false;
-  if (from.pathname === to.pathname) return false;
+  if (from.pathname === to.pathname) {
+    return from.search !== to.search && isMissionRoute(to.pathname);
+  }
   return isMissionRoute(from.pathname) || isMissionRoute(to.pathname);
 }
 

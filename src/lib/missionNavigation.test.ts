@@ -26,8 +26,16 @@ describe('needsFullNavigation', () => {
     );
   });
 
-  it('ignoriert Wechsel auf derselben Seite und fremde Origins', () => {
-    expect(needsFullNavigation(url(APP), url(`${APP}?x=1#a`))).toBe(false);
+  it('erzwingt ihn beim Episodenwechsel innerhalb einer Missions-Route', () => {
+    const S2 = `${APP}staffel-2/`;
+    expect(needsFullNavigation(url(`${S2}?episode=0`), url(`${S2}?episode=2`))).toBe(true);
+    expect(needsFullNavigation(url(S2), url(`${S2}?episode=1`))).toBe(true);
+  });
+
+  it('ignoriert Anker auf derselben Seite, gleiche Abfragen und fremde Origins', () => {
+    expect(needsFullNavigation(url(APP), url(`${APP}#a`))).toBe(false);
+    expect(needsFullNavigation(url(`${APP}?x=1`), url(`${APP}?x=1#a`))).toBe(false);
+    expect(needsFullNavigation(url('/blog/'), url('/blog/?seite=2'))).toBe(false);
     expect(needsFullNavigation(url('/'), url(APP, 'https://example.org'))).toBe(false);
   });
 });
