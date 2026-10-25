@@ -91,6 +91,8 @@ export interface VorwurfRegel {
   mindestBelege: number;
   /** true: unter den genannten Belegen gegen den Täter ist mindestens einer aus jeder Spur. */
   jedeSpur: boolean;
+  /** true: Ein falscher Vorwurf oder Rahmenverstoß sperrt den Vorwurf nie (Übungsepisode). */
+  ohneSperre?: boolean;
   antworten: VorwurfAntworten;
 }
 

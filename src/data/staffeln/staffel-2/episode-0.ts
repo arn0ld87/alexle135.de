@@ -12,7 +12,7 @@ import { LOESUNG } from './episode-1';
 
 /**
  * Episode 0 „Probelauf“ von Staffel 2: kleiner Übungsfall am ersten Einsatztag bei der Rechenwerk
- * Ostwind GmbH. In ~/uebung/ liegt die Kaffeekasse-Liste samt Sicherung; ein Betrag wurde in der
+ * Ostwind GmbH. In /srv/rechenwerk/uebung/ liegt die Kaffeekasse-Liste samt Sicherung; ein Betrag wurde in der
  * Nacht verändert, und zwar vom Konto `kaffee` (dem Kaffeeautomaten). Alle Daten sind fiktiv.
  * Setup, verify und Diagnosen laufen als root; die Belege liegen als `<id>.txt` unter ~/belege/.
  * `${...}` in den Skripten sind nur die Konstanten unten.
@@ -23,7 +23,7 @@ const bildUrl = (bild: string | { src: string }): string =>
   typeof bild === 'string' ? bild : bild.src;
 
 const BELEGE = '/home/azubi/belege';
-const UEBUNG = '/home/azubi/uebung';
+const UEBUNG = '/srv/rechenwerk/uebung';
 const LISTE = `${UEBUNG}/kaffeekasse.csv`;
 const SICHERUNG = `${UEBUNG}/kaffeekasse.bak`;
 /** Feste Zeitlinie: Die Sicherung entsteht abends, die Änderung der Liste nachts. */
@@ -52,7 +52,9 @@ fehler() { echo "Staffel 2, Episode 0: $1" >&2; exit 1; }
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 if [ ! -d ${sh(BELEGE)} ] || [ -L ${sh(BELEGE)} ]; then fehler 'Der Belegordner fehlt.'; fi
-if [ -L ${sh(UEBUNG)} ] || { [ -e ${sh(UEBUNG)} ] && [ ! -d ${sh(UEBUNG)} ]; }; then fehler 'Der Übungsordner ist belegt.'; fi
+for p in /srv/rechenwerk ${sh(UEBUNG)}; do
+  if [ -L "$p" ] || { [ -e "$p" ] && [ ! -d "$p" ]; }; then fehler 'Der Übungsordner ist belegt.'; fi
+done
 for id in ${BELEG_IDS.join(' ')}; do
   rm -f -- "${BELEGE}/$id.txt"
   if [ -e "${BELEGE}/$id.txt" ] || [ -L "${BELEGE}/$id.txt" ]; then fehler "$id.txt ist belegt."; fi
@@ -60,7 +62,7 @@ done
 if ! id kaffee >/dev/null 2>&1; then
   adduser -D -H -u 1104 -h /home/kaffee -s /sbin/nologin -g Kaffeeautomat kaffee
 fi
-install -d -o root -g root -m 0755 ${sh(UEBUNG)}
+install -d -o root -g root -m 0755 /srv/rechenwerk ${sh(UEBUNG)}
 rm -f -- ${sh(LISTE)} ${sh(SICHERUNG)}
 printf '%s\n' ${sh(KOPF)} ${ZEILEN.map(sh).join(' ')} > "$tmp/sicherung"
 printf '%s\n' ${sh(KOPF)} ${ZEILEN.map((z, i) => sh(i === GEAENDERT ? ZEILE_NEU : z)).join(' ')} > "$tmp/liste"
@@ -152,15 +154,15 @@ const schrittMeta: ErmittlungsSchritt = {
     'Du bist das Testkonto azubi. Ein Beleg ist die echte Ausgabe eines Befehls, in eine Textdatei in ~/belege/ umgeleitet. Abgetippter Text zählt nicht.',
     'Geprüft wird beim nächsten Shell-Prompt. Wenn du in nano arbeitest, erst speichern und nano verlassen.',
     'Tipps gibt es auf Abruf in der Hilfe. Nutz sie ruhig.',
-    'Der Fall: In ~/uebung/ liegen die Kaffeekasse-Liste kaffeekasse.csv und ihre Sicherung kaffeekasse.bak. In der Liste wurde ein Betrag verändert. Wer war es?',
+    'Der Fall: In /srv/rechenwerk/uebung/ liegen die Kaffeekasse-Liste kaffeekasse.csv und ihre Sicherung kaffeekasse.bak. In der Liste wurde ein Betrag verändert. Wer war es?',
     'Schritt 1: Halte Besitzer, Rechte und Datum beider Dateien in einem Beleg fest, als echte Ausgabe von ls -l: ~/belege/kasse-meta.txt.',
   ],
   verify: PRUEFE_KASSE_META,
   diagnose: DIAGNOSE_KASSE_META,
   tipps: [
-    'Besitzer, Rechte und Datum einer Datei zeigt ein einziger Befehl. Du brauchst die Angaben zu beiden Dateien aus ~/uebung/.',
+    'Besitzer, Rechte und Datum einer Datei zeigt ein einziger Befehl. Du brauchst die Angaben zu beiden Dateien aus /srv/rechenwerk/uebung/.',
     'ls -l zeigt Besitzer, Rechte und Datum. Du kannst ihm zwei Dateien auf einmal geben. Mit > schreibst du die Ausgabe in eine Datei.',
-    `${LOESUNG}ls -l ~/uebung/kaffeekasse.csv ~/uebung/kaffeekasse.bak > ~/belege/kasse-meta.txt`,
+    `${LOESUNG}ls -l /srv/rechenwerk/uebung/kaffeekasse.csv /srv/rechenwerk/uebung/kaffeekasse.bak > ~/belege/kasse-meta.txt`,
   ],
 };
 
@@ -181,7 +183,7 @@ const schrittBesitzer: ErmittlungsSchritt = {
   tipps: [
     'Die Antwort steht schon in deinem Beleg. Such die Zeile der Liste kaffeekasse.csv.',
     'Bei ls -l steht vor dem Dateinamen erst die Rechte-Spalte, dann die Zahl der Links, danach der Besitzer.',
-    `${LOESUNG}ls -l ~/uebung/kaffeekasse.csv zeigt den Besitzer in der dritten Spalte.`,
+    `${LOESUNG}ls -l /srv/rechenwerk/uebung/kaffeekasse.csv zeigt den Besitzer in der dritten Spalte.`,
   ],
 };
 
@@ -199,7 +201,7 @@ const schrittZeilen: ErmittlungsSchritt = {
   tipps: [
     'Liste und Sicherung sind fast gleich. Lies beide Dateien und such die Zeile, die nicht übereinstimmt.',
     'cat zeigt den Inhalt einer Datei, grep sucht Zeilen mit einem bestimmten Text, etwa einem Datum. Mit > beginnt eine Datei neu, mit >> hängst du hinten an.',
-    `${LOESUNG}grep 2026-04-15 ~/uebung/kaffeekasse.csv > ~/belege/kasse-zeilen.txt && grep 2026-04-15 ~/uebung/kaffeekasse.bak >> ~/belege/kasse-zeilen.txt`,
+    `${LOESUNG}grep 2026-04-15 /srv/rechenwerk/uebung/kaffeekasse.csv > ~/belege/kasse-zeilen.txt && grep 2026-04-15 /srv/rechenwerk/uebung/kaffeekasse.bak >> ~/belege/kasse-zeilen.txt`,
   ],
 };
 
@@ -262,6 +264,8 @@ export const episode0: Ermittlung = {
     ],
     mindestBelege: 2,
     jedeSpur: true,
+    // Übungsfall: Ein falscher Vorwurf sperrt nichts.
+    ohneSperre: true,
     antworten: {
       richtig: [
         'Das passt zusammen: Die Liste gehört dem Konto kaffee und wurde nachts geändert. Der Kaffeeautomat gleicht nachts die Kasse ab und hat dabei einen Betrag verändert.',
@@ -283,7 +287,7 @@ export const episode0: Ermittlung = {
   einsatzrahmen: {
     text: [
       'Das ist ein Probelauf bei der Rechenwerk Ostwind GmbH, mit dem Testkonto azubi.',
-      'Nur der Ordner ~/uebung/ ist Thema. Eigene Belege legst du in ~/belege/ an.',
+      'Nur der Ordner /srv/rechenwerk/uebung/ ist Thema. Eigene Belege legst du in ~/belege/ an.',
       'Hier kann nichts kaputtgehen.',
     ],
     verstoss: 'false',

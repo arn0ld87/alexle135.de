@@ -1336,3 +1336,22 @@ describe('Diagnose bei unvollständigem Beleg', () => {
     expect(r.ereignisse).toEqual([{ type: 'pruefung-unvollstaendig' }]);
   });
 });
+
+describe('ohneSperre', () => {
+  const frei = mit({ vorwurf: { ...fixture.vorwurf, ohneSperre: true } });
+  const eins = zustand({ belegeErkannt: ['b-log'] });
+
+  it('sperrt nach einer falschen Person nicht, die Antwort kommt trotzdem', () => {
+    const r = pruefeVorwurf(frei, eins, { verdaechtigeId: 'nadia', belegIds: ['b-log'] });
+    expect(r.ergebnis).toBe('falsche-person');
+    expect(r.zustand.sperreBis).toBeNull();
+    expect(r.zustand.vorwurfVersuche).toBe(1);
+    expect(istGesperrt(r.zustand)).toBe(false);
+    expect(naechsteSperre(frei, eins)).toBeNull();
+  });
+
+  it('sperrt ohne das Flag weiterhin', () => {
+    const r = pruefeVorwurf(fixture, eins, { verdaechtigeId: 'nadia', belegIds: ['b-log'] });
+    expect(r.zustand.sperreBis).not.toBeNull();
+  });
+});

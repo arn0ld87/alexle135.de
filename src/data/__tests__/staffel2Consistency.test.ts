@@ -336,7 +336,7 @@ describe('Staffel 2, Episode 0 „Probelauf“ (T12)', () => {
       'kasse-zeilen',
     ]);
     expect(episode0.einsatzrahmen.verstoss).toBe('false');
-    expect(episode0.einsatzrahmen.text.join(' ')).toContain('~/uebung/');
+    expect(episode0.einsatzrahmen.text.join(' ')).toContain('/srv/rechenwerk/uebung/');
     expect(episode0.einsatzrahmen.text.join(' ')).not.toContain('nadia');
   });
 
@@ -345,7 +345,7 @@ describe('Staffel 2, Episode 0 „Probelauf“ (T12)', () => {
     expect(ablesen.art).toBe('ablesen');
     expect(ablesen.antwort?.frage).toBe('Wem gehört die geänderte Liste? (Benutzername)');
     expect(ablesen.antwort?.pruefung).toBe(
-      '[ "$ANTWORT" = "$(stat -c %U /home/azubi/uebung/kaffeekasse.csv)" ]'
+      '[ "$ANTWORT" = "$(stat -c %U /srv/rechenwerk/uebung/kaffeekasse.csv)" ]'
     );
   });
 

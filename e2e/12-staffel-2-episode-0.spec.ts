@@ -15,10 +15,11 @@ import {
 test.skip(!process.env.MISSION_VM, 'MISSION_VM ist nicht gesetzt.');
 test.setTimeout(420_000);
 
-const META = 'ls -l ~/uebung/kaffeekasse.csv ~/uebung/kaffeekasse.bak > ~/belege/kasse-meta.txt';
-const META_HALB = 'ls -l ~/uebung/kaffeekasse.csv > ~/belege/kasse-meta.txt';
+const META =
+  'ls -l /srv/rechenwerk/uebung/kaffeekasse.csv /srv/rechenwerk/uebung/kaffeekasse.bak > ~/belege/kasse-meta.txt';
+const META_HALB = 'ls -l /srv/rechenwerk/uebung/kaffeekasse.csv > ~/belege/kasse-meta.txt';
 const ZEILEN =
-  'grep 2026-04-15 ~/uebung/kaffeekasse.csv > ~/belege/kasse-zeilen.txt && grep 2026-04-15 ~/uebung/kaffeekasse.bak >> ~/belege/kasse-zeilen.txt';
+  'grep 2026-04-15 /srv/rechenwerk/uebung/kaffeekasse.csv > ~/belege/kasse-zeilen.txt && grep 2026-04-15 /srv/rechenwerk/uebung/kaffeekasse.bak >> ~/belege/kasse-zeilen.txt';
 
 const DIAGNOSE =
   'In deinem Beleg fehlt noch kaffeekasse.bak. Beide Dateien gehören in denselben Beleg.';

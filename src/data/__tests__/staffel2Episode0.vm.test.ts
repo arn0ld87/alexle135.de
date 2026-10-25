@@ -12,6 +12,7 @@ import { einsatzrahmenSetupSkript } from '../../lib/missions/einsatzrahmenSetup'
 import {
   antwortSkript,
   buendelSkript,
+  istGesperrt,
   leseBuendelAusgabe,
   offenePruefungen,
   pruefeVorwurf,
@@ -32,7 +33,7 @@ const CMDLINE =
   'rw root=host9p rootfstype=9p rootflags=trans=virtio,cache=loose modules=virtio_pci tsc=reliable init_on_free=on';
 
 const BELEGE = '/home/azubi/belege';
-const UEBUNG = '/home/azubi/uebung';
+const UEBUNG = '/srv/rechenwerk/uebung';
 const LISTE = `${UEBUNG}/kaffeekasse.csv`;
 const SICHERUNG = `${UEBUNG}/kaffeekasse.bak`;
 
@@ -71,7 +72,7 @@ const WEGE: Record<BelegId, { name: string; befehl: string; rcEgal?: boolean }[]
     },
     {
       name: 'ls -l aus dem Ordner',
-      befehl: `cd ~/uebung && ls -l kaffeekasse.csv kaffeekasse.bak > ~/belege/kasse-meta.txt`,
+      befehl: `cd /srv/rechenwerk/uebung && ls -l kaffeekasse.csv kaffeekasse.bak > ~/belege/kasse-meta.txt`,
     },
   ],
   'kasse-zeilen': [
@@ -373,6 +374,46 @@ describe.skipIf(!enabled)('Episode 0 „Probelauf“ in der echten VM', () => {
     expect(await antworte('kaffee')).toBe(true);
     expect(zustand.erledigt).toEqual({ akte: 2 });
     expect(ereignisse.map((e) => e.type)).toEqual(['schritt-erledigt', 'spur-erledigt']);
+  }, 300_000);
+
+  it('T12-0: ein gefälschtes ~/uebung ändert nichts an Prüfungen, Diagnosen und Antwort', async () => {
+    await frischerLauf();
+    await alsAzubi(
+      `mkdir -p ~/uebung && echo 'datum,name,betrag' > ~/uebung/kaffeekasse.csv && cp ~/uebung/kaffeekasse.csv ~/uebung/kaffeekasse.bak`
+    );
+    await alsAzubi(
+      `ls -l ~/uebung/kaffeekasse.csv ~/uebung/kaffeekasse.bak > ~/belege/kasse-meta.txt`
+    );
+    await alsAzubi(
+      `cat ~/uebung/kaffeekasse.csv ~/uebung/kaffeekasse.bak > ~/belege/kasse-zeilen.txt`
+    );
+    expect(await belegPruefung()).toEqual({ 'kasse-meta': false, 'kasse-zeilen': false });
+    await pruefLauf();
+    expect(zustand.erledigt).toEqual({});
+    expect(await antworte('azubi')).toBe(false);
+    expect(await antworte('kaffee')).toBe(true);
+    await alsAzubi('rm -rf ~/uebung');
+  }, 300_000);
+
+  it('T12-0: ein falscher Vorwurf vor vollständiger Belegsammlung sperrt nicht', async () => {
+    await frischerLauf();
+    await alsAzubi(tippLoesung('akte', 'kasse-meta'));
+    await pruefLauf();
+    expect(zustand.belegeErkannt).toEqual(['kasse-meta']);
+    const falsch = pruefeVorwurf(episode0, zustand, {
+      verdaechtigeId: 'timo',
+      belegIds: ['kasse-meta'],
+    });
+    expect(falsch.ergebnis).toBe('falsche-person');
+    expect(falsch.antwort).toEqual(episode0.vorwurf.antworten.falschePerson);
+    expect(falsch.zustand.sperreBis).toBeNull();
+    expect(istGesperrt(falsch.zustand)).toBe(false);
+    const zuWenig = pruefeVorwurf(episode0, falsch.zustand, {
+      verdaechtigeId: 'kaffee',
+      belegIds: ['kasse-meta'],
+    });
+    expect(zuWenig.ergebnis).toBe('zu-wenig-belege');
+    expect(istGesperrt(zuWenig.zustand)).toBe(false);
   }, 300_000);
 
   it('T12-0: Lösungsweg A, Akte vor Inhalt, bis zum richtigen Vorwurf', async () => {

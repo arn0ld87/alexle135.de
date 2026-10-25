@@ -441,6 +441,7 @@ export function wendeAntwortAn(
 
 /** Sperre einen Beleg hinter den Stand; ohne weiteren Beleg bleibt sie aus (Sackgassen-Regel). */
 export function naechsteSperre(e: Ermittlung, z: ErmittlungsZustand): number | null {
+  if (e.vorwurf.ohneSperre) return null;
   const ziel = z.belegeErkannt.length + 1;
   if (ziel > e.vorwurf.belege.length) return null;
   return Math.max(ziel, z.sperreBis ?? 0);
