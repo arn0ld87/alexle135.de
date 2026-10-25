@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { platzhalter } from '../../../data/staffeln/staffel-2/platzhalter';
@@ -244,6 +244,28 @@ describe('Vorwurf am tatsächlichen Prüflauf', () => {
     );
     expect(screen.queryByRole('heading', { name: 'Fall gelöst' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Vorwurf erheben' })).toBeDisabled();
+  });
+
+  it('zeigt den Hinweis zu offenen Schritten nach dem Abschluss nicht mehr', async () => {
+    const einSchritt: Ermittlung = {
+      ...platzhalter,
+      spuren: platzhalter.spuren.map((spur) => ({ ...spur, schritte: [spur.schritte[0]] })),
+    };
+    const t = await starten(true, einSchritt);
+    await t.user.click(screen.getByRole('button', { name: 'Absenden' }));
+    const ansichten = screen.getByRole('region', { name: 'Ansichten' });
+    await waitFor(() => expect(within(ansichten).getByText(/Der Vorwurf sitzt\./)).toBeVisible());
+    t.pruefung(async () => ({
+      exitCode: 0,
+      output:
+        'pruefung\ts.ankommen.notiz\t0\npruefung\ts.protokoll.protokoll\t0\npruefung\tb.notiz\t0\npruefung\tb.protokoll\t0\nende\t4\n',
+    }));
+    await act(async () => {
+      await h.prompt('__prompt');
+    });
+    await screen.findByRole('heading', { name: 'Fall gelöst' });
+    expect(within(ansichten).queryByText(/Der Vorwurf sitzt\./)).not.toBeInTheDocument();
+    expect(within(ansichten).queryByText(/fehlt noch/)).not.toBeInTheDocument();
   });
 
   it('übernimmt nach einem neuen Setup keinen alten Vorwurf', async () => {
