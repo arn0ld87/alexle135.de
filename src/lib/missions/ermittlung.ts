@@ -4,13 +4,14 @@
 import type {
   Ermittlung,
   ErmittlungsEreignis,
+  ErmittlungsSchritt,
   ErmittlungsZustand,
   Pruefung,
   PruefungsAusgabe,
+  Schrittart,
   Spur,
   VorwurfErgebnis,
 } from './ermittlungTypes';
-import type { VorfallSchritt } from './staffelTypes';
 
 export const ID_MUSTER = /^[a-z0-9-]{1,40}$/;
 export const pruefIdSchritt = (spurId: string, schrittId: string) => `s.${spurId}.${schrittId}`;
@@ -18,6 +19,26 @@ export const pruefIdBeleg = (belegId: string) => `b.${belegId}`;
 export const PRUEF_ID_VERSTOSS = 'e.verstoss';
 /** So viele vollständige Prüfungen nach einer Sperre, bis sie spätestens endet. */
 export const SPERRE_PRUEFUNGEN = 3;
+
+/** Alle Schrittarten (ADR 0009); alles andere ist in den Daten ein Fehler. */
+const SCHRITTARTEN: readonly Schrittart[] = [
+  'sichern',
+  'eingreifen',
+  'reparieren',
+  'ablesen',
+  'ordnen',
+  'bearbeiten',
+];
+/**
+ * Ab dieser Episode gelten Mindestzahl der Schrittarten und das Verbot gleicher Arten direkt
+ * hintereinander. Episode 1 ist schon gebaut und bleibt inhaltlich unverändert (zweimal sichern).
+ * Episode 0 (Einstieg) braucht nur zwei Arten.
+ */
+export const SCHRITTART_REGELN_AB_EPISODE = 2;
+/** Erlaubte Zeichen einer getrimmten Antwort; alles andere lässt die App gar nicht erst laufen. */
+export const ANTWORT_MUSTER = /^[A-Za-z0-9 .:_/-]+$/;
+/** Timeout (ms) für die Prüfung einer Antwort in der VM. */
+export const ANTWORT_TIMEOUT_MS = 10_000;
 
 /** Prüft die Daten einer Episode und sammelt deutsche Fehlermeldungen; leer heißt gültig. */
 export function pruefeDaten(e: Ermittlung): string[] {
@@ -127,6 +148,36 @@ export function pruefeDaten(e: Ermittlung): string[] {
   }
   if (!einsatzrahmen.verstoss.trim()) fehler.push('Einsatzrahmen: leeres verstoss');
 
+  // 9. Schrittarten (ADR 0009).
+  const arten = new Set<Schrittart>();
+  for (const spur of spuren) {
+    let vorige: Schrittart | null = null;
+    for (const schritt of spur.schritte) {
+      const name = `Schritt "${spur.id}/${schritt.id}"`;
+      if (!SCHRITTARTEN.includes(schritt.art)) {
+        fehler.push(`${name}: Schrittart fehlt oder ist unbekannt`);
+        vorige = null;
+        continue;
+      }
+      arten.add(schritt.art);
+      if (schritt.art === 'ablesen' && !schritt.antwort) {
+        fehler.push(`${name}: ablesen braucht eine antwort`);
+      } else if (schritt.art !== 'ablesen' && schritt.antwort) {
+        fehler.push(`${name}: antwort gibt es nur bei ablesen`);
+      }
+      if (e.nr >= SCHRITTART_REGELN_AB_EPISODE && schritt.art === vorige) {
+        fehler.push(
+          `Spur "${spur.id}": Schrittart "${schritt.art}" steht zweimal direkt hintereinander (bei ${schritt.id})`
+        );
+      }
+      vorige = schritt.art;
+    }
+  }
+  const mindestArten = e.nr === 0 ? 2 : e.nr >= SCHRITTART_REGELN_AB_EPISODE ? 3 : 0;
+  if (arten.size < mindestArten) {
+    fehler.push(`Mindestens ${mindestArten} verschiedene Schrittarten nötig`);
+  }
+
   return fehler;
 }
 
@@ -155,7 +206,7 @@ export function mitZustandsDefaults(
 }
 
 /** Der Schritt an der Stelle `erledigt[spur.id]`; alle erledigt ergibt null. */
-export function aktuellerSchritt(spur: Spur, z: ErmittlungsZustand): VorfallSchritt | null {
+export function aktuellerSchritt(spur: Spur, z: ErmittlungsZustand): ErmittlungsSchritt | null {
   const index = Object.hasOwn(z.erledigt, spur.id) ? (z.erledigt[spur.id] ?? 0) : 0;
   return spur.schritte[index] ?? null;
 }
@@ -204,6 +255,15 @@ export function buendelSkript(pruefungen: readonly Pruefung[]): string {
   }
   teile.push(`printf 'ende\\t%s\\n' '${pruefungen.length}'`);
   return `${teile.join('\n')}\n`;
+}
+
+/**
+ * Skript für die Prüfung einer Antwort: Die Antwort geht nur als Base64 in den Text und steht der
+ * Prüfung (Subshell, stumm, Exit-Code wird durchgereicht) in $ANTWORT zur Verfügung.
+ */
+export function antwortSkript(pruefung: string, antwort: string): string {
+  const base64 = btoa(String.fromCharCode(...new TextEncoder().encode(antwort)));
+  return `ANTWORT=$(printf %s '${base64}' | base64 -d)\nexport ANTWORT\n(\n${pruefung}\n) >/dev/null 2>&1 </dev/null\n`;
 }
 
 /** Liest die Ausgabe eines Bündels; vollständig nur mit passender Schlusszahl. */
@@ -311,6 +371,25 @@ export function wendePruefungAn(
     },
     ereignisse,
   };
+}
+
+/** Eine richtige Antwort erledigt den aktuellen Schritt wie ein bestandenes verify; sonst nichts. */
+export function wendeAntwortAn(
+  e: Ermittlung,
+  z: ErmittlungsZustand,
+  spurId: string,
+  schrittId: string,
+  richtig: boolean
+): { zustand: ErmittlungsZustand; ereignisse: ErmittlungsEreignis[] } {
+  const unveraendert = { zustand: z, ereignisse: [] };
+  if (!richtig || z.geloest) return unveraendert;
+  const spur = e.spuren.find((eintrag) => eintrag.id === spurId);
+  const schritt = spur ? aktuellerSchritt(spur, z) : null;
+  if (!spur || !schritt || schritt.id !== schrittId) return unveraendert;
+  const neu = (Object.hasOwn(z.erledigt, spur.id) ? (z.erledigt[spur.id] ?? 0) : 0) + 1;
+  const ereignisse: ErmittlungsEreignis[] = [{ type: 'schritt-erledigt', spurId, schrittId }];
+  if (neu >= spur.schritte.length) ereignisse.push({ type: 'spur-erledigt', spurId });
+  return { zustand: { ...z, erledigt: { ...z.erledigt, [spur.id]: neu } }, ereignisse };
 }
 
 /** Sperre einen Beleg hinter den Stand; ohne weiteren Beleg bleibt sie aus (Sackgassen-Regel). */

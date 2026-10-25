@@ -3,9 +3,8 @@ import nadiaBild from '../../../assets/missions/staffel-2/nadia.webp';
 import timoBild from '../../../assets/missions/staffel-2/timo.webp';
 import { AKTENWAND_ABFRAGE } from '../../../lib/missions/aktenwand';
 import { EINSATZRAHMEN_VERSTOSS } from '../../../lib/missions/einsatzrahmenSetup';
-import type { Ermittlung } from '../../../lib/missions/ermittlungTypes';
+import type { Ermittlung, ErmittlungsSchritt } from '../../../lib/missions/ermittlungTypes';
 import { tools } from '../../../lib/missions/glossar';
-import type { VorfallSchritt } from '../../../lib/missions/staffelTypes';
 
 /**
  * Episode 1 „Zu viele Rechte“ von Staffel 2 (Konzept §10): Im Serverraum der Rechenwerk Ostwind
@@ -182,7 +181,8 @@ printf 'laufzeit\tLaufzeit seit Neustart: %d Std. %d Min.\n' $((s / 3600)) $((s 
 /** Präfix der dritten Tipp-Stufe: Sie zeigt den im Gast geprüften Lösungsweg. */
 export const LOESUNG = 'Lösung: ';
 
-const schrittRechteZeile: VorfallSchritt = {
+const schrittRechteZeile: ErmittlungsSchritt = {
+  art: 'sichern',
   id: 'sudo-zeile',
   title: 'Sichere die unerwartete sudo-Regel',
   pager: [
@@ -199,7 +199,8 @@ const schrittRechteZeile: VorfallSchritt = {
   ],
 };
 
-const schrittMetadaten: VorfallSchritt = {
+const schrittMetadaten: ErmittlungsSchritt = {
+  art: 'sichern',
   id: 'datei-metadaten',
   title: 'Sichere Besitzer, Rechte und Datum',
   pager: [
@@ -215,7 +216,8 @@ const schrittMetadaten: VorfallSchritt = {
   ],
 };
 
-const schrittAuditZeile: VorfallSchritt = {
+const schrittAuditZeile: ErmittlungsSchritt = {
+  art: 'sichern',
   id: 'audit-zeile',
   title: 'Sichere die passende Audit-Zeile',
   pager: [

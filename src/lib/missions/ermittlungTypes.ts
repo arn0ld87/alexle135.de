@@ -27,11 +27,34 @@ export interface Ansicht {
   hotspots?: readonly Hotspot[];
 }
 
+export type Schrittart =
+  'sichern' | 'eingreifen' | 'reparieren' | 'ablesen' | 'ordnen' | 'bearbeiten';
+
+export interface AntwortFrage {
+  /** Sichtbare Frage über dem Feld, z. B. „Wann beginnt die Lücke? (HH:MM)“ */
+  frage: string;
+  /** Hinweis zum Format, als Platzhalter und aria-describedby. */
+  format: string;
+  /** Bash als root; die Antwort steht in $ANTWORT. Exit 0 = passt zum VM-Zustand. Ändert nichts. */
+  pruefung: string;
+}
+
+/**
+ * Schritt einer Ermittlung (ADR 0009). Außer `ablesen` sind alle Arten reine `verify`-Skripte;
+ * die Art kennzeichnet sie nur. Ein Ablesen-Schritt hat `verify: 'false'` oder ein verify, das
+ * schon ohne Antwort beweisbar ist (z. B. über einen Folgezustand).
+ */
+export interface ErmittlungsSchritt extends VorfallSchritt {
+  art: Schrittart;
+  /** Pflicht genau bei art === 'ablesen'. */
+  antwort?: AntwortFrage;
+}
+
 /** Ermittlungsstrang; die Schritte einer Spur sind linear, die Spuren untereinander frei. */
 export interface Spur {
   id: string;
   titel: string;
-  schritte: readonly VorfallSchritt[];
+  schritte: readonly ErmittlungsSchritt[];
 }
 
 export interface Verdaechtige {

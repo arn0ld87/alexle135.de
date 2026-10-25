@@ -37,6 +37,7 @@ printf 'konto\\t%s\\n' "$(id -un)"`,
       titel: 'Ankommen',
       schritte: [
         {
+          art: 'sichern',
           id: 'notiz',
           title: 'Lege eine Notiz an',
           pager: ['Leg in ~/belege eine Datei notiz.txt mit beliebigem Inhalt an.'],
@@ -48,6 +49,7 @@ printf 'konto\\t%s\\n' "$(id -un)"`,
           ],
         },
         {
+          art: 'sichern',
           id: 'abschluss',
           title: 'Ergänze fertig in notiz.txt',
           pager: ['Ergänze in ~/belege/notiz.txt eine eigene Zeile mit fertig.'],
@@ -65,6 +67,7 @@ printf 'konto\\t%s\\n' "$(id -un)"`,
       titel: 'Protokoll',
       schritte: [
         {
+          art: 'sichern',
           id: 'protokoll',
           title: 'Lege ein Protokoll an',
           pager: ['Leg in ~/belege eine Datei protokoll.txt mit beliebigem Inhalt an.'],
@@ -76,6 +79,7 @@ printf 'konto\\t%s\\n' "$(id -un)"`,
           ],
         },
         {
+          art: 'sichern',
           id: 'abschluss',
           title: 'Ergänze fertig in protokoll.txt',
           pager: ['Ergänze in ~/belege/protokoll.txt eine eigene Zeile mit fertig.'],

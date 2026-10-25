@@ -6,6 +6,7 @@ import { startZustand } from '../../../lib/missions/ermittlung';
 import Spurenliste from '../Spurenliste';
 
 const schritt = (id: string, title: string, pager: string[]) => ({
+  art: 'sichern' as const,
   id,
   title,
   pager,
