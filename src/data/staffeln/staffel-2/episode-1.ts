@@ -293,7 +293,7 @@ const schrittRegelWeg: ErmittlungsSchritt = {
   pager: [
     'Schritt 4: Die Belege sind gesichert, jetzt wird repariert. Solange die Datei in /etc/sudoers.d liegt, darf Nadia mit sudo ohne Passwort Befehle als root ausführen.',
     'Die Regel soll raus, ohne dass der Beweis verloren geht: Verschiebe die Datei rw-fernwartung in deine Quarantäne ~/quarantaene/. Der Ordner ist schon angelegt.',
-    'In /etc darfst du als azubi nichts ändern. Der Einsatzrahmen erlaubt dir genau zwei Verschiebungen mit sudo. Fragt sudo nach einem Passwort, ist der Befehl nicht freigegeben: Strg+C bricht ab.',
+    'In /etc darfst du als azubi nichts ändern. Der Einsatzrahmen erlaubt dir genau zwei Verschiebungen mit sudo; alles andere lehnt sudo ab.',
     'Geprüft wird der Zustand: Die Regel darf nicht mehr gelten und die sudo-Konfiguration muss gültig bleiben.',
   ],
   verify: PRUEFE_REGEL_WEG,
@@ -467,7 +467,7 @@ export const episode1: Ermittlung = {
       'Du arbeitest im Serverraum der Rechenwerk Ostwind GmbH mit dem Testkonto azubi.',
       'Diagnose außerhalb des ausgeschlossenen Ordners ist erlaubt.',
       'Eigene Belege unter ~/belege/ und deine Quarantäne ~/quarantaene/ darfst du anlegen und ändern.',
-      'Zum Entschärfen darfst du per sudo genau zwei Dateien verschieben: die Regel rw-fernwartung aus /etc/sudoers.d und das Programm rw-status aus /usr/local/bin, jeweils nur nach ~/quarantaene/. Fragt sudo nach einem Passwort, ist der Befehl nicht freigegeben (Strg+C).',
+      'Zum Entschärfen darfst du per sudo genau zwei Dateien verschieben: die Regel rw-fernwartung aus /etc/sudoers.d und das Programm rw-status aus /usr/local/bin, jeweils nur nach ~/quarantaene/. Jeder andere sudo-Aufruf wird abgelehnt.',
       '/home/nadia/ ist ausgeschlossen. Ein Zugriff dort hat erzählerische Folgen.',
     ],
     verstoss: EINSATZRAHMEN_VERSTOSS,

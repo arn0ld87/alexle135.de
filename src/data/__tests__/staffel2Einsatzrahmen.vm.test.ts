@@ -128,6 +128,7 @@ describe.skipIf(!enabled)('Einsatzrahmen Staffel 2 in der echten VM', () => {
     expect((await run(`cat ${DROPIN}`)).output.trim().split('\n')).toEqual([
       `Defaults:azubi logfile=${LOG}`,
       'Defaults:azubi loglinelen=0',
+      'Defaults:azubi !authenticate',
       `azubi ALL=(root) NOPASSWD: ${ERLAUBT}`,
     ]);
     expect(await logZeilen()).toEqual([]);
@@ -161,6 +162,10 @@ describe.skipIf(!enabled)('Einsatzrahmen Staffel 2 in der echten VM', () => {
     expect(liste.text).not.toMatch(/NOPASSWD: ALL|\(ALL(:ALL)?\) ALL/);
     // Auch ein abgelehnter Versuch mit Passworteingabe zählt nicht als gelungenes Lesen.
     await alsAzubi('sudo -S /bin/cat /etc/shadow');
+    // Ohne -n bleibt es kein Dauerbrenner: sudo lehnt sofort ab und fragt kein Passwort (Issue 152).
+    const ohneN = await alsAzubi('sudo /bin/cat /etc/shadow');
+    expect(ohneN.rc).not.toBe(0);
+    expect(ohneN.text).not.toMatch(/[Pp]assword|Passwort/);
     console.log(`T8-Log nach abgelehnten Versuchen:\n${(await logZeilen()).join('\n')}`);
     expect(await verstoss()).not.toBe(0);
   }, 180_000);

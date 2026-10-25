@@ -62,7 +62,7 @@ describe('einsatzrahmenSetupSkript', () => {
     expect(log + 1).toBeLessThan(befehl('install -o root -g root -m 0440 "$tmp/regel"'));
   });
 
-  it('T8-2: der Drop-in enthält genau die drei Zeilen, nur die eine Datei und keine breite Freigabe', () => {
+  it('T8-2: der Drop-in enthält genau die vier Zeilen, nur die eine Datei und keine breite Freigabe', () => {
     const regel = zeilen.find(
       (zeile) => zeile.includes('"$tmp/regel"') && zeile.includes('printf')
     );
@@ -71,6 +71,7 @@ describe('einsatzrahmenSetupSkript', () => {
     expect(inhalt.slice(1)).toEqual([
       'Defaults:azubi logfile=/var/log/staffel2-sudo.log',
       'Defaults:azubi loglinelen=0',
+      'Defaults:azubi !authenticate',
       'azubi ALL=(root) NOPASSWD: /bin/cat /home/nadia/vertraulich.txt',
     ]);
     const regeln = inhalt.filter((zeile) => zeile.includes('NOPASSWD'));
@@ -93,6 +94,7 @@ describe('einsatzrahmenSetupSkript', () => {
     expect(inhalt).toEqual([
       'Defaults:azubi logfile=/var/log/staffel2-sudo.log',
       'Defaults:azubi loglinelen=0',
+      'Defaults:azubi !authenticate',
       'azubi ALL=(root) NOPASSWD: /bin/cat /home/nadia/vertraulich.txt',
       'azubi ALL=(root) NOPASSWD: /bin/mv /a/b /home/azubi/q/',
       'azubi ALL=(root) NOPASSWD: /sbin/rc-service x restart',

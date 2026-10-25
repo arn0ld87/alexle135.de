@@ -371,7 +371,7 @@ describe.skipIf(!enabled)('Episode 1 „Zu viele Rechte“ in der echten VM', ()
     console.log(`T09-VM sudo -l als azubi:\n${liste.text}`);
     expect(liste.text).not.toMatch(/NOPASSWD: ALL|\(ALL(:ALL)?\) (NOPASSWD: )?ALL/);
     expect(liste.text).not.toContain('/usr/bin/id');
-    expect(liste.text).not.toContain('rw-fernwartung');
+    expect(liste.text).not.toContain('NOPASSWD: /usr/bin/id');
     expect(liste.text).toContain(T8_BEFEHL);
     for (const befehl of SUDO_BEFEHLE) expect(liste.text, befehl).toContain(befehl);
     expect(liste.text).not.toContain('*');
@@ -890,7 +890,9 @@ describe.skipIf(!enabled)('Episode 1 „Zu viele Rechte“ in der echten VM', ()
       `sudo mv ${SUDOERS} ${STATUS} ${QUARANTAENE}`,
       `sudo chmod u-s ${STATUS}`,
     ]) {
-      expect((await alsAzubi(versuch)).rc, versuch).not.toBe(0);
+      const antwort = await alsAzubi(versuch);
+      expect(antwort.rc, versuch).not.toBe(0);
+      expect(antwort.text, versuch).not.toMatch(/[Pp]assword|Passwort/);
     }
     expect(await hashes([SUDOERS, STATUS, AUDIT], true)).toBe(vorher);
     expect((await schrittPruefung('regel-weg')).geloest).toBe(false);

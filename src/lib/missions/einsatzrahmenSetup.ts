@@ -1,6 +1,8 @@
 // Einsatzrahmen-Setup für Staffel 2 (Ticket 8): läuft als root nach dem Rahmen-Setup und vor dem
 // Setup der Episode. Rein: erzeugt nur Text. Das sudo-Log schreibt sudo selbst im Gast; der
 // Verstoß wird ausschließlich daraus gelesen, nie aus Browserklicks oder Shell-History.
+// `!authenticate` gibt nichts frei (nur die Regeln unten tun das), erspart aber bei jedem nicht
+// freigegebenen Aufruf die Passwortabfrage, die azubi nie beantworten kann (Issue 152).
 
 const DROPIN = '/etc/sudoers.d/90-staffel2-rahmen';
 const LOGDATEI = '/var/log/staffel2-sudo.log';
@@ -26,6 +28,7 @@ export function einsatzrahmenSetupSkript(sudoBefehle: readonly string[] = []): s
   const regeln = [
     `Defaults:azubi logfile=${LOGDATEI}`,
     'Defaults:azubi loglinelen=0',
+    'Defaults:azubi !authenticate',
     `azubi ALL=(root) NOPASSWD: ${BEFEHL}`,
     ...sudoBefehle.map((befehl) => `azubi ALL=(root) NOPASSWD: ${befehl}`),
   ];
