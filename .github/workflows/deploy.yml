@@ -12,6 +12,7 @@ on:
       - '.dockerignore'
       - 'docker-compose.prod.yml'
       - 'scripts/mission-image/**'
+      - 'scripts/mission-image-gui/**'
 
 permissions:
   contents: read
@@ -34,6 +35,10 @@ jobs:
 
       - name: Missions-Assets bauen
         run: bash scripts/mission-image/build.sh
+
+      # Ergänzt public/missions/linux/ um bildschirm/ und die Rootfs-Dateien des Bildschirm-Images.
+      - name: Bildschirm-Assets bauen
+        run: bash scripts/mission-image-gui/build.sh
 
       - name: Missions-Assets hochladen
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

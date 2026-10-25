@@ -186,6 +186,9 @@ jobs:
       - name: Missions-Assets bauen (v86-Image nach public/missions/linux/)
         run: bash scripts/mission-image/build.sh
 
+      - name: Bildschirm-Assets bauen (nach public/missions/linux/bildschirm/)
+        run: bash scripts/mission-image-gui/build.sh
+
       - name: App bauen (SSR)
         run: pnpm build
 
@@ -273,6 +276,9 @@ jobs:
 
       - name: Missions-Assets bauen (wie im Deploy auf dem Runner)
         run: bash scripts/mission-image/build.sh
+
+      - name: Bildschirm-Assets bauen (wie im Deploy auf dem Runner)
+        run: bash scripts/mission-image-gui/build.sh
 
       - name: Produktionsimage bauen
         run: docker build -t alexle135:ci .

@@ -39,6 +39,12 @@ import Spurenliste from './Spurenliste';
 import VorwurfDialog from './VorwurfDialog';
 
 const LazyV86Terminal = lazy(() => import('./V86Terminal'));
+// Nur Episoden mit `bildschirm: true` laden diesen Chunk und das Bildschirm-Image (ADR 0008).
+const LazyV86Bildschirm = lazy(() => import('./V86Bildschirm'));
+const BILDSCHIRM_HINWEIS = [
+  'Das ist der Bildschirm des Rechners. Rechtsklick auf den Hintergrund öffnet das Menü.',
+  'Was du in Programmen auf dem Bildschirm speicherst, prüft niemand von selbst. Danach: „Stand prüfen“.',
+];
 
 const PRUEF_HINWEIS = 'Prüfung gerade nicht erreichbar. Der nächste Befehl versucht es erneut.';
 const RAHMEN_FEHLER = 'Der Rahmen für Staffel 2 konnte nicht gesetzt werden.';
@@ -248,6 +254,10 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
     }
     return { exitCode: 1, text: MISSION_HINWEIS };
   }, []);
+
+  // „Stand prüfen“ am Bildschirm: derselbe volle Prüflauf wie nach einem Befehl (ADR 0008).
+  const standPruefen = useCallback(() => lauf.current?.anstossen(), []);
+  const bildschirmErstmals = useCallback(() => melde('auftrag', BILDSCHIRM_HINWEIS), [melde]);
 
   const pruefeFrischFn = useCallback(
     () =>
@@ -546,11 +556,21 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
               <p className="font-mono text-xs text-[color:var(--muted)]">Terminal lädt …</p>
             }
           >
-            <LazyV86Terminal
-              className="h-[60dvh] min-h-[20rem] lg:h-full lg:min-h-[12rem]"
-              onReady={onReady}
-              onMissionCommand={onMissionCommand}
-            />
+            {ermittlung.bildschirm ? (
+              <LazyV86Bildschirm
+                className="h-[70dvh] min-h-[24rem] lg:h-full lg:min-h-[12rem]"
+                onReady={onReady}
+                onMissionCommand={onMissionCommand}
+                onStandPruefen={standPruefen}
+                onBildschirmErstmals={bildschirmErstmals}
+              />
+            ) : (
+              <LazyV86Terminal
+                className="h-[60dvh] min-h-[20rem] lg:h-full lg:min-h-[12rem]"
+                onReady={onReady}
+                onMissionCommand={onMissionCommand}
+              />
+            )}
           </Suspense>
         </div>
       </div>

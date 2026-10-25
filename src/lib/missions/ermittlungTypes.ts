@@ -119,6 +119,13 @@ export interface Ermittlung {
   beweisstueck: Beweisstueck;
   szene: readonly string[];
   szenePose?: Pose;
+  /**
+   * Bildschirm (ADR 0008): Nur dann lädt die Seite das größere Bildschirm-Image (512 MB) und zeigt
+   * neben dem Terminal den Reiter „Bildschirm“ mit „Stand prüfen“. Erzwungen wird er allein über
+   * Bildbelege, die das setup mit `bildbeleg ZIEL.png <<'EOF' … EOF` anlegt
+   * (scripts/mission-image-gui/rootfs-overlay/usr/local/bin/bildbeleg).
+   */
+  bildschirm?: true;
 }
 
 /** Laufzeitzustand einer Ermittlung im Browser. */
