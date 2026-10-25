@@ -41,6 +41,20 @@ describe('Projekt-Schema: trailer', () => {
   });
 });
 
+describe('Projekt-Schema: untertitel', () => {
+  it('akzeptiert einen Untertitel-Pfad mit führendem Schrägstrich', () => {
+    expect(projektTrailerSchema.safeParse({ ...gueltig, untertitel: '/media/u.vtt' }).success).toBe(
+      true
+    );
+  });
+
+  it('lehnt einen Untertitel-Pfad ohne führenden Schrägstrich ab', () => {
+    expect(projektTrailerSchema.safeParse({ ...gueltig, untertitel: 'media/u.vtt' }).success).toBe(
+      false
+    );
+  });
+});
+
 describe('Projekt-Schema: ogImage', () => {
   it('akzeptiert einen Pfad mit führendem Schrägstrich', () => {
     expect(projektOgImageSchema.safeParse('/media/og/projekt.png').success).toBe(true);

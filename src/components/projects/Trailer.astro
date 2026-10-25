@@ -3,11 +3,12 @@ interface Props {
   src: string;
   srcKlein?: string;
   poster: string;
+  untertitel?: string;
   titel: string;
   textfassung: string[];
 }
 
-const { src, srcKlein, poster, titel, textfassung } = Astro.props;
+const { src, srcKlein, poster, untertitel, titel, textfassung } = Astro.props;
 ---
 
 <figure id="trailer" class="mb-20 border border-[color:color-mix(in_srgb,var(--ink)_12%,transparent)] p-2">
@@ -22,6 +23,7 @@ const { src, srcKlein, poster, titel, textfassung } = Astro.props;
   >
     {srcKlein && <source src={srcKlein} type="video/mp4" media="(max-width: 800px)" />}
     <source src={src} type="video/mp4" />
+    {untertitel && <track kind="captions" src={untertitel} srclang="de" label="Deutsch" />}
     <a href={src}>Trailer öffnen</a>
   </video>
   <details class="px-2 py-3">

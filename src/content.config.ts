@@ -12,6 +12,8 @@ export const projektTrailerSchema = z.object({
   src: z.string().startsWith('/'),
   srcKlein: z.string().startsWith('/').optional(),
   poster: z.string().startsWith('/'),
+  // WebVTT-Untertitel für Trailer mit Sprache (Staffel 2).
+  untertitel: z.string().startsWith('/').optional(),
   textfassung: z.array(z.string().min(1)).min(1),
 });
 
@@ -44,6 +46,8 @@ const projects = defineCollection({
       status: z.enum(['planning', 'in-progress', 'completed', 'archived']).default('completed'),
       // Interne Route einer eigenen App (z. B. Missionen); zeigt einen Start-Button im Kopf.
       appUrl: z.string().startsWith('/').optional(),
+      // Beschriftung des Start-Buttons; ohne Angabe „Missionen starten“.
+      appLabel: z.string().optional(),
       demoUrl: z.url().optional(),
       repoUrl: z.url().optional(),
       featured: z.boolean().default(false),

@@ -83,7 +83,7 @@ const schema = projectSchema;
           data-astro-reload
           class="inline-flex items-center gap-3 border border-[color:var(--ink)] bg-[color:var(--ink)] px-6 py-3 font-mono text-xs uppercase tracking-[0.18em] text-[color:var(--paper)] transition-colors hover:border-[color:var(--accent-strong)] hover:bg-[color:var(--accent-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--accent)]"
         >
-          Missionen starten <span aria-hidden="true">→</span>
+          {project.data.appLabel ?? 'Missionen starten'} <span aria-hidden="true">→</span>
         </a>
       )}
 
@@ -104,6 +104,7 @@ const schema = projectSchema;
         src={project.data.trailer.src}
         srcKlein={project.data.trailer.srcKlein}
         poster={project.data.trailer.poster}
+        untertitel={project.data.trailer.untertitel}
         titel={project.data.title}
         textfassung={project.data.trailer.textfassung}
       />

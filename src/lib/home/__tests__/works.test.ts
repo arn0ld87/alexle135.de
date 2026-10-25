@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync } from 'node:fs';
+import matter from 'gray-matter';
 import { describe, expect, it } from 'vitest';
 import {
   CATEGORY_ORDER,
@@ -176,5 +178,23 @@ describe('formatDateDe', () => {
     expect(formatDateDe(new Date('2026-08-07'))).toBe('07.08.2026');
     expect(formatDateDe(new Date('2025-12-31T23:59:59Z'))).toBe('31.12.2025');
     expect(formatDateDe(new Date('2026-01-01T00:00:00Z'))).toBe('01.01.2026');
+  });
+});
+
+describe('selectProjects mit den echten Projekteinträgen', () => {
+  const dir = 'src/content/projects';
+  const eintraege = readdirSync(dir)
+    .filter((datei) => datei.endsWith('.md') && datei !== 'agora.md')
+    .map((datei) => {
+      const { data } = matter(readFileSync(`${dir}/${datei}`, 'utf8'));
+      return { id: datei.replace(/\.md$/, ''), data: data as Data };
+    });
+
+  it('zeigt Staffel 2 als „02“ und Staffel 1 als „03“ direkt nach der Agora-Karte', () => {
+    const rows = selectProjects(eintraege);
+    expect(rows.slice(0, 2).map((r) => [r.number, r.slug])).toEqual([
+      ['02', 'linux-krimi-staffel-2'],
+      ['03', 'terminal-missionen'],
+    ]);
   });
 });
