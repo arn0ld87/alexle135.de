@@ -6,6 +6,7 @@ import {
   aktuellerSchritt,
   antwortSkript,
   istGesperrt,
+  offeneSchritteText,
   startZustand,
   wendeAntwortAn,
 } from '../../lib/missions/ermittlung';
@@ -137,6 +138,8 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
           melde('auftrag', [...ermittlung.einsatzrahmen.folge]);
         } else if (ereignis.type === 'sperre-aufgehoben') {
           melde('erledigt', [satz('Der Vorwurf ist wieder möglich.')]);
+        } else if (ereignis.type === 'fall-geloest') {
+          melde('erledigt', [...ermittlung.vorwurf.antworten.richtig]);
         }
       }
     },
@@ -272,6 +275,10 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
 
   const oeffneVorwurf = useCallback(() => {
     if (anzeigeZustand.geloest) return;
+    if (anzeigeZustand.vorwurfRichtig) {
+      setVorwurfHinweis(offeneSchritteText(ermittlung, anzeigeZustand).join(' '));
+      return;
+    }
     if (istGesperrt(anzeigeZustand)) {
       setVorwurfHinweis(ermittlung.vorwurf.antworten.gesperrt.join(' '));
       return;
@@ -281,7 +288,7 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
     const fokus = document.activeElement;
     if (fokus instanceof HTMLButtonElement) oeufnerRef.current = fokus;
     setDialogOffen(true);
-  }, [anzeigeZustand, ermittlung.vorwurf.antworten.gesperrt, prueftVorwurf]);
+  }, [anzeigeZustand, ermittlung, prueftVorwurf]);
 
   const abbrechenVorwurf = useCallback(() => {
     setDialogOffen(false);
@@ -346,6 +353,13 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
           }
           lauf.current?.stoppe();
           setDialogOffen(false);
+          submitGuard.current = false;
+          setPrueftVorwurf(false);
+          return;
+        }
+        if (ergebnis === 'richtig-offen') {
+          melde('erledigt', [...antwort]);
+          setVorwurfHinweis(antwort.join(' '));
           submitGuard.current = false;
           setPrueftVorwurf(false);
           return;
@@ -537,14 +551,17 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
             vorwurfOeffnenAktiv={
               setupGeneration > 0 &&
               !anzeigeZustand.geloest &&
+              !anzeigeZustand.vorwurfRichtig &&
               !istGesperrt(anzeigeZustand) &&
               !prueftVorwurf &&
               !submitGuard.current
             }
             vorwurfHinweis={
-              istGesperrt(anzeigeZustand)
-                ? ermittlung.vorwurf.antworten.gesperrt.join(' ')
-                : vorwurfHinweis
+              anzeigeZustand.vorwurfRichtig
+                ? offeneSchritteText(ermittlung, anzeigeZustand).join(' ')
+                : istGesperrt(anzeigeZustand)
+                  ? ermittlung.vorwurf.antworten.gesperrt.join(' ')
+                  : vorwurfHinweis
             }
           />
         </div>

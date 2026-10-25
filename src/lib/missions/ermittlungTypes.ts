@@ -145,6 +145,12 @@ export interface ErmittlungsZustand {
   /** Vollständige Prüfungen, nach denen eine aktive Sperre spätestens endet; 0 = keine Sperre. */
   sperreRestPruefungen: number;
   vorwurfVersuche: number;
+  /**
+   * Ein richtiger Vorwurf liegt vor, aber noch nicht alle Spuren sind erledigt; erst beides
+   * zusammen schließt die Episode ab (`geloest`). Fehlt das Feld, gilt false.
+   */
+  vorwurfRichtig?: boolean;
+  /** Vorwurf richtig und alle Spuren erledigt: Abschluss, Beweisstück und Szene. */
   geloest: boolean;
   /** Je Schritt (`spurId/schrittId`) die zuletzt gemeldete Diagnose; fehlt, solange keine steht. */
   letzteDiagnose?: Readonly<Record<string, string>>;
@@ -157,6 +163,7 @@ export type ErmittlungsEreignis =
   | { type: 'beleg-verloren'; belegId: string }
   | { type: 'einsatzrahmen-verletzt' }
   | { type: 'sperre-aufgehoben' }
+  | { type: 'fall-geloest' }
   | { type: 'diagnose'; spurId: string; schrittId: string; text: string }
   | { type: 'pruefung-unvollstaendig' };
 
@@ -166,6 +173,7 @@ export type VorwurfErgebnis =
   | 'zu-wenig-belege'
   | 'gesperrt'
   | 'beleg-unbekannt'
+  | 'richtig-offen'
   | 'bereits-geloest';
 
 /** Eine Prüfung im Bündel; `id` ist im Bündel eindeutig. */

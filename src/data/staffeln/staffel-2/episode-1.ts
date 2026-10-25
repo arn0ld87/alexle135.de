@@ -163,9 +163,24 @@ done < "$a"
 [ "$n" = 1 ] && has "$zeile"
 `}`;
 
+/**
+ * Quarantäne als echter Ordner. azubi besitzt sein Home und könnte ~/quarantaene durch einen Link
+ * ersetzen (eine Härtung über Besitzer oder Rechte hält dem nicht stand); das erlaubte `sudo mv`
+ * folgt einem solchen Link. Das trifft nur die eigene VM, das Neuladen stellt sie her. Darum zählt
+ * ein Schritt nur mit echtem Ordner, und die Diagnose benennt den Fehler.
+ */
+const QUARANTAENE_ORDNER = String.raw`k=${sh(QUARANTAENE)}
+[ -d "$k" ] && [ ! -L "$k" ]`;
+const QUARANTAENE_KAPUTT = String.raw`k=${sh(QUARANTAENE)}
+if [ -L "$k" ] || { [ -e "$k" ] && [ ! -d "$k" ]; }; then
+  printf '%s\n' ${sh('Deine Quarantäne ~/quarantaene ist kein Ordner mehr. Lade die Seite neu, dann ist sie wieder da.')}
+  exit 0
+fi`;
+
 /** Die Regeldatei ist aus /etc/sudoers.d weg, sudo kennt die Regel nicht mehr, die Konfiguration ist gültig. */
 const PRUEFE_REGEL_WEG = String.raw`export LC_ALL=C
 q=${sh(SUDOERS)}
+${QUARANTAENE_ORDNER} || exit 1
 [ ! -e "$q" ] && [ ! -L "$q" ] || exit 1
 visudo -c >/dev/null 2>&1 || exit 1
 liste=$(sudo -l -U nadia 2>&1 </dev/null)
@@ -174,6 +189,7 @@ liste=$(sudo -l -U nadia 2>&1 </dev/null)
 
 /** Das Programm liegt unverändert (Besitzer, Modus, Inhalt) in der Quarantäne, nicht mehr in /usr/local/bin. */
 const PRUEFE_STATUS_WEG = String.raw`export LC_ALL=C
+${QUARANTAENE_ORDNER} || exit 1
 q=${sh(`${QUARANTAENE}/rw-status`)}
 s=${sh(STATUS)}
 [ -f "$q" ] && [ ! -L "$q" ] && [ ! -e "$s" ] && [ ! -L "$s" ] || exit 1
@@ -193,12 +209,14 @@ const DIAGNOSE_RECHTE_METADATEN = diagnoseZweiDateien(
   'rw-fernwartung'
 );
 const DIAGNOSE_LOG_ZEILE = diagnoseBelegDa(`${BELEGE}/log-zeile.txt`, ZEILE_FEHLT);
-const DIAGNOSE_REGEL_WEG = String.raw`q=${sh(SUDOERS)}
+const DIAGNOSE_REGEL_WEG = String.raw`${QUARANTAENE_KAPUTT}
+q=${sh(SUDOERS)}
 k=${sh(`${QUARANTAENE}/rw-fernwartung`)}
 [ -e "$q" ] && [ -e "$k" ] && printf '%s\n' ${sh('Die Regel liegt noch in /etc/sudoers.d, in der Quarantäne nur eine Kopie. Verschieben, nicht kopieren.')}
 exit 0
 `;
-const DIAGNOSE_STATUS_WEG = String.raw`s=${sh(STATUS)}
+const DIAGNOSE_STATUS_WEG = String.raw`${QUARANTAENE_KAPUTT}
+s=${sh(STATUS)}
 k=${sh(`${QUARANTAENE}/rw-status`)}
 [ -e "$s" ] && [ -e "$k" ] && printf '%s\n' ${sh('rw-status liegt noch in /usr/local/bin, in der Quarantäne nur eine Kopie. Verschieben, nicht kopieren.')}
 exit 0

@@ -911,6 +911,81 @@ describe('naechsteSperre und istGesperrt', () => {
   });
 });
 
+describe('Abschluss: richtiger Vorwurf und alle Spuren', () => {
+  const alleBelege = ['b-log', 'b-stat', 'b-sudoers'];
+  const richtig = { verdaechtigeId: 'timo', belegIds: ['b-sudoers', 'b-log'] };
+  const fertig = { rechte: 2, log: 1 };
+
+  it('hält einen richtigen Vorwurf vor den letzten Schritten fest, ohne abzuschließen', () => {
+    const z = zustand({ belegeErkannt: alleBelege, erledigt: { rechte: 1 } });
+    const r = pruefeVorwurf(fixture, z, richtig);
+    expect(r.ergebnis).toBe('richtig-offen');
+    expect(r.zustand.geloest).toBe(false);
+    expect(r.zustand.vorwurfRichtig).toBe(true);
+    expect(r.zustand.vorwurfVersuche).toBe(1);
+    expect(r.antwort.join(' ')).toContain('Der Vorwurf sitzt.');
+    // Je Spur steht der aktuelle Schritt da: Rechte s2, Log s1.
+    expect(r.antwort.join(' ')).toContain('Schritt s2 (Spur Rechte); Schritt s1 (Spur Logbuch)');
+    expect(r.antwort).not.toEqual(fixture.vorwurf.antworten.richtig);
+    // Die Prüfung läuft weiter: Schritte, Belege und Rahmen sind weiter fällig.
+    expect(offenePruefungen(fixture, r.zustand).map((p) => p.id)).toContain('s.rechte.s2');
+    // Ein weiterer Vorwurf ändert nichts und nennt erneut, was fehlt.
+    const nochmal = pruefeVorwurf(fixture, r.zustand, richtig);
+    expect(nochmal.ergebnis).toBe('richtig-offen');
+    expect(nochmal.zustand).toBe(r.zustand);
+  });
+
+  it('schließt ab, sobald nach dem Vorwurf die letzten Schritte per Prüfung erledigt sind', () => {
+    let z = pruefeVorwurf(fixture, zustand({ belegeErkannt: alleBelege, erledigt: { log: 1 } }), richtig).zustand;
+    let e = lauf(fixture, z, { 's.rechte.s1': true });
+    expect(e.zustand.geloest).toBe(false);
+    expect(e.zustand.vorwurfRichtig).toBe(true);
+    expect(e.ereignisse.map((x) => x.type)).not.toContain('fall-geloest');
+    z = e.zustand;
+    e = lauf(fixture, z, { 's.rechte.s2': true });
+    expect(e.zustand.geloest).toBe(true);
+    expect(e.ereignisse.map((x) => x.type)).toEqual(
+      expect.arrayContaining(['schritt-erledigt', 'spur-erledigt', 'fall-geloest'])
+    );
+    expect(offenePruefungen(fixture, e.zustand)).toEqual([]);
+  });
+
+  it('schließt auch ab, wenn der letzte Schritt ein richtig beantwortetes Ablesen ist', () => {
+    const z = pruefeVorwurf(
+      fixture,
+      zustand({ belegeErkannt: alleBelege, erledigt: { rechte: 1, log: 1 } }),
+      richtig
+    ).zustand;
+    const r = wendeAntwortAn(fixture, z, 'rechte', 's2', true);
+    expect(r.zustand.geloest).toBe(true);
+    expect(r.ereignisse.map((x) => x.type)).toContain('fall-geloest');
+  });
+
+  it('schließt sofort ab, wenn der Vorwurf erst nach allen Spuren kommt', () => {
+    const r = pruefeVorwurf(fixture, zustand({ belegeErkannt: alleBelege, erledigt: fertig }), richtig);
+    expect(r.ergebnis).toBe('richtig');
+    expect(r.zustand.geloest).toBe(true);
+    expect(r.antwort).toEqual(fixture.vorwurf.antworten.richtig);
+  });
+
+  it('alle Spuren erledigt ohne Vorwurf schließt nicht ab', () => {
+    const e = lauf(fixture, zustand({ erledigt: { rechte: 1, log: 1 } }), { 's.rechte.s2': true });
+    expect(e.zustand.erledigt).toEqual(fertig);
+    expect(e.zustand.geloest).toBe(false);
+    expect(e.zustand.vorwurfRichtig).toBeUndefined();
+    expect(e.ereignisse.map((x) => x.type)).not.toContain('fall-geloest');
+  });
+
+  it('ein falscher Vorwurf setzt vorwurfRichtig nie', () => {
+    const r = pruefeVorwurf(fixture, zustand({ belegeErkannt: alleBelege, erledigt: fertig }), {
+      verdaechtigeId: 'nadia',
+      belegIds: ['b-sudoers'],
+    });
+    expect(r.ergebnis).toBe('falsche-person');
+    expect(r.zustand.vorwurfRichtig).toBeUndefined();
+  });
+});
+
 describe('pruefeVorwurf', () => {
   const vorwurf = (z: ErmittlungsZustand, verdaechtigeId: string, belegIds: string[]) =>
     pruefeVorwurf(fixture, z, { verdaechtigeId, belegIds });
