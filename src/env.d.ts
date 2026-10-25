@@ -32,6 +32,8 @@ interface ImportMetaEnv {
   readonly PUBLIC_BUILD_SHA?: string;
   /** Inhalts-Hash der Missions-Assets (VERSION aus scripts/mission-image/build.sh, #388). */
   readonly PUBLIC_MISSION_ASSETS_VERSION?: string;
+  /** Inhalts-Hash des Bildschirm-Images (VERSION aus scripts/mission-image-gui/build.sh). */
+  readonly PUBLIC_MISSION_BILDSCHIRM_VERSION?: string;
   /** Build-Datum (JJJJ-MM-TT), zur Build-Zeit über vite.define aus astro.config.mjs gesetzt. */
   readonly PUBLIC_BUILD_DATE?: string;
   /** Build-Zeitpunkt (ISO 8601), über vite.define gesetzt; Veröffentlichungsgrenze in utils/content.ts. */

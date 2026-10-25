@@ -1,0 +1,77 @@
+# Missions-Assets nach public/missions/linux/ (gitignored): erst aus dem Cache, sonst bauen.
+#
+# Zwei Caches mit exaktem Schlüssel (keine restore-keys):
+#   mission-image-…      Missions-Image (scripts/mission-image/build.sh)
+#   mission-image-gui-…  der ganze Ordner nach scripts/mission-image-gui/build.sh, also
+#                        Missions- und Bildschirm-Image; das GUI-Image baut auf Overlay und
+#                        Werkzeugen des Missions-Images auf, deshalb hängt sein Schlüssel an beiden.
+# Der Schlüssel ist der Hash aller Eingaben (Skripte, Dockerfiles, Overlays, Werkzeuge) plus die
+# v86-Version aus package.json, die build.sh als einzigen Wert von dort liest.
+#
+# Achtung: Die apk-Pakete und die Basis-Images node:22-alpine/python:3.13-alpine sind nicht
+# gepinnt. Ein Cache-Treffer liefert deshalb das Paketset vom Zeitpunkt des ersten Builds aus,
+# bis sich eine Eingabe ändert. Das ist gewollt (reproduzierbar). Neu bauen erzwingen, etwa für
+# Sicherheitsupdates im Gast: CACHE_VERSION unten erhöhen.
+name: Missions-Assets
+description: Missions-Image und optional Bildschirm-Image aus dem Cache holen oder bauen
+inputs:
+  bildschirm:
+    description: "'true' = auch das Bildschirm-Image (ADR 0008) bereitstellen"
+    required: false
+    default: 'false'
+runs:
+  using: composite
+  steps:
+    - name: Cache-Schlüssel bestimmen
+      id: key
+      shell: bash
+      env:
+        # Zum Erzwingen eines Neubaus erhöhen (siehe oben).
+        CACHE_VERSION: v1
+        INPUTS_S1: ${{ hashFiles('scripts/mission-image/**') }}
+        INPUTS_GUI: ${{ hashFiles('scripts/mission-image/**', 'scripts/mission-image-gui/**') }}
+      run: |
+        v86=$(node -p "require('./package.json').dependencies.v86")
+        echo "s1=mission-image-$CACHE_VERSION-v86-$v86-$INPUTS_S1" >> "$GITHUB_OUTPUT"
+        echo "gui=mission-image-gui-$CACHE_VERSION-v86-$v86-$INPUTS_GUI" >> "$GITHUB_OUTPUT"
+
+    - name: Bildschirm-Image aus dem Cache
+      id: gui
+      if: inputs.bildschirm == 'true'
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: public/missions/linux
+        key: ${{ steps.key.outputs.gui }}
+
+    - name: Missions-Image aus dem Cache
+      id: s1
+      if: steps.gui.outputs.cache-hit != 'true'
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: public/missions/linux
+        key: ${{ steps.key.outputs.s1 }}
+
+    - name: Missions-Image bauen
+      if: steps.gui.outputs.cache-hit != 'true' && steps.s1.outputs.cache-hit != 'true'
+      shell: bash
+      run: bash scripts/mission-image/build.sh
+
+    # Vor dem Bildschirm-Image sichern: Dessen build.sh ergänzt denselben Ordner.
+    - name: Missions-Image in den Cache
+      if: steps.gui.outputs.cache-hit != 'true' && steps.s1.outputs.cache-hit != 'true'
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: public/missions/linux
+        key: ${{ steps.key.outputs.s1 }}
+
+    - name: Bildschirm-Image bauen
+      if: inputs.bildschirm == 'true' && steps.gui.outputs.cache-hit != 'true'
+      shell: bash
+      run: bash scripts/mission-image-gui/build.sh
+
+    - name: Bildschirm-Image in den Cache
+      if: inputs.bildschirm == 'true' && steps.gui.outputs.cache-hit != 'true'
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: public/missions/linux
+        key: ${{ steps.key.outputs.gui }}

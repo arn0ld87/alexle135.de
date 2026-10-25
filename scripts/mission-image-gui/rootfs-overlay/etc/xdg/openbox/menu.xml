@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Rechtsklick auf den Hintergrund: nur Programme, die im Image wirklich liegen. -->
+<openbox_menu xmlns="http://openbox.org/3.4/menu">
+  <menu id="root-menu" label="Bildschirm">
+    <item label="Dateimanager">
+      <action name="Execute"><command>pcmanfm</command></action>
+    </item>
+    <item label="Editor">
+      <action name="Execute"><command>mousepad</command></action>
+    </item>
+    <separator />
+    <item label="Bildschirm beenden">
+      <action name="Exit"><prompt>no</prompt></action>
+    </item>
+  </menu>
+</openbox_menu>

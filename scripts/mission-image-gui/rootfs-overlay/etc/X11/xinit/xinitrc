@@ -1,0 +1,11 @@
+#!/bin/sh
+# Sitzung auf dem Bildschirm: Hintergrund, Panel, Fenstermanager. Kein Desktop-Daemon.
+# Staffel 2 benennt den Rechner nach dem Start um; das Cookie aus startx passt dann nicht mehr.
+# Zugang deshalb über die Benutzerkennung des Clients (nur azubi), unabhängig vom Hostnamen.
+xhost +si:localuser:"$(id -un)" >/dev/null
+xsetroot -solid '#181a1e'
+tint2 &
+# pcmanfm braucht im Gast knapp eine Minute bis zum ersten Fenster (GTK, libfm). Als Daemon
+# geladen öffnet ein Klick auf den Starter nur noch ein Fenster.
+pcmanfm --daemon-mode >/dev/null 2>&1 &
+exec openbox

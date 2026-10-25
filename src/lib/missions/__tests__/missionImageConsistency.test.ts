@@ -55,6 +55,53 @@ describe('Missions-Image und Browser-Seite', () => {
   });
 });
 
+// Das Bildschirm-Image (ADR 0008) ist an dieselben Größen gebunden, mit eigenem Speicher.
+describe('Bildschirm-Image und V86Bildschirm', () => {
+  const dockerfile = read('scripts/mission-image/Dockerfile');
+  const gui = read('scripts/mission-image-gui/Dockerfile');
+  const guiBuild = read('scripts/mission-image-gui/build.sh');
+  const guiState = read('scripts/mission-image-gui/build-state.mjs');
+  const bildschirm = read('src/components/missions/V86Bildschirm.tsx');
+  const terminal = read('src/components/missions/V86Terminal.tsx');
+  const arg = (source: string, name: string) =>
+    new RegExp(`^ARG ${name}=(\\S+)$`, 'm').exec(source)?.[1];
+
+  it('nutzen v86, Integrität, BIOS-Commit und Basis-Image des Missions-Images', () => {
+    for (const name of ['V86_VERSION', 'V86_INTEGRITY', 'V86_COMMIT', 'ALPINE_IMAGE']) {
+      expect(arg(gui, name), name).toBeDefined();
+      expect(arg(gui, name), name).toBe(arg(dockerfile, name));
+    }
+  });
+
+  it('nutzen dieselbe Kernel-Cmdline wie das Terminal', () => {
+    expect(constant(guiState, 'CMDLINE')).toBe(constant(terminal, 'CMDLINE'));
+    expect(constant(bildschirm, 'CMDLINE')).toBe(constant(terminal, 'CMDLINE'));
+  });
+
+  it('nutzen dieselbe Speicher- und VGA-Größe', () => {
+    const mb = /const MEMORY_MB = (\d+);/.exec(bildschirm)?.[1];
+    const vga = /const VGA_MEMORY_MB = (\d+);/.exec(bildschirm)?.[1];
+    expect(arg(gui, 'MEMORY_MB')).toBe(mb);
+    expect(arg(gui, 'VGA_MEMORY_MB')).toBe(vga);
+    expect(guiBuild).toContain(`MEMORY_MB=\${MEMORY_MB:-${mb}}`);
+    expect(guiBuild).toContain(`VGA_MEMORY_MB=\${VGA_MEMORY_MB:-${vga}}`);
+  });
+
+  it('übernimmt Overlay und Prompt des Missions-Images', () => {
+    expect(gui).toContain('COPY mission-image/rootfs-overlay/ /');
+    expect(guiState).toContain("const PROMPT = 'azubi@alex-schneider:~$ ';");
+  });
+
+  it('prüft den Bildbeleg im Image-Build auf reine Pixel', () => {
+    expect(gui).toContain('RUN python3 /tools/pruefe-bildbeleg.py /probe.png');
+    const erlaubt = /^ERLAUBT = \{(.*)\}$/m.exec(
+      read('scripts/mission-image-gui/tools/pruefe-bildbeleg.py')
+    )?.[1];
+    expect(erlaubt).toBeDefined();
+    expect(erlaubt).not.toMatch(/tEXt|zTXt|iTXt|eXIf/);
+  });
+});
+
 // #374: Die VM ist Alex' Welt. Der alte Benutzer und der alte Host dürfen nirgends überleben,
 // sonst passen Image, Missionsdaten und Tests nicht mehr zusammen.
 describe('Identität azubi@alex-schneider', () => {
@@ -63,6 +110,7 @@ describe('Identität azubi@alex-schneider', () => {
   const SELF = fileURLToPath(import.meta.url);
   const SCOPES = [
     'scripts/mission-image',
+    'scripts/mission-image-gui',
     'src/data',
     'src/lib/missions',
     'src/components/missions',

@@ -1,0 +1,36 @@
+#!/bin/sh
+# Geräte für den Bildschirm, einmal beim Boot als root, wie es sonst udev täte:
+# Grafik (bochs-drm), Eingabe (evdev, psmouse) und VT 7 für Xorg. Der Bildschirm selbst startet
+# erst auf Wunsch als azubi (startx); hier läuft kein Xorg.
+modprobe -a bochs evdev psmouse 2>/dev/null
+# psmouse meldet die Maus (VMMouse: absolut und relativ) erst nach der Tastatur an.
+for i in $(seq 50); do
+  [ -e /dev/dri/card0 ] && [ "$(grep -c VMMouse /proc/bus/input/devices)" -ge 2 ] && break
+  sleep 0.2
+done
+
+[ -e /dev/dri/card0 ] && chgrp video /dev/dri/card0 && chmod 0660 /dev/dri/card0
+
+# Tastatur und Maus: feste Namen für die Xorg-Konfiguration. Die VMMouse liefert zwei Geräte
+# gleichen Namens; das absolute (Zeiger folgt dem Browser-Mauszeiger) hat ABS-Fähigkeiten.
+chmod 0755 /dev/input
+for dev in /sys/class/input/event*; do
+  ev=${dev##*/}
+  name=$(cat "$dev/device/name")
+  abs=$(cat "$dev/device/capabilities/abs")
+  case $name in
+    *'AT Translated Set 2 keyboard'*) link=v86-tastatur ;;
+    *VMMouse* | *PS/2*) if [ "$abs" != 0 ]; then link=v86-maus; else link=v86-maus-rel; fi ;;
+    *) continue ;;
+  esac
+  chgrp input "/dev/input/$ev" && chmod 0660 "/dev/input/$ev"
+  ln -sf "$ev" "/dev/input/$link"
+done
+
+# Xorg läuft als azubi auf VT 7 und braucht dafür das Gerät selbst.
+chown azubi:azubi /dev/tty7 && chmod 0600 /dev/tty7
+
+# Bis Xorg läuft, zeigt der Bildschirm die Konsole tty1: statt Bootmeldungen ein Hinweis.
+dmesg -n 1
+printf '\033[2J\033[H\033[?25l\n  Der Bildschirm ist aus.\n\n  Starte ihn im Terminal mit:  bildschirm\n' >/dev/tty1
+exit 0

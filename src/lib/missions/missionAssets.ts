@@ -18,3 +18,16 @@ export function missionAssetUrl(name: FixedAsset, version: string | undefined): 
   const url = `${MISSION_ASSET_BASE}${name}`;
   return version ? `${url}?v=${encodeURIComponent(version)}` : url;
 }
+
+// Bildschirm-Image (ADR 0008, gebaut von scripts/mission-image-gui/build.sh): eigener Index und
+// Savestate mit eigener Version; Rootfs-Dateien und BIOS teilt es mit dem Missions-Image.
+export const BILDSCHIRM_ASSET_BASE = `${MISSION_ASSET_BASE}bildschirm/`;
+
+export const BILDSCHIRM_ASSETS = ['alpine-fs.json', 'alpine-state.bin.zst'] as const;
+
+export type BildschirmAsset = (typeof BILDSCHIRM_ASSETS)[number];
+
+export function bildschirmAssetUrl(name: BildschirmAsset, version: string | undefined): string {
+  const url = `${BILDSCHIRM_ASSET_BASE}${name}`;
+  return version ? `${url}?v=${encodeURIComponent(version)}` : url;
+}

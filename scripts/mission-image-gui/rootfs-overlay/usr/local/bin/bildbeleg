@@ -1,0 +1,33 @@
+#!/bin/bash
+# Bildbeleg (ADR 0008): schreibt Text als Zettel in ein PNG, das nur Pixel enthält. Kein Text-Chunk,
+# keine Metadaten; was draufsteht, erfährt man nur durch Ansehen auf dem Bildschirm (feh).
+#
+# Aufruf im setup einer Episode (läuft als root), Text zeilenweise auf stdin:
+#   bildbeleg /home/alex/fotos/zettel.png <<'EOF'
+#   Alarmcode: 3812
+#   EOF
+#   chown alex:alex /home/alex/fotos/zettel.png
+# Besitzer und Rechte setzt das setup selbst; die Datei gehört sonst dem aufrufenden Konto.
+set -euo pipefail
+
+if [[ $# -ne 1 || $1 != *.png ]]; then
+  echo 'Aufruf: bildbeleg ZIEL.png < text' >&2
+  exit 2
+fi
+ziel=$1
+text=$(cat)
+if [[ -z ${text//[[:space:]]/} ]]; then
+  echo 'bildbeleg: kein Text auf stdin' >&2
+  exit 2
+fi
+
+# Erst vollständig schreiben, dann umbenennen: Eine Prüfung sieht nie ein halbes Bild.
+# pango-view wählt das Format nach der Endung, daher .png auch an der Zwischendatei.
+tmp=$(mktemp --suffix=.png "$(dirname -- "$ziel")/.bildbeleg.XXXXXX")
+trap 'rm -f "$tmp"' EXIT
+pango-view --no-display --backend=cairo --output="$tmp" --text="$text" \
+  --font='DejaVu Sans Oblique 26' --foreground='#283078' --background='#eee8cd' \
+  --margin=36 --rotate=-2.5 --hinting=none
+chmod 0644 "$tmp"
+mv -f "$tmp" "$ziel"
+trap - EXIT

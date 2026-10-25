@@ -15,6 +15,10 @@ COPY . .
 # auf einem x86_64-Host (CI-Runner); der Produktionsserver kann i386 nicht ausführen.
 RUN test -f public/missions/linux/alpine-state.bin.zst && test -s public/missions/linux/VERSION \
   || (echo 'public/missions/linux fehlt: vorher bash scripts/mission-image/build.sh' >&2; exit 1)
+# Bildschirm-Image für Episoden mit Bildschirm (ADR 0008), danach scripts/mission-image-gui/build.sh.
+RUN test -f public/missions/linux/bildschirm/alpine-state.bin.zst \
+  && test -s public/missions/linux/bildschirm/VERSION \
+  || (echo 'public/missions/linux/bildschirm fehlt: vorher bash scripts/mission-image-gui/build.sh' >&2; exit 1)
 
 ARG PUBLIC_GA_MEASUREMENT_ID
 ENV PUBLIC_GA_MEASUREMENT_ID=$PUBLIC_GA_MEASUREMENT_ID
@@ -24,7 +28,8 @@ ENV PUBLIC_BUILD_SHA=$PUBLIC_BUILD_SHA
 ENV NODE_ENV=production
 
 # Inhalts-Hash der Missions-Assets für Cache-Busting der festen Dateinamen (#388).
-RUN V="$(cat public/missions/linux/VERSION)" && PUBLIC_MISSION_ASSETS_VERSION="$V" pnpm run build
+RUN V="$(cat public/missions/linux/VERSION)" && B="$(cat public/missions/linux/bildschirm/VERSION)" \
+  && PUBLIC_MISSION_ASSETS_VERSION="$V" PUBLIC_MISSION_BILDSCHIRM_VERSION="$B" pnpm run build
 
 FROM node:22-alpine AS runner
 WORKDIR /app

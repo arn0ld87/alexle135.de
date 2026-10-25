@@ -1,0 +1,4 @@
+[Default Applications]
+image/png=feh.desktop
+image/jpeg=feh.desktop
+text/plain=org.xfce.mousepad.desktop
