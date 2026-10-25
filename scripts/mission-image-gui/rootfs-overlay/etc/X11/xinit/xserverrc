@@ -1,0 +1,4 @@
+#!/bin/sh
+# Bildschirm: Xorg als azubi auf VT 7, ohne TCP. Die Spielershell läuft auf ttyS0
+# und hat kein eigenes VT; /etc/local.d/bildschirm.start überlässt VT 7 dem Konto azubi.
+exec /usr/bin/Xorg -nolisten tcp -nolisten local vt7 "$@"

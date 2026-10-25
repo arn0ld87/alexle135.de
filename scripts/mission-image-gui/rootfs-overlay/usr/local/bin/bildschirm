@@ -1,0 +1,34 @@
+#!/bin/bash
+# Startet den Bildschirm (Xorg + Openbox) im Hintergrund als das aufrufende Konto, damit das
+# Terminal frei bleibt. `bildschirm aus` beendet ihn wieder. Dahinter steckt nur startx.
+log=${XDG_STATE_HOME:-$HOME/.local/state}/bildschirm.log
+case ${1:-an} in
+  aus)
+    pkill -u "$(id -u)" -x xinit && echo 'Bildschirm aus.' || echo 'Der Bildschirm lief nicht.'
+    exit 0
+    ;;
+  an) ;;
+  *) echo 'Aufruf: bildschirm [an|aus]' >&2; exit 2 ;;
+esac
+# BusyBox-pgrep vergleicht -x mit argv[0]; Xorg heißt dort /usr/libexec/Xorg, xinit nur xinit.
+if pgrep -u "$(id -u)" -x xinit >/dev/null; then
+  echo 'Der Bildschirm läuft schon. Wechsle oben auf den Reiter „Bildschirm“.'
+  exit 0
+fi
+mkdir -p "${log%/*}"
+setsid startx >"$log" 2>&1 </dev/null &
+printf 'Bildschirm startet'
+for _ in $(seq 120); do
+  if [[ -S /tmp/.X11-unix/X0 ]] && pgrep -u "$(id -u)" -x openbox >/dev/null; then
+    printf '\nBildschirm läuft. Wechsle oben auf den Reiter „Bildschirm“.\n'
+    exit 0
+  fi
+  if ((_ > 3)) && ! pgrep -u "$(id -u)" -x xinit >/dev/null; then
+    printf '\nDer Bildschirm ließ sich nicht starten, siehe %s\n' "$log" >&2
+    exit 1
+  fi
+  printf .
+  sleep 1
+done
+printf '\nDer Bildschirm braucht ungewöhnlich lange, siehe %s\n' "$log" >&2
+exit 1
