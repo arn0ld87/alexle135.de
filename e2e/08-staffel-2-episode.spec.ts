@@ -18,6 +18,7 @@ import {
   erhebeVorwurf,
   erwarteAbschluss,
   flaeche,
+  loeseRechteRest,
   oeffneAnsicht,
   pager,
   rows,
@@ -70,6 +71,11 @@ test('T10-1: Raum lesen, Log vor Rechte-Zeile sichern, richtiger Vorwurf', async
   await dialog(page).getByRole('button', { name: 'Abbrechen', exact: true }).click();
   await erhebeVorwurf(page, 'Timo Kessler');
 
+  // Der Vorwurf sitzt, der Fall schließt erst mit dem Rest der Spur Rechte.
+  await expect(pager(page)).toContainText(PAGER.vorwurfOffen, { timeout: 45_000 });
+  await expect(page.getByRole('heading', { name: 'Fall gelöst' })).toHaveCount(0);
+  expect(await anzahlImPager(page, PAGER.richtig)).toBe(0);
+  await loeseRechteRest(page, 'kennung');
   await erwarteAbschluss(page);
   await shot(page, 't10-1-abschluss');
   await expect(pager(page)).toContainText(PAGER.richtig);
@@ -96,6 +102,8 @@ test('T10-2: umgekehrte Spurenreihenfolge, Rechte-Spur bleibt linear', async ({ 
   // Rechte-Metadaten plus Log genügt, ohne die Rechte-Zeile zu wählen.
   await waehleBelege(page, ['log-zeile', 'rechte-metadaten']);
   await erhebeVorwurf(page, 'Timo Kessler');
+  await expect(pager(page)).toContainText(PAGER.vorwurfOffen, { timeout: 45_000 });
+  await loeseRechteRest(page, 'regel');
   await erwarteAbschluss(page);
   expect(await anzahlImPager(page, PAGER.richtig)).toBe(1);
 });
@@ -175,6 +183,8 @@ test('T10-5: Beleg nach der letzten Prüfung gelöscht, Frischprüfung erkennt d
   await befehl(page, RECHTE_REGEL);
   await waehleBelege(page, ['log-zeile', 'rechte-zeile']);
   await erhebeVorwurf(page, 'Timo Kessler');
+  await expect(pager(page)).toContainText(PAGER.vorwurfOffen, { timeout: 45_000 });
+  await loeseRechteRest(page, 'kennung');
   await erwarteAbschluss(page);
   expect(await anzahlImPager(page, PAGER.richtig)).toBe(1);
 });
@@ -187,6 +197,9 @@ test('T10-6: Doppelklick auf Absenden bewertet nur einmal', async ({ page }) => 
   await waehleBelege(page, ['log-zeile', 'rechte-zeile', 'rechte-metadaten']);
 
   await erhebeVorwurf(page, 'Timo Kessler', { doppelklick: true });
+  await expect(pager(page)).toContainText(PAGER.vorwurfOffen, { timeout: 45_000 });
+  expect(await anzahlImPager(page, PAGER.vorwurfOffen)).toBe(1);
+  await loeseRechteRest(page, 'kennung');
   await erwarteAbschluss(page);
   await expect(page.getByRole('heading', { name: 'Fall gelöst' })).toHaveCount(1);
   await expect(page.getByText('Der Rechtefund')).toHaveCount(1);

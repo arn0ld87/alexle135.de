@@ -31,6 +31,7 @@ export const PAGER = {
   regelWegErledigt: 'Erledigt: Nimm die fremde sudo-Regel aus dem Betrieb',
   statusWegErledigt: 'Erledigt: Stelle rw-status unter Quarantäne',
   rechteSpur: 'Spur abgeschlossen: Rechte',
+  vorwurfOffen: 'Der Vorwurf sitzt. Bevor der Fall abgeschlossen ist',
   richtig: 'Das passt zusammen: Die Regel trägt die Kennung RW-1042',
   falschePerson: 'Diese Person passt nicht zu deinen Belegen.',
   zuWenig: 'Die Person könnte stimmen, aber die Begründung trägt noch nicht.',
@@ -148,6 +149,20 @@ export async function antworte(page: Page, frage: string, text: string): Promise
   await flaeche(page, 'Ansicht');
   await page.getByLabel(frage).fill(text);
   await page.getByRole('button', { name: 'Antworten', exact: true }).click();
+}
+
+/**
+ * Erledigt den Rest der Spur Rechte ab dem genannten Schritt (kennung, meta oder regel). Ein
+ * richtiger Vorwurf schließt Episode 1 erst, wenn auch diese Schritte durch sind.
+ */
+export async function loeseRechteRest(page: Page, ab: 'kennung' | 'meta' | 'regel'): Promise<void> {
+  if (ab === 'kennung') {
+    await antworte(page, FRAGE_KENNUNG, 'RW-1042');
+    await expect(pager(page)).toContainText(PAGER.kennungErledigt, { timeout: 30_000 });
+  }
+  if (ab !== 'regel') await befehl(page, RECHTE_METADATEN, { pager: PAGER.metaErledigt });
+  await befehl(page, REGEL_WEG, { pager: PAGER.regelWegErledigt, timeout: 60_000 });
+  await befehl(page, STATUS_WEG, { pager: PAGER.statusWegErledigt, timeout: 60_000 });
 }
 
 export const dialog = (page: Page): Locator =>
