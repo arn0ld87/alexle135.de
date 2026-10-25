@@ -54,6 +54,7 @@ Lernspiel auf echtem Alpine Linux im Browser (v86) unter `/projekte/terminal-mis
   - **Ordnen:** Dateien unverändert in die Quarantäne verschieben.
   - **Bearbeiten:** eine Datei inhaltlich ändern.
 - **Quarantäne** _(geplant, Staffel 2)_: Ordner `~/quarantaene/` des Spielerkontos für verdächtige Dateien.
+- **Spielstand (Staffel 2):** gespeichert wird je Episode nur der Abschluss (gelöst, Dauer, Zeitpunkt, genutzte Tipps und Lösung, Vorwurfversuche) in `staffeln:v1` unter `staffel-2`, nie ein laufender Ermittlungsstand. Die VM startet bei jedem Laden frisch; Neuladen oder „Neu starten“ beginnt die laufende Episode von vorn. Ohne `?episode=` setzt die Seite mit der ersten ungelösten Episode fort; „Fortschritt von Staffel 2 löschen“ (mit Bestätigung) löscht nur diese Staffel.
 - **Spielstand-Code** _(geplant, Staffel 2)_: exportierter Stand einer Staffel zum Mitnehmen auf ein anderes Gerät, ohne Konto (ADR 0005).
 - **Abzeichen:** Auszeichnung nach Regel (ohne Tipp, schnell, nie Lösung, rote Prompts), je Staffel einmal.
 - **Gesamtlauf:** Summe der Zeiten aller Missionen ohne Mission 00 „Erster Tag“.
