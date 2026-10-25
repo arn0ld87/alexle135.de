@@ -62,7 +62,7 @@ describe('einsatzrahmenSetupSkript', () => {
     expect(log + 1).toBeLessThan(befehl('install -o root -g root -m 0440 "$tmp/regel"'));
   });
 
-  it('T8-2: der Drop-in enthält genau die drei Zeilen, nur die eine Datei und keine breite Freigabe', () => {
+  it('T8-2: der Drop-in enthält genau die vier Zeilen, nur die eine Datei und keine breite Freigabe', () => {
     const regel = zeilen.find(
       (zeile) => zeile.includes('"$tmp/regel"') && zeile.includes('printf')
     );
@@ -71,6 +71,7 @@ describe('einsatzrahmenSetupSkript', () => {
     expect(inhalt.slice(1)).toEqual([
       'Defaults:azubi logfile=/var/log/staffel2-sudo.log',
       'Defaults:azubi loglinelen=0',
+      'Defaults:azubi !authenticate',
       'azubi ALL=(root) NOPASSWD: /bin/cat /home/nadia/vertraulich.txt',
     ]);
     const regeln = inhalt.filter((zeile) => zeile.includes('NOPASSWD'));
@@ -80,6 +81,42 @@ describe('einsatzrahmenSetupSkript', () => {
     );
     expect(skript).not.toContain('/etc/sudoers ');
     expect(skript).not.toMatch(/sudoers\.d\/azubi/);
+  });
+
+  it('ADR 0009: zusätzliche Befehle der Episode stehen als eigene Zeilen exakt im Drop-in', () => {
+    const befehle = ['/bin/mv /a/b /home/azubi/q/', '/sbin/rc-service x restart'];
+    const mit = einsatzrahmenSetupSkript(befehle);
+    expect(() => execFileSync('bash', ['-n'], { input: mit })).not.toThrow();
+    const regel = mit
+      .split('\n')
+      .find((zeile) => zeile.includes('"$tmp/regel"') && zeile.includes('printf')) as string;
+    const inhalt = [...regel.matchAll(/'([^']*)'/g)].map((treffer) => treffer[1]).slice(1);
+    expect(inhalt).toEqual([
+      'Defaults:azubi logfile=/var/log/staffel2-sudo.log',
+      'Defaults:azubi loglinelen=0',
+      'Defaults:azubi !authenticate',
+      'azubi ALL=(root) NOPASSWD: /bin/cat /home/nadia/vertraulich.txt',
+      'azubi ALL=(root) NOPASSWD: /bin/mv /a/b /home/azubi/q/',
+      'azubi ALL=(root) NOPASSWD: /sbin/rc-service x restart',
+    ]);
+    expect(einsatzrahmenSetupSkript([])).toBe(skript);
+  });
+
+  it.each([
+    'mv /a /b',
+    '/bin/mv /a/* /b',
+    '/bin/mv /a, /bin/sh',
+    '/bin/mv /a /b; id',
+    '/bin/mv /a "/b"',
+    '/bin/mv /a \\ /b',
+    '/bin/mv /a=b /c',
+    '/bin/mv /a !/b',
+    'ALL',
+    '/bin/mv  /a',
+    '/bin/mv /a ',
+    '',
+  ])('ADR 0009: lehnt den sudo-Befehl %j ab', (befehl) => {
+    expect(() => einsatzrahmenSetupSkript([befehl])).toThrow('Ungültiger sudo-Befehl');
   });
 
   it('T8-2: geschützter Ordner und Datei gehören root, belegter Pfad bricht ab statt zu löschen', () => {

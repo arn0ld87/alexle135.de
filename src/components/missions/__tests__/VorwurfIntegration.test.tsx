@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { platzhalter } from '../../../data/staffeln/staffel-2/platzhalter';
 import type { AgentClient, AgentResult } from '../../../lib/missions/agentClient';
+import type { Ermittlung } from '../../../lib/missions/ermittlungTypes';
 import type { MissionCommand, MissionReply } from '../../../lib/missions/missionTypes';
 import ErmittlungApp from '../ErmittlungApp';
 
@@ -48,7 +49,7 @@ beforeEach(() => {
   };
 });
 
-async function starten(protokoll = true) {
+async function starten(protokoll = true, ermittlung: Ermittlung = platzhalter) {
   let pruefung: () => Promise<AgentResult> = async () => belege(protokoll);
   let dateiAusgabe = protokoll ? dateien : 'datei\tbm90aXoudHh0\t1\teA==\nende\t1\t0\n';
   const run = vi.fn(async (skript: string) => {
@@ -57,7 +58,7 @@ async function starten(protokoll = true) {
     return { exitCode: 0, output: '' };
   });
   h.client = { run } as unknown as AgentClient;
-  const view = render(<ErmittlungApp ermittlung={platzhalter} />);
+  const view = render(<ErmittlungApp ermittlung={ermittlung} />);
   await waitFor(() => expect(run).toHaveBeenCalledTimes(4));
   await act(async () => {
     await h.prompt('__prompt');
@@ -190,7 +191,12 @@ describe('Vorwurf am tatsächlichen Prüflauf', () => {
   });
 
   it('zeigt Busy, erlaubt Abbrechen und liefert einen begonnenen Erfolg genau einmal', async () => {
-    const t = await starten();
+    // Je Spur ein Schritt, den dieselbe Prüfung erledigt: Vorwurf und Spuren schließen zusammen ab.
+    const einSchritt: Ermittlung = {
+      ...platzhalter,
+      spuren: platzhalter.spuren.map((spur) => ({ ...spur, schritte: [spur.schritte[0]] })),
+    };
+    const t = await starten(true, einSchritt);
     const terminal = screen.getByTestId('terminal-erhalten');
     let fertig!: (r: AgentResult) => void;
     t.pruefung(
@@ -210,7 +216,11 @@ describe('Vorwurf am tatsächlichen Prüflauf', () => {
     await t.user.click(screen.getByRole('button', { name: 'Abbrechen' }));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     await act(async () => {
-      fertig(belege());
+      fertig({
+        exitCode: 0,
+        output:
+          'pruefung\ts.ankommen.notiz\t0\npruefung\ts.protokoll.protokoll\t0\npruefung\tb.notiz\t0\npruefung\tb.protokoll\t0\nende\t4\n',
+      });
     });
     const titel = await screen.findByRole('heading', { name: 'Fall gelöst' });
     expect(titel).toHaveFocus();
@@ -222,6 +232,18 @@ describe('Vorwurf am tatsächlichen Prüflauf', () => {
       await h.prompt('__prompt');
     });
     expect(t.run).toHaveBeenCalledTimes(anzahl);
+  });
+
+  it('hält einen richtigen Vorwurf vor offenen Schritten fest, ohne abzuschließen', async () => {
+    const t = await starten();
+    await t.user.click(screen.getByRole('button', { name: 'Absenden' }));
+    await waitFor(() =>
+      expect(
+        screen.getAllByText(/Der Vorwurf sitzt\. Bevor der Fall abgeschlossen ist/).length
+      ).toBeGreaterThan(0)
+    );
+    expect(screen.queryByRole('heading', { name: 'Fall gelöst' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Vorwurf erheben' })).toBeDisabled();
   });
 
   it('übernimmt nach einem neuen Setup keinen alten Vorwurf', async () => {

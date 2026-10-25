@@ -103,6 +103,11 @@ export interface Einsatzrahmen {
   verstoss: string;
   /** Pager-Text, wenn der Verstoß zum ersten Mal erkannt wird. */
   folge: readonly string[];
+  /**
+   * Genau die sudo-Aufrufe, die azubi in dieser Episode ohne Passwort ausführen darf (ADR 0009):
+   * absoluter Befehl samt Argumenten, ohne Platzhalter. Fehlt das Feld, erlaubt die Episode keine.
+   */
+  sudoBefehle?: readonly string[];
 }
 
 export interface Ermittlung {
@@ -140,6 +145,12 @@ export interface ErmittlungsZustand {
   /** Vollständige Prüfungen, nach denen eine aktive Sperre spätestens endet; 0 = keine Sperre. */
   sperreRestPruefungen: number;
   vorwurfVersuche: number;
+  /**
+   * Ein richtiger Vorwurf liegt vor, aber noch nicht alle Spuren sind erledigt; erst beides
+   * zusammen schließt die Episode ab (`geloest`). Fehlt das Feld, gilt false.
+   */
+  vorwurfRichtig?: boolean;
+  /** Vorwurf richtig und alle Spuren erledigt: Abschluss, Beweisstück und Szene. */
   geloest: boolean;
   /** Je Schritt (`spurId/schrittId`) die zuletzt gemeldete Diagnose; fehlt, solange keine steht. */
   letzteDiagnose?: Readonly<Record<string, string>>;
@@ -152,6 +163,7 @@ export type ErmittlungsEreignis =
   | { type: 'beleg-verloren'; belegId: string }
   | { type: 'einsatzrahmen-verletzt' }
   | { type: 'sperre-aufgehoben' }
+  | { type: 'fall-geloest' }
   | { type: 'diagnose'; spurId: string; schrittId: string; text: string }
   | { type: 'pruefung-unvollstaendig' };
 
@@ -161,6 +173,7 @@ export type VorwurfErgebnis =
   | 'zu-wenig-belege'
   | 'gesperrt'
   | 'beleg-unbekannt'
+  | 'richtig-offen'
   | 'bereits-geloest';
 
 /** Eine Prüfung im Bündel; `id` ist im Bündel eindeutig. */

@@ -1,19 +1,14 @@
 ---
 import V2Layout from '../../../../layouts/V2Layout.astro';
 import ErmittlungApp from '../../../../components/missions/ErmittlungApp';
-import { episode0, episode0Werkzeuge } from '../../../../data/staffeln/staffel-2/episode-0';
 import {
-  episode1,
-  episode1Werkzeuge,
-} from '../../../../data/staffeln/staffel-2/episode-1';
+  waehleEpisode,
+  weiterZurNaechsten,
+} from '../../../../data/staffeln/staffel-2';
 
-// ?episode=1 wählt Episode 1; alles andere, auch ein unbekannter Wert, startet mit Episode 0.
-const ersteEpisode = Astro.url.searchParams.get('episode') === '1';
-const episode = ersteEpisode ? episode1 : episode0;
-const werkzeuge = ersteEpisode ? episode1Werkzeuge : episode0Werkzeuge;
-const weiter = ersteEpisode
-  ? undefined
-  : { href: '/projekte/terminal-missionen/app/staffel-2?episode=1', text: 'Weiter zu Episode 1' };
+// ?episode=<nr> wählt eine Episode der Liste; ohne Angabe oder bei einem unbekannten Wert Episode 0.
+const { ermittlung: episode, werkzeuge } = waehleEpisode(Astro.url.searchParams.get('episode'));
+const weiter = weiterZurNaechsten(episode);
 ---
 
 <V2Layout

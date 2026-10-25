@@ -13,7 +13,7 @@ const RECHTE_REGEL = 'grep -B1 nadia /etc/sudoers.d/rw-fernwartung > ~/belege/re
 const RECHTE_METADATEN =
   'ls -l /etc/sudoers.d/rw-fernwartung $(find /usr/local -perm -4000 -type f) > ~/belege/rechte-metadaten.txt';
 const ANFANG = 'Serverraum der Rechenwerk Ostwind GmbH';
-const RECHTE_0 = 'Rechte, 0 von 2 Schritten erledigt';
+const RECHTE_0 = 'Rechte, 0 von 5 Schritten erledigt';
 const LOG_0 = 'Log, 0 von 1 Schritten erledigt';
 
 async function warteAufPrompt(page: import('@playwright/test').Page, name: string) {
@@ -66,9 +66,20 @@ test('Staffel 2: Spur Log vor Spur Rechte lösen, je ein Schritt pro Bündel', a
       timeout: 15_000,
     }
   );
-  await expect(spur(page, 'Rechte, 1 von 2 Schritten erledigt')).toBeVisible();
+  await expect(spur(page, 'Rechte, 1 von 5 Schritten erledigt')).toBeVisible();
   await expect(spur(page, 'Log, 1 von 1 Schritten erledigt, abgeschlossen')).toBeVisible();
 
+  // Der zweite Schritt ist ein Ablesen: Er wartet auf die Antwort, nicht auf den Befehl.
+  await page
+    .getByLabel('Unter welcher Änderungskennung wurde die Regel eingespielt?')
+    .fill('RW-1042');
+  await page.getByRole('button', { name: 'Antworten', exact: true }).click();
+  await expect(page.getByTestId('pager')).toContainText('Erledigt: Lies die Änderungskennung ab', {
+    timeout: 30_000,
+  });
+  await expect(spur(page, 'Rechte, 2 von 5 Schritten erledigt')).toBeVisible();
+
+  await page.getByTestId('v86-terminal').click();
   await page.keyboard.type(RECHTE_METADATEN);
   await page.keyboard.press('Enter');
   await expect(page.getByTestId('pager')).toContainText(
@@ -77,13 +88,13 @@ test('Staffel 2: Spur Log vor Spur Rechte lösen, je ein Schritt pro Bündel', a
       timeout: 15_000,
     }
   );
-  await expect(spur(page, 'Rechte, 2 von 2 Schritten erledigt, abgeschlossen')).toBeVisible();
+  await expect(spur(page, 'Rechte, 3 von 5 Schritten erledigt')).toBeVisible();
 
-  // 3. Beide bleiben auswählbar und zeigen ihr Abschlussdetail.
+  // 3. Die fertige Spur bleibt auswählbar und zeigt ihr Abschlussdetail; Rechte läuft weiter.
   await spur(page, 'Log, 1 von 1 Schritten erledigt, abgeschlossen').click();
   await expect(page.getByText('Alle Schritte dieser Spur sind erledigt.')).toBeVisible();
-  await spur(page, 'Rechte, 2 von 2 Schritten erledigt, abgeschlossen').click();
-  await expect(page.getByText('Alle Schritte dieser Spur sind erledigt.')).toBeVisible();
+  await spur(page, 'Rechte, 3 von 5 Schritten erledigt').click();
+  await expect(page.getByText('Alle Schritte dieser Spur sind erledigt.')).toHaveCount(0);
 
   // 4. Browser-Zoom ist nicht zuverlässig automatisierbar; ausdrücklich manuell offen.
   console.log(

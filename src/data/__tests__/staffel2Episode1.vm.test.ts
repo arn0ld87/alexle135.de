@@ -12,17 +12,19 @@ import { AgentClient } from '../../lib/missions/agentClient';
 import { AKTENWAND_ABFRAGE, leseAktenwand } from '../../lib/missions/aktenwand';
 import { einsatzrahmenSetupSkript } from '../../lib/missions/einsatzrahmenSetup';
 import {
+  antwortSkript,
   buendelSkript,
   istGesperrt,
   leseBuendelAusgabe,
   offenePruefungen,
   pruefeVorwurf,
   startZustand,
+  wendeAntwortAn,
   wendePruefungAn,
 } from '../../lib/missions/ermittlung';
 import type { ErmittlungsEreignis, ErmittlungsZustand } from '../../lib/missions/ermittlungTypes';
 import { rahmenSetupSkript } from '../../lib/missions/staffel2Rahmen';
-import { episode1, LOESUNG } from '../staffeln/staffel-2/episode-1';
+import { episode1, LOESUNG, SUDO_BEFEHLE } from '../staffeln/staffel-2/episode-1';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '../../..');
 const assets = join(root, 'public/missions/linux');
@@ -38,6 +40,7 @@ const T8_DROPIN = '/etc/sudoers.d/90-staffel2-rahmen';
 const T8_LOG = '/var/log/staffel2-sudo.log';
 const T8_BEFEHL = '/bin/cat /home/nadia/vertraulich.txt';
 const BELEGE = '/home/azubi/belege';
+const QUARANTAENE = '/home/azubi/quarantaene';
 
 const BELEG_IDS = ['rechte-zeile', 'rechte-metadaten', 'log-zeile'] as const;
 type BelegId = (typeof BELEG_IDS)[number];
@@ -100,6 +103,10 @@ const WEGE: Record<BelegId, { name: string; befehl: string; rcEgal?: boolean }[]
       name: 'stat -c',
       befehl: `{ stat -c '%n %U %G %a %y' ${SUDOERS}; stat -c '%n %U %G %a %A' ${STATUS}; } > ~/belege/rechte-metadaten.txt`,
     },
+    {
+      name: 'ls -l der beiden Ordner',
+      befehl: 'ls -l /etc/sudoers.d /usr/local/bin > ~/belege/rechte-metadaten.txt',
+    },
   ],
   'log-zeile': [
     { name: 'Tipp', befehl: tippLoesung('log', 'audit-zeile') },
@@ -143,7 +150,7 @@ describe.skipIf(!enabled)('Episode 1 „Zu viele Rechte“ in der echten VM', ()
   const setupAlles = async () => {
     const rahmen = await run(rahmenSetupSkript());
     expect(rahmen.exitCode, rahmen.output).toBe(0);
-    const einsatz = await run(einsatzrahmenSetupSkript());
+    const einsatz = await run(einsatzrahmenSetupSkript(episode1.einsatzrahmen.sudoBefehle));
     expect(einsatz.exitCode, einsatz.output).toBe(0);
     const episode = await run(episode1.setup);
     expect(episode.exitCode, episode.output).toBe(0);
@@ -191,6 +198,38 @@ describe.skipIf(!enabled)('Episode 1 „Zu viele Rechte“ in der echten VM', ()
     ereignisse = [];
   };
   const typen = () => ereignisse.map((e) => e.type);
+  const diagnosen = () =>
+    ereignisse.flatMap((e) =>
+      e.type === 'diagnose' ? [`${e.spurId}/${e.schrittId}: ${e.text}`] : []
+    );
+  // Die Antwort des ablesen-Schritts wie im Spiel: Skript in der VM, Ergebnis in die Engine.
+  const antworte = async (text: string) => {
+    const schritt = episode1.spuren[0].schritte[1];
+    const res = await client.run(antwortSkript(schritt.antwort?.pruefung ?? 'false', text), 20_000);
+    const neu = wendeAntwortAn(episode1, zustand, 'rechte', schritt.id, res.exitCode === 0);
+    zustand = neu.zustand;
+    ereignisse = neu.ereignisse;
+    return res.exitCode === 0;
+  };
+  // Prüfung und Diagnose eines Schritts der Spur Rechte, wie das Bündel sie fährt.
+  const schrittPruefung = async (schrittId: string) => {
+    const schritt = episode1.spuren[0].schritte.find((x) => x.id === schrittId);
+    const ausgabe = leseBuendelAusgabe(
+      (
+        await run(
+          buendelSkript([
+            { id: `s.rechte.${schrittId}`, skript: schritt?.verify ?? 'false' },
+            { id: `d.rechte.${schrittId}`, skript: schritt?.diagnose ?? 'true', diagnose: true },
+          ])
+        )
+      ).output
+    );
+    expect(ausgabe.vollstaendig).toBe(true);
+    return {
+      geloest: ausgabe.ergebnisse[`s.rechte.${schrittId}`] === true,
+      diagnose: ausgabe.diagnosen?.[`d.rechte.${schrittId}`] ?? '',
+    };
+  };
 
   // Inhalt, Besitzer und Modus; mit `mitZeit` auch die Änderungszeit (feste Zeitlinie der Quellen).
   const hashes = async (pfade: readonly string[], mitZeit = false) =>
@@ -332,9 +371,12 @@ describe.skipIf(!enabled)('Episode 1 „Zu viele Rechte“ in der echten VM', ()
     console.log(`T09-VM sudo -l als azubi:\n${liste.text}`);
     expect(liste.text).not.toMatch(/NOPASSWD: ALL|\(ALL(:ALL)?\) (NOPASSWD: )?ALL/);
     expect(liste.text).not.toContain('/usr/bin/id');
-    expect(liste.text).not.toContain('rw-fernwartung');
-    expect(liste.text.match(/\(root\) NOPASSWD:/g)).toHaveLength(2);
+    expect(liste.text).not.toContain('NOPASSWD: /usr/bin/id');
     expect(liste.text).toContain(T8_BEFEHL);
+    // sudo -l bricht lange Zeilen um.
+    const einzeilig = liste.text.replace(/\s+/g, ' ');
+    for (const befehl of SUDO_BEFEHLE) expect(einzeilig, befehl).toContain(befehl);
+    expect(liste.text).not.toContain('*');
     for (const versuch of [
       `sudo -n /usr/bin/id`,
       `sudo -n /usr/bin/tee ${SUDOERS}`,
@@ -342,6 +384,15 @@ describe.skipIf(!enabled)('Episode 1 „Zu viele Rechte“ in der echten VM', ()
       `sudo -n -u nadia /usr/bin/id`,
       `sudo -n -e ${SUDOERS}`,
       `sudo -n /bin/cat ${AUDIT}`,
+      `sudo -n /bin/rm ${SUDOERS}`,
+      `sudo -n /bin/mv ${SUDOERS} /tmp/anders`,
+      `sudo -n /bin/mv ${SUDOERS} ${QUARANTAENE}/anders`,
+      `sudo -n /bin/mv /etc/shadow ${QUARANTAENE}/`,
+      `sudo -n /bin/mv ${AUDIT} ${QUARANTAENE}/`,
+      `sudo -n /bin/mv -f ${SUDOERS} ${QUARANTAENE}/`,
+      `sudo -n /bin/mv ${SUDOERS} ${STATUS} ${QUARANTAENE}/`,
+      `sudo -n /bin/cp ${SUDOERS} ${QUARANTAENE}/`,
+      `sudo -n /bin/chmod 777 ${STATUS}`,
     ]) {
       expect((await alsAzubi(versuch)).rc, versuch).not.toBe(0);
     }
@@ -424,11 +475,6 @@ describe.skipIf(!enabled)('Episode 1 „Zu viele Rechte“ in der echten VM', ()
         id: 'rechte-metadaten',
         name: 'nur rw-status',
         befehl: `ls -l ${STATUS} > ~/belege/rechte-metadaten.txt`,
-      },
-      {
-        id: 'rechte-metadaten',
-        name: 'Verzeichnislisting ohne Pfad von rw-status',
-        befehl: `ls -l /etc/sudoers.d /usr/local/bin > ~/belege/rechte-metadaten.txt`,
       },
       {
         id: 'rechte-metadaten',
@@ -526,10 +572,15 @@ describe.skipIf(!enabled)('Episode 1 „Zu viele Rechte“ in der echten VM', ()
     expect(zustand.erledigt).toEqual({ log: 1, rechte: 1 });
     expect(zustand.belegeErkannt).toEqual(['log-zeile', 'rechte-zeile']);
 
+    // Der Beleg der Metadaten zählt sofort; der Schritt folgt erst nach dem Ablesen der Kennung.
     await alsAzubi(tippLoesung('rechte', 'datei-metadaten'));
     await pruefLauf();
-    expect(zustand.erledigt).toEqual({ log: 1, rechte: 2 });
+    expect(zustand.erledigt).toEqual({ log: 1, rechte: 1 });
     expect(zustand.belegeErkannt).toEqual(['log-zeile', 'rechte-metadaten', 'rechte-zeile']);
+    expect(await antworte('RW-1042')).toBe(true);
+    expect(zustand.erledigt).toEqual({ log: 1, rechte: 2 });
+    await pruefLauf();
+    expect(zustand.erledigt).toEqual({ log: 1, rechte: 3 });
   }, 300_000);
 
   it('T9-6: Spur Rechte vor Spur Log, auch alle drei Belege vor den Schritten', async () => {
@@ -537,22 +588,26 @@ describe.skipIf(!enabled)('Episode 1 „Zu viele Rechte“ in der echten VM', ()
     await alsAzubi(tippLoesung('rechte', 'sudo-zeile'));
     await pruefLauf();
     expect(zustand.erledigt).toEqual({ rechte: 1 });
+    expect(await antworte('RW-1042')).toBe(true);
     await alsAzubi(tippLoesung('rechte', 'datei-metadaten'));
     await pruefLauf();
-    expect(zustand.erledigt).toEqual({ rechte: 2 });
+    expect(zustand.erledigt).toEqual({ rechte: 3 });
     await alsAzubi(tippLoesung('log', 'audit-zeile'));
     await pruefLauf();
-    expect(zustand.erledigt).toEqual({ rechte: 2, log: 1 });
+    expect(zustand.erledigt).toEqual({ rechte: 3, log: 1 });
     expect(zustand.belegeErkannt).toEqual(['log-zeile', 'rechte-metadaten', 'rechte-zeile']);
 
-    // Alle Belege vorab: Schritt 2 der Rechte-Spur folgt erst im nächsten Bündel nach Schritt 1.
+    // Alle Belege vorab: Die Schritte der Rechte-Spur folgen erst nach der Antwort, je Bündel einer.
     await frischerLauf();
     for (const id of BELEG_IDS) await alsAzubi(WEGE[id][0].befehl);
     await pruefLauf();
     expect(zustand.erledigt).toEqual({ rechte: 1, log: 1 });
     expect(zustand.belegeErkannt).toHaveLength(3);
     await pruefLauf();
-    expect(zustand.erledigt).toEqual({ rechte: 2, log: 1 });
+    expect(zustand.erledigt).toEqual({ rechte: 1, log: 1 });
+    expect(await antworte('RW-1042')).toBe(true);
+    await pruefLauf();
+    expect(zustand.erledigt).toEqual({ rechte: 3, log: 1 });
   }, 600_000);
 
   it('T9-6: Timo mit zwei Belegen derselben Spur reicht nicht; Rechte plus Log reicht ohne alle Schritte', async () => {
@@ -597,9 +652,11 @@ describe.skipIf(!enabled)('Episode 1 „Zu viele Rechte“ in der echten VM', ()
       verdaechtigeId: 'timo',
       belegIds: ['rechte-zeile', 'log-zeile'],
     });
-    expect(richtig.ergebnis).toBe('richtig');
-    expect(richtig.antwort).toEqual(episode1.vorwurf.antworten.richtig);
-    expect(richtig.zustand.geloest).toBe(true);
+    // Die Rechte-Spur ist noch nicht fertig: Der Vorwurf sitzt, der Abschluss wartet.
+    expect(richtig.ergebnis).toBe('richtig-offen');
+    expect(richtig.antwort).not.toEqual(episode1.vorwurf.antworten.richtig);
+    expect(richtig.zustand.geloest).toBe(false);
+    expect(richtig.zustand.vorwurfRichtig).toBe(true);
   }, 600_000);
 
   it('T9-6: Rechte-Zeile und Log-Zeile reichen für Timo, auch wenn der zweite Rechte-Schritt offen ist', async () => {
@@ -613,10 +670,25 @@ describe.skipIf(!enabled)('Episode 1 „Zu viele Rechte“ in der echten VM', ()
       verdaechtigeId: 'timo',
       belegIds: ['rechte-zeile', 'log-zeile'],
     });
-    expect(richtig.ergebnis).toBe('richtig');
-    expect(richtig.zustand.geloest).toBe(true);
+    expect(richtig.ergebnis).toBe('richtig-offen');
+    expect(richtig.antwort.join(' ')).toContain('Der Vorwurf sitzt.');
+    expect(richtig.zustand.geloest).toBe(false);
     expect(richtig.zustand.erledigt).toEqual({ rechte: 1, log: 1 });
-  }, 300_000);
+
+    // Die Prüfung läuft weiter; der Fall schließt mit dem letzten Schritt der Spur Rechte.
+    zustand = richtig.zustand;
+    expect(await antworte('RW-1042')).toBe(true);
+    await alsAzubi(tippLoesung('rechte', 'datei-metadaten'));
+    await pruefLauf();
+    await alsAzubi(tippLoesung('rechte', 'regel-weg'));
+    await pruefLauf();
+    expect(zustand.geloest).toBe(false);
+    await alsAzubi(tippLoesung('rechte', 'status-weg'));
+    await pruefLauf();
+    expect(zustand.geloest).toBe(true);
+    expect(typen()).toEqual(expect.arrayContaining(['spur-erledigt', 'fall-geloest']));
+    expect(offenePruefungen(episode1, zustand)).toEqual([]);
+  }, 600_000);
 
   it('T9-8: wiederholtes Setup liefert denselben frischen Datensatz und lässt den Einsatzrahmen intakt', async () => {
     await frischerLauf();
@@ -649,7 +721,9 @@ describe.skipIf(!enabled)('Episode 1 „Zu viele Rechte“ in der echten VM', ()
       expect((await run(`ls -A ${BELEGE}`)).output.trim()).toBe('eigene-notiz.txt');
       expect(await belegPruefung()).toEqual(keinBeleg);
     }
-    expect((await run('grep -c NOPASSWD ' + T8_DROPIN)).output.trim()).toBe('1');
+    expect((await run('grep -c NOPASSWD ' + T8_DROPIN)).output.trim()).toBe(
+      String(1 + SUDO_BEFEHLE.length)
+    );
     expect((await run(`grep -c '' ${SUDOERS}`)).output.trim()).toBe('2');
     await alsAzubi('rm -f ~/belege/eigene-notiz.txt');
   }, 600_000);
@@ -698,10 +772,6 @@ describe.skipIf(!enabled)('Episode 1 „Zu viele Rechte“ in der echten VM', ()
   it('T12: Diagnosen nennen halben, abgetippten und fehlerhaften Beleg und erledigen nichts', async () => {
     await frischerLauf();
     const quellen = await hashes([SUDOERS, STATUS, AUDIT], true);
-    const diagnosen = () =>
-      ereignisse.flatMap((e) =>
-        e.type === 'diagnose' ? [`${e.spurId}/${e.schrittId}: ${e.text}`] : []
-      );
     const ZEILE = 'Die Zeile steht nicht unverändert im Beleg.';
     const BEIDE = 'Beide Dateien gehören in denselben Beleg.';
 
@@ -717,6 +787,7 @@ describe.skipIf(!enabled)('Episode 1 „Zu viele Rechte“ in der echten VM', ()
     await pruefLauf();
     expect(diagnosen()).toEqual([]);
     expect(zustand.erledigt).toEqual({ rechte: 1, log: 1 });
+    expect(await antworte('RW-1042')).toBe(true);
 
     await alsAzubi(`ls -l ${SUDOERS} > ~/belege/rechte-metadaten.txt`);
     await pruefLauf();
@@ -735,13 +806,228 @@ describe.skipIf(!enabled)('Episode 1 „Zu viele Rechte“ in der echten VM', ()
     expect(diagnosen()).toEqual([
       'rechte/datei-metadaten: Der Beleg sieht abgetippt aus. Leite die echte Ausgabe von ls -l um.',
     ]);
-    expect(zustand.erledigt).toEqual({ rechte: 1, log: 1 });
+    expect(zustand.erledigt).toEqual({ rechte: 2, log: 1 });
 
     await alsAzubi(tippLoesung('rechte', 'datei-metadaten'));
     await pruefLauf();
     expect(diagnosen()).toEqual([]);
-    expect(zustand.erledigt).toEqual({ rechte: 2, log: 1 });
+    expect(zustand.erledigt).toEqual({ rechte: 3, log: 1 });
     expect(await hashes([SUDOERS, STATUS, AUDIT], true)).toBe(quellen);
+  }, 300_000);
+
+  it('ADR 0009: Regel entschärfen, Ablesen der Kennung und Quarantäne sind vor dem Eingriff offen', async () => {
+    await frischerLauf();
+    expect(await schrittPruefung('regel-weg')).toEqual({ geloest: false, diagnose: '' });
+    expect(await schrittPruefung('status-weg')).toEqual({ geloest: false, diagnose: '' });
+    expect((await run(`ls -A ${QUARANTAENE}`)).output.trim()).toBe('');
+    expect((await alsAzubi(`test -w ${QUARANTAENE}`)).rc).toBe(0);
+  }, 120_000);
+
+  it('ADR 0009: das Ablesen der Kennung nimmt nur RW-1042 an, auch kleingeschrieben', async () => {
+    await frischerLauf();
+    await alsAzubi(tippLoesung('rechte', 'sudo-zeile'));
+    await pruefLauf();
+    expect(zustand.erledigt).toEqual({ rechte: 1 });
+    for (const falsch of [
+      '',
+      'RW-1041',
+      'RW-',
+      'RW-1042x',
+      'nadia',
+      'RW1042',
+      'RW-10420',
+      'timo',
+    ]) {
+      expect(await antworte(falsch), `"${falsch}"`).toBe(false);
+    }
+    expect(zustand.erledigt).toEqual({ rechte: 1 });
+    expect(await antworte('rw-1042')).toBe(true);
+    expect(zustand.erledigt).toEqual({ rechte: 2 });
+    expect(typen()).toEqual(['schritt-erledigt']);
+  }, 300_000);
+
+  it('ADR 0009: jeder richtige Weg nimmt die Regel aus dem Betrieb, ohne den Beweis zu zerstören', async () => {
+    const wege = [
+      tippLoesung('rechte', 'regel-weg'),
+      `sudo mv ${SUDOERS} ${QUARANTAENE}`,
+      `sudo mv ${SUDOERS} ${QUARANTAENE}/rw-fernwartung`,
+      `cd ${QUARANTAENE} && sudo mv ${SUDOERS} .`,
+    ];
+    for (const weg of wege) {
+      await frischerLauf();
+      const sha = (await run(`sha256sum < ${SUDOERS}`)).output.trim();
+      const rc = (await alsAzubi(weg)).rc;
+      if (weg.startsWith('cd ')) {
+        // Das Ziel `.` ist nicht freigegeben: sudo lehnt ab, die Regel bleibt.
+        expect(rc, weg).not.toBe(0);
+        expect((await schrittPruefung('regel-weg')).geloest, weg).toBe(false);
+        continue;
+      }
+      expect(rc, weg).toBe(0);
+      expect(await schrittPruefung('regel-weg'), weg).toEqual({ geloest: true, diagnose: '' });
+      expect((await run(`sha256sum < ${QUARANTAENE}/rw-fernwartung`)).output.trim(), weg).toBe(sha);
+      expect((await run(`ls ${SUDOERS}`)).exitCode, weg).not.toBe(0);
+      expect((await run('visudo -c')).exitCode, weg).toBe(0);
+      const nadia = await run('sudo -l -U nadia 2>&1');
+      expect(nadia.output, weg).not.toContain('NOPASSWD');
+      // Weder das Verschieben noch die Prüfung ist ein Verstoß gegen den Einsatzrahmen.
+      expect((await run(episode1.einsatzrahmen.verstoss)).exitCode, weg).not.toBe(0);
+      // rw-status ist davon unberührt und noch an Ort und Stelle.
+      expect((await schrittPruefung('status-weg')).geloest, weg).toBe(false);
+    }
+  }, 600_000);
+
+  it('ADR 0009: Kopieren statt Verschieben löst nichts und bekommt eine Diagnose', async () => {
+    await frischerLauf();
+    expect((await alsAzubi(`cp ${SUDOERS} ${QUARANTAENE}/`)).rc).toBe(0);
+    expect(await schrittPruefung('regel-weg')).toEqual({
+      geloest: false,
+      diagnose:
+        'Die Regel liegt noch in /etc/sudoers.d, in der Quarantäne nur eine Kopie. Verschieben, nicht kopieren.',
+    });
+    // Die Kopie steht dem richtigen Weg nicht im Weg.
+    expect((await alsAzubi(tippLoesung('rechte', 'regel-weg'))).rc).toBe(0);
+    expect((await schrittPruefung('regel-weg')).geloest).toBe(true);
+
+    await frischerLauf();
+    expect((await alsAzubi(`cp ${STATUS} ${QUARANTAENE}/`)).rc).toBe(0);
+    expect(await schrittPruefung('status-weg')).toEqual({
+      geloest: false,
+      diagnose:
+        'rw-status liegt noch in /usr/local/bin, in der Quarantäne nur eine Kopie. Verschieben, nicht kopieren.',
+    });
+  }, 300_000);
+
+  it('ADR 0009: andere sudo-Aufrufe scheitern ohne Passwortabfrage und ändern nichts', async () => {
+    await frischerLauf();
+    const vorher = await hashes([SUDOERS, STATUS, AUDIT], true);
+    for (const versuch of [
+      `sudo rm ${SUDOERS}`,
+      `sudo mv ${SUDOERS} /tmp/anders`,
+      `sudo mv ${SUDOERS} ${QUARANTAENE}/anders.txt`,
+      `sudo mv ${AUDIT} ${QUARANTAENE}`,
+      `sudo mv ${SUDOERS} ${STATUS} ${QUARANTAENE}`,
+      `sudo chmod u-s ${STATUS}`,
+    ]) {
+      const antwort = await alsAzubi(versuch);
+      expect(antwort.rc, versuch).not.toBe(0);
+      expect(antwort.text, versuch).not.toMatch(/[Pp]assword|Passwort/);
+    }
+    expect(await hashes([SUDOERS, STATUS, AUDIT], true)).toBe(vorher);
+    expect((await schrittPruefung('regel-weg')).geloest).toBe(false);
+  }, 300_000);
+
+  it('ADR 0009: das Programm gehört unverändert in die Quarantäne; Wege mit und ohne Schrägstrich', async () => {
+    for (const weg of [
+      tippLoesung('rechte', 'status-weg'),
+      `sudo mv ${STATUS} ${QUARANTAENE}`,
+      `sudo mv ${STATUS} ${QUARANTAENE}/rw-status`,
+    ]) {
+      await frischerLauf();
+      const sha = (await run(`sha256sum < ${STATUS}`)).output.trim();
+      expect((await alsAzubi(weg)).rc, weg).toBe(0);
+      expect(await schrittPruefung('status-weg'), weg).toEqual({ geloest: true, diagnose: '' });
+      expect((await run(`stat -c '%U:%G:%a' ${QUARANTAENE}/rw-status`)).output.trim()).toBe(
+        'root:root:4755'
+      );
+      expect((await run(`sha256sum < ${QUARANTAENE}/rw-status`)).output.trim(), weg).toBe(sha);
+      expect((await run(`ls ${STATUS}`)).exitCode, weg).not.toBe(0);
+      expect((await schrittPruefung('regel-weg')).geloest, weg).toBe(false);
+    }
+  }, 600_000);
+
+  it('ADR 0009: vor dem Eingriff gesicherte Belege bleiben gültig, danach lassen sie sich aus der Quarantäne sichern', async () => {
+    await frischerLauf();
+    for (const id of BELEG_IDS) await alsAzubi(WEGE[id][0].befehl);
+    expect(await belegPruefung()).toEqual({
+      'rechte-zeile': true,
+      'rechte-metadaten': true,
+      'log-zeile': true,
+    });
+    expect((await alsAzubi(tippLoesung('rechte', 'regel-weg'))).rc).toBe(0);
+    expect((await alsAzubi(tippLoesung('rechte', 'status-weg'))).rc).toBe(0);
+    expect(await belegPruefung()).toEqual({
+      'rechte-zeile': true,
+      'rechte-metadaten': true,
+      'log-zeile': true,
+    });
+
+    // Wer erst eingreift, kann die Belege aus der Quarantäne nachholen.
+    await frischBelege();
+    await alsAzubi(`grep -B1 nadia ${QUARANTAENE}/rw-fernwartung > ~/belege/rechte-zeile.txt`);
+    await alsAzubi(
+      `ls -l ${QUARANTAENE}/rw-fernwartung ${QUARANTAENE}/rw-status > ~/belege/rechte-metadaten.txt`
+    );
+    expect(await belegPruefung()).toEqual({
+      'rechte-zeile': true,
+      'rechte-metadaten': true,
+      'log-zeile': false,
+    });
+  }, 300_000);
+
+  it('ADR 0009: ganze Spur Rechte über alle Arten, danach der richtige Vorwurf', async () => {
+    await frischerLauf();
+    await alsAzubi(tippLoesung('log', 'audit-zeile'));
+    await alsAzubi(tippLoesung('rechte', 'sudo-zeile'));
+    await pruefLauf();
+    expect(zustand.erledigt).toEqual({ log: 1, rechte: 1 });
+    expect(await antworte('RW-1042')).toBe(true);
+    await alsAzubi(tippLoesung('rechte', 'datei-metadaten'));
+    await pruefLauf();
+    expect(zustand.erledigt).toEqual({ log: 1, rechte: 3 });
+    expect(diagnosen()).toEqual([]);
+    await alsAzubi(tippLoesung('rechte', 'regel-weg'));
+    await pruefLauf();
+    expect(zustand.erledigt).toEqual({ log: 1, rechte: 4 });
+    await alsAzubi(tippLoesung('rechte', 'status-weg'));
+    await pruefLauf();
+    expect(zustand.erledigt).toEqual({ log: 1, rechte: 5 });
+    expect(typen()).toEqual(expect.arrayContaining(['schritt-erledigt', 'spur-erledigt']));
+    expect(zustand.belegeErkannt).toEqual(['log-zeile', 'rechte-metadaten', 'rechte-zeile']);
+    expect(zustand.einsatzrahmenVerletzt).toBe(false);
+    expect(typen()).not.toContain('beleg-verloren');
+    const richtig = pruefeVorwurf(episode1, zustand, {
+      verdaechtigeId: 'timo',
+      belegIds: ['rechte-zeile', 'rechte-metadaten', 'log-zeile'],
+    });
+    expect(richtig.ergebnis).toBe('richtig');
+    // Das sudo-Protokoll nennt die beiden Verschiebungen, aber keinen Verstoß.
+    const protokoll = (await run(`cat ${T8_LOG}`)).output;
+    expect(protokoll).toContain(`COMMAND=/bin/mv ${SUDOERS} ${QUARANTAENE}`);
+    expect(protokoll).toContain(`COMMAND=/bin/mv ${STATUS} ${QUARANTAENE}`);
+    expect((await run(episode1.einsatzrahmen.verstoss)).exitCode).not.toBe(0);
+  }, 600_000);
+
+  it('ADR 0009: ein erneutes Setup holt Regel und Programm aus der Quarantäne zurück an ihren Platz', async () => {
+    await frischerLauf();
+    const vorher = await hashes([SUDOERS, STATUS], true);
+    await alsAzubi(tippLoesung('rechte', 'regel-weg'));
+    await alsAzubi(tippLoesung('rechte', 'status-weg'));
+    await alsAzubi('echo bleibt > ~/quarantaene/eigene-notiz.txt');
+    expect((await setupEpisode()).exitCode).toBe(0);
+    expect(await hashes([SUDOERS, STATUS], true)).toBe(vorher);
+    expect((await run(`ls -A ${QUARANTAENE}`)).output.trim()).toBe('eigene-notiz.txt');
+    expect((await schrittPruefung('regel-weg')).geloest).toBe(false);
+    expect((await schrittPruefung('status-weg')).geloest).toBe(false);
+    await run(`rm -f ${QUARANTAENE}/eigene-notiz.txt`);
+  }, 300_000);
+
+  it('ADR 0009: ersetzt azubi die Quarantäne durch einen Link, zählt nichts und die Diagnose sagt es', async () => {
+    await frischerLauf();
+    const kaputt =
+      'Deine Quarantäne ~/quarantaene ist kein Ordner mehr. Lade die Seite neu, dann ist sie wieder da.';
+    try {
+      await run('mkdir -p /tmp/ziel && chmod 777 /tmp/ziel');
+      expect((await alsAzubi(`rmdir ${QUARANTAENE} && ln -s /tmp/ziel ${QUARANTAENE}`)).rc).toBe(0);
+      expect(await schrittPruefung('regel-weg')).toEqual({ geloest: false, diagnose: kaputt });
+      // Das erlaubte sudo mv folgt dem Link; gezählt wird das nicht.
+      expect((await alsAzubi(tippLoesung('rechte', 'regel-weg'))).rc).toBe(0);
+      expect(await schrittPruefung('regel-weg')).toEqual({ geloest: false, diagnose: kaputt });
+      expect((await alsAzubi(tippLoesung('rechte', 'status-weg'))).rc).toBe(0);
+      expect(await schrittPruefung('status-weg')).toEqual({ geloest: false, diagnose: kaputt });
+    } finally {
+      await run(`rm -rf /tmp/ziel ${QUARANTAENE}; rm -f ${SUDOERS}`);
+    }
   }, 300_000);
 
   it('T9-8 (Grenze): ein erneutes T8-Setup nach der Episode scheitert sichtbar und lässt Quellen unberührt', async () => {
@@ -751,7 +1037,7 @@ describe.skipIf(!enabled)('Episode 1 „Zu viele Rechte“ in der echten VM', ()
     const quellen = [SUDOERS, STATUS, AUDIT];
     const vorher = await hashes(quellen, true);
     const dropin = await hashes([T8_DROPIN]);
-    const erneut = await run(einsatzrahmenSetupSkript());
+    const erneut = await run(einsatzrahmenSetupSkript(episode1.einsatzrahmen.sudoBefehle));
     console.log(`T09-VM T8-Setup nach Episode: exit=${erneut.exitCode}`);
     expect(erneut.exitCode).not.toBe(0);
     expect(await hashes(quellen, true)).toBe(vorher);
@@ -760,7 +1046,9 @@ describe.skipIf(!enabled)('Episode 1 „Zu viele Rechte“ in der echten VM', ()
     expect((await run(`visudo -cf ${T8_DROPIN}`)).exitCode).toBe(0);
     // Ein Neustart der Folge mit frischer Regeldatei ist dagegen sauber möglich.
     await run(`rm -f ${SUDOERS}`);
-    expect((await run(einsatzrahmenSetupSkript())).exitCode).toBe(0);
+    expect((await run(einsatzrahmenSetupSkript(episode1.einsatzrahmen.sudoBefehle))).exitCode).toBe(
+      0
+    );
     expect((await setupEpisode()).exitCode).toBe(0);
   }, 300_000);
 

@@ -11,6 +11,7 @@ import {
   flaeche,
   keinQuerscrollen,
   oeffneAnsicht,
+  loeseRechteRest,
   pager,
   rows,
   shot,
@@ -81,7 +82,7 @@ test('T10-10a Desktop 1440x1000: Tastatur, Dialog, Fokus, Abschluss und axe', as
   const raum = await tabHalte(page, 40);
   for (const erwartet of [
     /Einsatzrahmen/,
-    /^Rechte, 0 von 2/,
+    /^Rechte, 0 von 5/,
     /^Log, 0 von 1/,
     /Werkzeugkasten/,
     /Ersten Tipp|Tipp/i,
@@ -157,6 +158,8 @@ test('T10-10a Desktop 1440x1000: Tastatur, Dialog, Fokus, Abschluss und axe', as
   await page.keyboard.press('Space');
   await d.getByRole('button', { name: 'Absenden', exact: true }).focus();
   await page.keyboard.press('Enter');
+  await expect(pager(page)).toContainText(PAGER.vorwurfOffen, { timeout: 45_000 });
+  await loeseRechteRest(page, 'kennung');
   await erwarteAbschluss(page);
   await expect(page.getByRole('heading', { name: 'Fall gelöst' })).toBeFocused();
   expect(await hatLive(page, PAGER.richtig)).toBeLessThanOrEqual(1);

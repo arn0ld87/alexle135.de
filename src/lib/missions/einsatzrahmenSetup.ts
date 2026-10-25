@@ -1,6 +1,8 @@
 // Einsatzrahmen-Setup für Staffel 2 (Ticket 8): läuft als root nach dem Rahmen-Setup und vor dem
 // Setup der Episode. Rein: erzeugt nur Text. Das sudo-Log schreibt sudo selbst im Gast; der
 // Verstoß wird ausschließlich daraus gelesen, nie aus Browserklicks oder Shell-History.
+// `!authenticate` gibt nichts frei (nur die Regeln unten tun das), erspart aber bei jedem nicht
+// freigegebenen Aufruf die Passwortabfrage, die azubi nie beantworten kann (Issue 152).
 
 const DROPIN = '/etc/sudoers.d/90-staffel2-rahmen';
 const LOGDATEI = '/var/log/staffel2-sudo.log';
@@ -11,8 +13,25 @@ const BEFEHL = `/bin/cat ${DATEI}`;
 const BEFEHL_MUSTER = BEFEHL.replaceAll('.', '\\.');
 const UEBUNGSTEXT = 'Fiktive Uebungsdatei der Rechenwerk Ostwind GmbH. Keine echten Daten.';
 
-/** Bash-Skript als root: geschützter Ordner, root-eigenes Log, validierter sudoers-Drop-in. */
-export function einsatzrahmenSetupSkript(): string {
+/** Absoluter Befehl mit festen Argumenten: keine Platzhalter, Trenn- und Sonderzeichen von sudoers. */
+const SUDO_BEFEHL_MUSTER =
+  /^\/(?:bin|sbin|usr\/bin|usr\/sbin)\/[a-z][a-z-]*(?: [A-Za-z0-9_./-]+)*$/;
+
+/**
+ * Bash-Skript als root: geschützter Ordner, root-eigenes Log, validierter sudoers-Drop-in.
+ * `sudoBefehle` sind die zusätzlich freigegebenen Aufrufe der Episode (Einsatzrahmen.sudoBefehle).
+ */
+export function einsatzrahmenSetupSkript(sudoBefehle: readonly string[] = []): string {
+  for (const befehl of sudoBefehle) {
+    if (!SUDO_BEFEHL_MUSTER.test(befehl)) throw new Error(`Ungültiger sudo-Befehl: ${befehl}`);
+  }
+  const regeln = [
+    `Defaults:azubi logfile=${LOGDATEI}`,
+    'Defaults:azubi loglinelen=0',
+    'Defaults:azubi !authenticate',
+    `azubi ALL=(root) NOPASSWD: ${BEFEHL}`,
+    ...sudoBefehle.map((befehl) => `azubi ALL=(root) NOPASSWD: ${befehl}`),
+  ];
   return `set -eu
 if [ -e '${ORDNER}' ] || [ -L '${ORDNER}' ]; then
   if [ -L '${ORDNER}' ] || [ ! -d '${ORDNER}' ] || [ -L '${DATEI}' ] || [ ! -f '${DATEI}' ] || [ "$(cat '${DATEI}')" != '${UEBUNGSTEXT}' ]; then
@@ -22,7 +41,7 @@ if [ -e '${ORDNER}' ] || [ -L '${ORDNER}' ]; then
 fi
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
-printf '%s\\n' 'Defaults:azubi logfile=${LOGDATEI}' 'Defaults:azubi loglinelen=0' 'azubi ALL=(root) NOPASSWD: ${BEFEHL}' > "$tmp/regel"
+printf '%s\\n' ${regeln.map((regel) => `'${regel}'`).join(' ')} > "$tmp/regel"
 chmod 0440 "$tmp/regel"
 visudo -cf "$tmp/regel" >/dev/null
 if [ -e '${DROPIN}' ]; then cp -p '${DROPIN}' "$tmp/alt"; fi

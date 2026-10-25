@@ -30,12 +30,8 @@ const SCHRITTARTEN: readonly Schrittart[] = [
   'ordnen',
   'bearbeiten',
 ];
-/**
- * Ab dieser Episode gelten Mindestzahl der Schrittarten und das Verbot gleicher Arten direkt
- * hintereinander. Episode 1 ist schon gebaut und bleibt inhaltlich unverändert (zweimal sichern).
- * Episode 0 (Einstieg) braucht nur zwei Arten.
- */
-export const SCHRITTART_REGELN_AB_EPISODE = 2;
+/** Jede Episode nutzt mindestens so viele verschiedene Schrittarten (ADR 0009). */
+export const MINDEST_SCHRITTARTEN = 3;
 /** Längste Diagnose-Meldung in Zeichen. */
 export const DIAGNOSE_MAX_ZEICHEN = 200;
 /** Erlaubte Zeichen einer getrimmten Antwort; alles andere lässt die App gar nicht erst laufen. */
@@ -168,7 +164,7 @@ export function pruefeDaten(e: Ermittlung): string[] {
       } else if (schritt.art !== 'ablesen' && schritt.antwort) {
         fehler.push(`${name}: antwort gibt es nur bei ablesen`);
       }
-      if (e.nr >= SCHRITTART_REGELN_AB_EPISODE && schritt.art === vorige) {
+      if (schritt.art === vorige) {
         fehler.push(
           `Spur "${spur.id}": Schrittart "${schritt.art}" steht zweimal direkt hintereinander (bei ${schritt.id})`
         );
@@ -176,9 +172,8 @@ export function pruefeDaten(e: Ermittlung): string[] {
       vorige = schritt.art;
     }
   }
-  const mindestArten = e.nr === 0 ? 2 : e.nr >= SCHRITTART_REGELN_AB_EPISODE ? 3 : 0;
-  if (arten.size < mindestArten) {
-    fehler.push(`Mindestens ${mindestArten} verschiedene Schrittarten nötig`);
+  if (arten.size < MINDEST_SCHRITTARTEN) {
+    fehler.push(`Mindestens ${MINDEST_SCHRITTARTEN} verschiedene Schrittarten nötig`);
   }
 
   return fehler;
@@ -315,6 +310,34 @@ export function leseBuendelAusgabe(text: string): PruefungsAusgabe {
     : { ergebnisse, vollstaendig };
 }
 
+/** Alle Schritte aller Spuren sind erledigt. */
+export function alleSpurenErledigt(e: Ermittlung, z: ErmittlungsZustand): boolean {
+  return e.spuren.every((spur) => aktuellerSchritt(spur, z) === null);
+}
+
+/** Pager-Text für einen richtigen Vorwurf, solange noch Schritte offen sind (je Spur der aktuelle). */
+export function offeneSchritteText(e: Ermittlung, z: ErmittlungsZustand): readonly string[] {
+  const offen = e.spuren.flatMap((spur) => {
+    const schritt = aktuellerSchritt(spur, z);
+    return schritt ? [`${schritt.title} (Spur ${spur.titel})`] : [];
+  });
+  return [
+    `Der Vorwurf sitzt. Bevor der Fall abgeschlossen ist, fehlt noch: ${offen.join('; ')}.`,
+    'Die Schritte prüft das System weiter; der Abschluss folgt, sobald alles erledigt ist.',
+  ];
+}
+
+/** Schließt ab, sobald ein richtiger Vorwurf und alle Spuren zusammenkommen. */
+function schliesseAb(
+  e: Ermittlung,
+  z: ErmittlungsZustand,
+  ereignisse: ErmittlungsEreignis[]
+): ErmittlungsZustand {
+  if (!z.vorwurfRichtig || z.geloest || !alleSpurenErledigt(e, z)) return z;
+  ereignisse.push({ type: 'fall-geloest' });
+  return { ...z, geloest: true, sperreBis: null, sperreRestPruefungen: 0 };
+}
+
 /** Führt eine vollständige Ausgabe in den Zustand; unvollständige Ausgaben ändern nichts. */
 export function wendePruefungAn(
   e: Ermittlung,
@@ -405,19 +428,18 @@ export function wendePruefungAn(
     }
   }
 
-  return {
-    zustand: {
-      erledigt,
-      belegeErkannt: erkannt,
-      einsatzrahmenVerletzt,
-      sperreBis,
-      sperreRestPruefungen,
-      vorwurfVersuche: z.vorwurfVersuche,
-      geloest: z.geloest,
-      ...(Object.keys(letzteDiagnose).length ? { letzteDiagnose } : {}),
-    },
-    ereignisse,
+  const neu: ErmittlungsZustand = {
+    erledigt,
+    belegeErkannt: erkannt,
+    einsatzrahmenVerletzt,
+    sperreBis,
+    sperreRestPruefungen,
+    vorwurfVersuche: z.vorwurfVersuche,
+    ...(z.vorwurfRichtig ? { vorwurfRichtig: true } : {}),
+    geloest: z.geloest,
+    ...(Object.keys(letzteDiagnose).length ? { letzteDiagnose } : {}),
   };
+  return { zustand: schliesseAb(e, neu, ereignisse), ereignisse };
 }
 
 /** Eine richtige Antwort erledigt den aktuellen Schritt wie ein bestandenes verify; sonst nichts. */
@@ -436,7 +458,8 @@ export function wendeAntwortAn(
   const neu = (Object.hasOwn(z.erledigt, spur.id) ? (z.erledigt[spur.id] ?? 0) : 0) + 1;
   const ereignisse: ErmittlungsEreignis[] = [{ type: 'schritt-erledigt', spurId, schrittId }];
   if (neu >= spur.schritte.length) ereignisse.push({ type: 'spur-erledigt', spurId });
-  return { zustand: { ...z, erledigt: { ...z.erledigt, [spur.id]: neu } }, ereignisse };
+  const zustand = schliesseAb(e, { ...z, erledigt: { ...z.erledigt, [spur.id]: neu } }, ereignisse);
+  return { zustand, ereignisse };
 }
 
 /** Sperre einen Beleg hinter den Stand; ohne weiteren Beleg bleibt sie aus (Sackgassen-Regel). */
@@ -460,6 +483,11 @@ export function pruefeVorwurf(
   const { antworten, taeterId, belege, mindestBelege, jedeSpur } = e.vorwurf;
 
   if (z.geloest) return { zustand: z, ergebnis: 'bereits-geloest', antwort: [] };
+
+  // Ein richtiger Vorwurf steht fest; der Fall schließt erst, wenn auch alle Spuren erledigt sind.
+  if (z.vorwurfRichtig) {
+    return { zustand: z, ergebnis: 'richtig-offen', antwort: offeneSchritteText(e, z) };
+  }
 
   if (istGesperrt(z)) return { zustand: z, ergebnis: 'gesperrt', antwort: antworten.gesperrt };
 
@@ -500,14 +528,18 @@ export function pruefeVorwurf(
     };
   }
 
+  const richtig = {
+    ...z,
+    vorwurfVersuche: z.vorwurfVersuche + 1,
+    sperreBis: null,
+    sperreRestPruefungen: 0,
+  };
+  if (!alleSpurenErledigt(e, z)) {
+    const offen = { ...richtig, vorwurfRichtig: true };
+    return { zustand: offen, ergebnis: 'richtig-offen', antwort: offeneSchritteText(e, offen) };
+  }
   return {
-    zustand: {
-      ...z,
-      vorwurfVersuche: z.vorwurfVersuche + 1,
-      geloest: true,
-      sperreBis: null,
-      sperreRestPruefungen: 0,
-    },
+    zustand: { ...richtig, geloest: true },
     ergebnis: 'richtig',
     antwort: antworten.richtig,
   };

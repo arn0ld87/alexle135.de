@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
 import {
   PRUEF_ID_VERSTOSS,
-  SCHRITTART_REGELN_AB_EPISODE,
+  MINDEST_SCHRITTARTEN,
   SPERRE_PRUEFUNGEN,
   aktuellerSchritt,
   antwortSkript,
@@ -58,8 +58,16 @@ const fixture: Ermittlung = {
     },
   ],
   spuren: [
-    { id: 'rechte', titel: 'Rechte', schritte: [schritt('s1', 'true'), schritt('s2', 'false')] },
-    { id: 'log', titel: 'Logbuch', schritte: [schritt('s1', 'test -f ~/belege/log')] },
+    {
+      id: 'rechte',
+      titel: 'Rechte',
+      schritte: [schritt('s1', 'true'), schritt('s2', 'false', 'eingreifen')],
+    },
+    {
+      id: 'log',
+      titel: 'Logbuch',
+      schritte: [schritt('s1', 'test -f ~/belege/log', 'reparieren')],
+    },
   ],
   vorwurf: {
     verdaechtige: [
@@ -203,7 +211,10 @@ describe('pruefeDaten', () => {
     const fehler = pruefeDaten(
       mit({
         spuren: [
-          { ...fixture.spuren[0], schritte: [schritt('S1', 'true'), schritt('s2', 'false')] },
+          {
+            ...fixture.spuren[0],
+            schritte: [schritt('S1', 'true'), schritt('s2', 'false', 'eingreifen')],
+          },
           fixture.spuren[1],
         ],
       })
@@ -280,7 +291,10 @@ describe('pruefeDaten', () => {
     const fehler = pruefeDaten(
       mit({
         spuren: [
-          { ...fixture.spuren[0], schritte: [schritt('s1', 'true'), schritt('s1', 'false')] },
+          {
+            ...fixture.spuren[0],
+            schritte: [schritt('s1', 'true'), schritt('s1', 'false', 'eingreifen')],
+          },
           fixture.spuren[1],
         ],
       })
@@ -422,7 +436,10 @@ describe('pruefeDaten', () => {
   it('meldet ein leeres Schritt-Skript', () => {
     const fehler = pruefeDaten(
       mit({
-        spuren: [{ ...fixture.spuren[1], schritte: [schritt('s1', '  ')] }, fixture.spuren[0]],
+        spuren: [
+          { ...fixture.spuren[1], schritte: [schritt('s1', '  ', 'reparieren')] },
+          fixture.spuren[0],
+        ],
       })
     );
     expect(fehler).toHaveLength(1);
@@ -455,7 +472,6 @@ describe('pruefeDaten', () => {
 });
 
 describe('pruefeDaten: Schrittarten', () => {
-  const ab2 = (spuren: Ermittlung['spuren']) => mit({ nr: 2, spuren });
   const gueltig = [
     {
       ...fixture.spuren[0],
@@ -464,9 +480,10 @@ describe('pruefeDaten: Schrittarten', () => {
     { ...fixture.spuren[1], schritte: [schritt('s1', 'true', 'reparieren')] },
   ];
 
-  it('akzeptiert Episode 2 mit drei Arten ohne Wiederholung', () => {
-    expect(SCHRITTART_REGELN_AB_EPISODE).toBe(2);
-    expect(pruefeDaten(ab2(gueltig))).toEqual([]);
+  it('akzeptiert drei Arten ohne Wiederholung in jeder Episode, auch Episode 0', () => {
+    expect(MINDEST_SCHRITTARTEN).toBe(3);
+    expect(pruefeDaten(mit({ nr: 2, spuren: gueltig }))).toEqual([]);
+    expect(pruefeDaten(mit({ nr: 0, spuren: gueltig }))).toEqual([]);
   });
 
   it('meldet eine fehlende oder unbekannte Art', () => {
@@ -501,31 +518,24 @@ describe('pruefeDaten: Schrittarten', () => {
     ]);
   });
 
-  it('verlangt ab Episode 2 mindestens drei verschiedene Arten, davor nicht', () => {
+  it('verlangt mindestens drei verschiedene Arten, auch in Episode 0 und 1', () => {
     const zwei = [
       {
         ...fixture.spuren[0],
         schritte: [schritt('s1', 'true'), schritt('s2', 'false', 'eingreifen')],
       },
       fixture.spuren[1],
-    ];
-    expect(pruefeDaten(mit({ nr: 1, spuren: zwei }))).toEqual([]);
-    expect(pruefeDaten(ab2(zwei))).toEqual(['Mindestens 3 verschiedene Schrittarten nötig']);
+    ].map((spur, i) =>
+      i === 1 ? { ...spur, schritte: [schritt('s1', 'true', 'sichern')] } : spur
+    );
+    for (const nr of [0, 1, 2]) {
+      expect(pruefeDaten(mit({ nr, spuren: zwei }))).toEqual([
+        'Mindestens 3 verschiedene Schrittarten nötig',
+      ]);
+    }
   });
 
-  it('lässt in Episode 0 zwei verschiedene Arten genügen', () => {
-    const zwei = [
-      {
-        ...fixture.spuren[0],
-        schritte: [schritt('s1', 'true'), schritt('s2', 'false', 'eingreifen')],
-      },
-      fixture.spuren[1],
-    ];
-    expect(pruefeDaten(mit({ nr: 0, spuren: zwei }))).toEqual([]);
-    expect(pruefeDaten(mit({ nr: 0 }))).toEqual(['Mindestens 2 verschiedene Schrittarten nötig']);
-  });
-
-  it('verbietet ab Episode 2 dieselbe Art zweimal direkt hintereinander, davor nicht', () => {
+  it('verbietet dieselbe Art zweimal direkt hintereinander in einer Spur, in jeder Episode', () => {
     const doppelt = [
       {
         ...fixture.spuren[0],
@@ -533,10 +543,26 @@ describe('pruefeDaten: Schrittarten', () => {
       },
       { ...fixture.spuren[1], schritte: [schritt('s1', 'true', 'reparieren')] },
     ];
-    expect(pruefeDaten(mit({ nr: 1, spuren: doppelt }))).toEqual([]);
-    expect(pruefeDaten(ab2(doppelt))).toEqual([
-      'Spur "rechte": Schrittart "sichern" steht zweimal direkt hintereinander (bei s2)',
-    ]);
+    for (const nr of [0, 1, 2]) {
+      expect(pruefeDaten(mit({ nr, spuren: doppelt }))).toEqual([
+        'Spur "rechte": Schrittart "sichern" steht zweimal direkt hintereinander (bei s2)',
+      ]);
+    }
+  });
+
+  it('erlaubt dieselbe Art in verschiedenen Spuren und mit Abstand in einer Spur', () => {
+    const abstand = [
+      {
+        ...fixture.spuren[0],
+        schritte: [
+          schritt('s1', 'true'),
+          schritt('s2', 'false', 'eingreifen'),
+          schritt('s3', 'true'),
+        ],
+      },
+      { ...fixture.spuren[1], schritte: [schritt('s1', 'true', 'reparieren')] },
+    ];
+    expect(pruefeDaten(mit({ spuren: abstand }))).toEqual([]);
   });
 });
 
@@ -885,6 +911,89 @@ describe('naechsteSperre und istGesperrt', () => {
   });
 });
 
+describe('Abschluss: richtiger Vorwurf und alle Spuren', () => {
+  const alleBelege = ['b-log', 'b-stat', 'b-sudoers'];
+  const richtig = { verdaechtigeId: 'timo', belegIds: ['b-sudoers', 'b-log'] };
+  const fertig = { rechte: 2, log: 1 };
+
+  it('hält einen richtigen Vorwurf vor den letzten Schritten fest, ohne abzuschließen', () => {
+    const z = zustand({ belegeErkannt: alleBelege, erledigt: { rechte: 1 } });
+    const r = pruefeVorwurf(fixture, z, richtig);
+    expect(r.ergebnis).toBe('richtig-offen');
+    expect(r.zustand.geloest).toBe(false);
+    expect(r.zustand.vorwurfRichtig).toBe(true);
+    expect(r.zustand.vorwurfVersuche).toBe(1);
+    expect(r.antwort.join(' ')).toContain('Der Vorwurf sitzt.');
+    // Je Spur steht der aktuelle Schritt da: Rechte s2, Log s1.
+    expect(r.antwort.join(' ')).toContain('Schritt s2 (Spur Rechte); Schritt s1 (Spur Logbuch)');
+    expect(r.antwort).not.toEqual(fixture.vorwurf.antworten.richtig);
+    // Die Prüfung läuft weiter: Schritte, Belege und Rahmen sind weiter fällig.
+    expect(offenePruefungen(fixture, r.zustand).map((p) => p.id)).toContain('s.rechte.s2');
+    // Ein weiterer Vorwurf ändert nichts und nennt erneut, was fehlt.
+    const nochmal = pruefeVorwurf(fixture, r.zustand, richtig);
+    expect(nochmal.ergebnis).toBe('richtig-offen');
+    expect(nochmal.zustand).toBe(r.zustand);
+  });
+
+  it('schließt ab, sobald nach dem Vorwurf die letzten Schritte per Prüfung erledigt sind', () => {
+    let z = pruefeVorwurf(
+      fixture,
+      zustand({ belegeErkannt: alleBelege, erledigt: { log: 1 } }),
+      richtig
+    ).zustand;
+    let e = lauf(fixture, z, { 's.rechte.s1': true });
+    expect(e.zustand.geloest).toBe(false);
+    expect(e.zustand.vorwurfRichtig).toBe(true);
+    expect(e.ereignisse.map((x) => x.type)).not.toContain('fall-geloest');
+    z = e.zustand;
+    e = lauf(fixture, z, { 's.rechte.s2': true });
+    expect(e.zustand.geloest).toBe(true);
+    expect(e.ereignisse.map((x) => x.type)).toEqual(
+      expect.arrayContaining(['schritt-erledigt', 'spur-erledigt', 'fall-geloest'])
+    );
+    expect(offenePruefungen(fixture, e.zustand)).toEqual([]);
+  });
+
+  it('schließt auch ab, wenn der letzte Schritt ein richtig beantwortetes Ablesen ist', () => {
+    const z = pruefeVorwurf(
+      fixture,
+      zustand({ belegeErkannt: alleBelege, erledigt: { rechte: 1, log: 1 } }),
+      richtig
+    ).zustand;
+    const r = wendeAntwortAn(fixture, z, 'rechte', 's2', true);
+    expect(r.zustand.geloest).toBe(true);
+    expect(r.ereignisse.map((x) => x.type)).toContain('fall-geloest');
+  });
+
+  it('schließt sofort ab, wenn der Vorwurf erst nach allen Spuren kommt', () => {
+    const r = pruefeVorwurf(
+      fixture,
+      zustand({ belegeErkannt: alleBelege, erledigt: fertig }),
+      richtig
+    );
+    expect(r.ergebnis).toBe('richtig');
+    expect(r.zustand.geloest).toBe(true);
+    expect(r.antwort).toEqual(fixture.vorwurf.antworten.richtig);
+  });
+
+  it('alle Spuren erledigt ohne Vorwurf schließt nicht ab', () => {
+    const e = lauf(fixture, zustand({ erledigt: { rechte: 1, log: 1 } }), { 's.rechte.s2': true });
+    expect(e.zustand.erledigt).toEqual(fertig);
+    expect(e.zustand.geloest).toBe(false);
+    expect(e.zustand.vorwurfRichtig).toBeUndefined();
+    expect(e.ereignisse.map((x) => x.type)).not.toContain('fall-geloest');
+  });
+
+  it('ein falscher Vorwurf setzt vorwurfRichtig nie', () => {
+    const r = pruefeVorwurf(fixture, zustand({ belegeErkannt: alleBelege, erledigt: fertig }), {
+      verdaechtigeId: 'nadia',
+      belegIds: ['b-sudoers'],
+    });
+    expect(r.ergebnis).toBe('falsche-person');
+    expect(r.zustand.vorwurfRichtig).toBeUndefined();
+  });
+});
+
 describe('pruefeVorwurf', () => {
   const vorwurf = (z: ErmittlungsZustand, verdaechtigeId: string, belegIds: string[]) =>
     pruefeVorwurf(fixture, z, { verdaechtigeId, belegIds });
@@ -943,7 +1052,10 @@ describe('pruefeVorwurf', () => {
   // T5: isoliert die Mengenprüfung, weil jedeSpur hier aus ist.
   it('prüft die Mindestzahl auch ohne jedeSpur', () => {
     const e = mit({ vorwurf: { ...fixture.vorwurf, jedeSpur: false } });
-    const z = zustand({ belegeErkannt: ['b-log', 'b-nadia', 'b-stat', 'b-sudoers'] });
+    const z = zustand({
+      belegeErkannt: ['b-log', 'b-nadia', 'b-stat', 'b-sudoers'],
+      erledigt: { rechte: 2, log: 1 },
+    });
     expect(pruefeVorwurf(e, z, { verdaechtigeId: 'timo', belegIds: ['b-sudoers'] }).ergebnis).toBe(
       'zu-wenig-belege'
     );
@@ -953,7 +1065,10 @@ describe('pruefeVorwurf', () => {
   });
 
   it('nimmt einen Beleg gegen eine andere Person weder übel noch als Stütze', () => {
-    const z = zustand({ belegeErkannt: ['b-sudoers', 'b-log', 'b-nadia'] });
+    const z = zustand({
+      belegeErkannt: ['b-sudoers', 'b-log', 'b-nadia'],
+      erledigt: { rechte: 2, log: 1 },
+    });
     expect(vorwurf(z, 'timo', ['b-sudoers', 'b-log', 'b-nadia']).ergebnis).toBe('richtig');
     expect(vorwurf(zustand({ belegeErkannt: ['b-nadia'] }), 'timo', ['b-nadia']).ergebnis).toBe(
       'zu-wenig-belege'
@@ -976,7 +1091,7 @@ describe('pruefeVorwurf', () => {
   });
 
   it('löst den Fall mit einem richtigen Vorwurf', () => {
-    const z = zustand({ belegeErkannt: ['b-log', 'b-sudoers'] });
+    const z = zustand({ belegeErkannt: ['b-log', 'b-sudoers'], erledigt: { rechte: 2, log: 1 } });
     expect(vorwurf(z, 'timo', ['b-sudoers', 'b-log'])).toEqual({
       zustand: {
         ...z,
@@ -1038,10 +1153,11 @@ describe('Sperre ohne Sackgasse', () => {
     expect(r.zustand.sperreBis).toBeNull();
     expect(r.zustand.sperreRestPruefungen).toBe(0);
     expect(
-      pruefeVorwurf(fixture, r.zustand, {
-        verdaechtigeId: 'timo',
-        belegIds: ['b-sudoers', 'b-log'],
-      }).ergebnis
+      pruefeVorwurf(
+        fixture,
+        { ...r.zustand, erledigt: { rechte: 2, log: 1 } },
+        { verdaechtigeId: 'timo', belegIds: ['b-sudoers', 'b-log'] }
+      ).ergebnis
     ).toBe('richtig');
   });
 

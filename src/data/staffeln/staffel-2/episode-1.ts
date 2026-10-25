@@ -13,6 +13,9 @@ import { tools } from '../../../lib/missions/glossar';
  * RW-1042 eingespielt; der Besitzer root nennt keine Person, erst Regel und Audit-Zeile zusammen
  * tragen den Vorwurf. Alle Daten sind fiktiv. Setup und verify laufen als root; die Belege liegen
  * als `<id>.txt` direkt unter ~/belege/. `${...}` in den Skripten sind nur die Konstanten unten.
+ * Schrittarten (ADR 0009): sichern, ablesen, reparieren, ordnen. Regel und Programm wandern per sudo
+ * (genau die Verschiebungen aus `SUDO_BEFEHLE`) unverändert in ~/quarantaene/. Weil das die Quellen
+ * ändert, prüfen die Belege gegen die festen Werte der Zeitlinie statt gegen die Live-Dateien.
  */
 
 /** Astro liefert beim Bildimport Metadaten mit `src`, reines Vite (Vitest) den Pfad selbst. */
@@ -24,6 +27,9 @@ const SUDOERS = '/etc/sudoers.d/rw-fernwartung';
 const STATUS = '/usr/local/bin/rw-status';
 const AUDIT = '/var/log/rechenwerk-audit.log';
 const CHANGE = 'RW-1042';
+const QUARANTAENE = '/home/azubi/quarantaene';
+/** Inhalt von rw-status; er muss unverändert in der Quarantäne ankommen. */
+const STATUS_INHALT = ['#!/bin/sh', 'exit 0'];
 /** Feste Zeitlinie der Übungsquellen; Regeldatei und Audit-Zeile tragen dieselbe Zeit. */
 const ZEIT_EINGESPIELT = '2026-04-17 08:42:00 UTC';
 const ZEIT_AUDIT_ENDE = '2026-04-17 08:45:00 UTC';
@@ -42,6 +48,19 @@ const AUDIT_ZEILEN = [
 
 /** Belegdateien dieser Episode; das Setup entfernt nur genau diese, nichts rekursiv. */
 const BELEG_IDS = ['rechte-zeile', 'rechte-metadaten', 'log-zeile'] as const;
+/** Dateien, die das Setup aus der Quarantäne entfernt (bei einem erneuten Setup). */
+const QUARANTAENE_NAMEN = ['rw-fernwartung', 'rw-status'] as const;
+
+/** Verschieben nur in die Quarantäne, mit und ohne Schrägstrich oder Zieldateiname; sonst nichts. */
+const verschiebe = (quelle: string, name: string) => [
+  `/bin/mv ${quelle} ${QUARANTAENE}/`,
+  `/bin/mv ${quelle} ${QUARANTAENE}`,
+  `/bin/mv ${quelle} ${QUARANTAENE}/${name}`,
+];
+export const SUDO_BEFEHLE = [
+  ...verschiebe(SUDOERS, 'rw-fernwartung'),
+  ...verschiebe(STATUS, 'rw-status'),
+];
 
 const sh = (text: string) => `'${text.replaceAll("'", "'\\''")}'`;
 
@@ -63,6 +82,12 @@ for id in ${BELEG_IDS.join(' ')}; do
   rm -f -- "${BELEGE}/$id.txt"
   if [ -e "${BELEGE}/$id.txt" ] || [ -L "${BELEGE}/$id.txt" ]; then fehler "$id.txt ist belegt."; fi
 done
+if [ -L ${sh(QUARANTAENE)} ] || { [ -e ${sh(QUARANTAENE)} ] && [ ! -d ${sh(QUARANTAENE)} ]; }; then fehler 'Die Quarantäne ist belegt.'; fi
+install -d -o azubi -g azubi -m 0755 ${sh(QUARANTAENE)}
+for name in ${QUARANTAENE_NAMEN.join(' ')}; do
+  rm -f -- "${QUARANTAENE}/$name"
+  if [ -e "${QUARANTAENE}/$name" ] || [ -L "${QUARANTAENE}/$name" ]; then fehler "$name ist in der Quarantäne belegt."; fi
+done
 konto() {
   if id "$2" >/dev/null 2>&1; then return 0; fi
   adduser -D -H -u "$1" -h "/home/$2" -s /sbin/nologin -g "$3" "$2"
@@ -72,7 +97,7 @@ printf '%s\n' ${sh(`# Fernwartung, Aenderung ${CHANGE} (fiktive Uebungsdaten)`)}
 visudo -cf "$tmp/regel" >/dev/null
 install -o root -g root -m 0644 "$tmp/regel" ${sh(SUDOERS)}
 touch -d ${sh(ZEIT_EINGESPIELT)} ${sh(SUDOERS)}
-printf '%s\n' '#!/bin/sh' 'exit 0' > "$tmp/status"
+printf '%s\n' ${STATUS_INHALT.map(sh).join(' ')} > "$tmp/status"
 install -o root -g root -m 0755 "$tmp/status" ${sh(STATUS)}
 chmod 4755 ${sh(STATUS)}
 touch -d ${sh(ZEIT_EINGESPIELT)} ${sh(STATUS)}
@@ -106,51 +131,28 @@ const BELEG_GROESSE = String.raw`[ "$eigner" = azubi ] && [ "$groesse" -le 65536
 IFS= read -r -d '' inhalt < "$f"
 `;
 
-/** Regelzeile aus der echten Regeldatei samt Änderungskennung im Beleg. */
-const PRUEFE_RECHTE_ZEILE = `${belegAnfang('rechte-zeile')}${String.raw`q=${sh(SUDOERS)}
-[ -f "$q" ] && [ ! -L "$q" ] || exit 1
-{ IFS=: read -r eigner _ groesse; IFS=: read -r qu qg _; } < <(stat -c '%U:%G:%s' "$f" "$q")
-[ "$qu:$qg" = root:root ] || exit 1
-${BELEG_GROESSE}IFS= read -r -d '' quelle < "$q"
-regel=; change=; n=0
-while IFS= read -r z; do
-  if [[ $z =~ ^[[:space:]]*# ]]; then
-    [[ -z $change && $z =~ RW-[0-9]+ ]] && change=$BASH_REMATCH
-  elif [[ -n $z && ! $z =~ ^[[:space:]]*$ ]]; then
-    regel=$z; n=$((n + 1))
-  fi
-done <<< "$quelle"
-[ "$n" = 1 ] && [ -n "$change" ] || exit 1
-has "$regel" && has "$change"
+/** Regelzeile samt Änderungskennung im Beleg; feste Werte, denn die Regeldatei zieht später um. */
+const PRUEFE_RECHTE_ZEILE = `${belegAnfang('rechte-zeile')}${String.raw`{ IFS=: read -r eigner _ groesse; } < <(stat -c '%U:%G:%s' "$f")
+${BELEG_GROESSE}has ${sh(REGEL)} && has ${sh(CHANGE)}
 `}`;
 
-/** Besitzer, Rechte und Datum der echten Regeldatei sowie Pfad und Setuid-Modus von rw-status. */
-const PRUEFE_RECHTE_METADATEN = `${belegAnfang('rechte-metadaten')}${String.raw`q=${sh(SUDOERS)}
-s=${sh(STATUS)}
-[ -f "$q" ] && [ ! -L "$q" ] && [ -f "$s" ] && [ ! -L "$s" ] || exit 1
-{ IFS=':|' read -r eigner _ groesse _; IFS=':|' read -r qu qg _ modus_q sym_q zeit_q; IFS=':|' read -r su sg _ modus_s sym_s _; } < <(stat -c '%U:%G:%s|%a|%A|%Y' "$f" "$q" "$s")
-[ "$qu:$qg" = root:root ] && [ "$su:$sg" = root:root ] || exit 1
-${BELEG_GROESSE}has rw-fernwartung && has "$s" && has root || exit 1
-re_q="(^|[^0-9])0?$modus_q([^0-9]|\$)"
-re_s="(^|[^0-9])$modus_s([^0-9]|\$)"
-{ has "$sym_q" || [[ $inhalt =~ $re_q ]]; } || exit 1
-{ has "$sym_s" || [[ $inhalt =~ $re_s ]]; } || exit 1
+/** Besitzer, Rechte und Datum der Regeldatei sowie Name und Setuid-Modus von rw-status, als Festwerte. */
+const PRUEFE_RECHTE_METADATEN = `${belegAnfang('rechte-metadaten')}${String.raw`{ IFS=: read -r eigner _ groesse; } < <(stat -c '%U:%G:%s' "$f")
+${BELEG_GROESSE}has rw-fernwartung && has rw-status && has root || exit 1
+re_q='(^|[^0-9])0?644([^0-9]|$)'
+re_s='(^|[^0-9])4755([^0-9]|$)'
+{ has -rw-r--r-- || [[ $inhalt =~ $re_q ]]; } || exit 1
+{ has -rwsr-xr-x || [[ $inhalt =~ $re_s ]]; } || exit 1
 # ls zeigt je nach Alter der Datei Uhrzeit oder Jahr, stat und ls --full-time das volle Datum.
-printf -v tag '%(%Y-%m-%d)T' "$zeit_q"
-printf -v uhr '%(%b %e %H:%M)T' "$zeit_q"
-printf -v jahr '%(%b %e  %Y)T' "$zeit_q"
-has "$tag" || has "$uhr" || has "$jahr"
+has ${sh(ZEIT_EINGESPIELT.slice(0, 10))} || has ${sh('Apr 17 08:42')} || has ${sh('Apr 17  2026')}
 `}`;
 
-/** Die einzige Audit-Zeile von timo mit der Kennung aus der Regeldatei und deren Zielpfad. */
-const PRUEFE_LOG_ZEILE = `${belegAnfang('log-zeile')}${String.raw`q=${sh(SUDOERS)}
-a=${sh(AUDIT)}
-[ -f "$q" ] && [ ! -L "$q" ] && [ -f "$a" ] && [ ! -L "$a" ] || exit 1
-{ IFS=: read -r eigner _ groesse; IFS=: read -r qu qg _; IFS=: read -r au ag _; } < <(stat -c '%U:%G:%s' "$f" "$q" "$a")
-[ "$qu:$qg" = root:root ] && [ "$au:$ag" = root:root ] || exit 1
-${BELEG_GROESSE}IFS= read -r -d '' quelle < "$q"
-[[ $quelle =~ RW-[0-9]+ ]] || exit 1
-change=$BASH_REMATCH
+/** Die einzige Audit-Zeile von timo mit der Kennung der Regel und deren Zielpfad. */
+const PRUEFE_LOG_ZEILE = `${belegAnfang('log-zeile')}${String.raw`a=${sh(AUDIT)}
+[ -f "$a" ] && [ ! -L "$a" ] || exit 1
+{ IFS=: read -r eigner _ groesse; IFS=: read -r au ag _; } < <(stat -c '%U:%G:%s' "$f" "$a")
+[ "$au:$ag" = root:root ] || exit 1
+${BELEG_GROESSE}change=${sh(CHANGE)}
 zeile=; n=0
 while IFS= read -r z; do
   set -- $z
@@ -160,6 +162,42 @@ while IFS= read -r z; do
 done < "$a"
 [ "$n" = 1 ] && has "$zeile"
 `}`;
+
+/**
+ * Quarantäne als echter Ordner. azubi besitzt sein Home und könnte ~/quarantaene durch einen Link
+ * ersetzen (eine Härtung über Besitzer oder Rechte hält dem nicht stand); das erlaubte `sudo mv`
+ * folgt einem solchen Link. Das trifft nur die eigene VM, das Neuladen stellt sie her. Darum zählt
+ * ein Schritt nur mit echtem Ordner, und die Diagnose benennt den Fehler.
+ */
+const QUARANTAENE_ORDNER = String.raw`k=${sh(QUARANTAENE)}
+[ -d "$k" ] && [ ! -L "$k" ]`;
+const QUARANTAENE_KAPUTT = String.raw`k=${sh(QUARANTAENE)}
+if [ -L "$k" ] || { [ -e "$k" ] && [ ! -d "$k" ]; }; then
+  printf '%s\n' ${sh('Deine Quarantäne ~/quarantaene ist kein Ordner mehr. Lade die Seite neu, dann ist sie wieder da.')}
+  exit 0
+fi`;
+
+/** Die Regeldatei ist aus /etc/sudoers.d weg, sudo kennt die Regel nicht mehr, die Konfiguration ist gültig. */
+const PRUEFE_REGEL_WEG = String.raw`export LC_ALL=C
+q=${sh(SUDOERS)}
+${QUARANTAENE_ORDNER} || exit 1
+[ ! -e "$q" ] && [ ! -L "$q" ] || exit 1
+visudo -c >/dev/null 2>&1 || exit 1
+liste=$(sudo -l -U nadia 2>&1 </dev/null)
+[[ $liste == *nadia* && $liste != *NOPASSWD* ]]
+`;
+
+/** Das Programm liegt unverändert (Besitzer, Modus, Inhalt) in der Quarantäne, nicht mehr in /usr/local/bin. */
+const PRUEFE_STATUS_WEG = String.raw`export LC_ALL=C
+${QUARANTAENE_ORDNER} || exit 1
+q=${sh(`${QUARANTAENE}/rw-status`)}
+s=${sh(STATUS)}
+[ -f "$q" ] && [ ! -L "$q" ] && [ ! -e "$s" ] && [ ! -L "$s" ] || exit 1
+{ IFS=: read -r u g modus groesse; } < <(stat -c '%U:%G:%a:%s' "$q")
+[ "$u:$g:$modus" = root:root:4755 ] && [ "$groesse" -le 4096 ] || exit 1
+IFS= read -r -d '' inhalt < "$q"
+[ "$inhalt" = ${sh(`${STATUS_INHALT.join('\n')}\n`)} ]
+`;
 
 const ZEILE_FEHLT = 'Die Zeile steht nicht unverändert im Beleg.';
 
@@ -171,6 +209,18 @@ const DIAGNOSE_RECHTE_METADATEN = diagnoseZweiDateien(
   'rw-fernwartung'
 );
 const DIAGNOSE_LOG_ZEILE = diagnoseBelegDa(`${BELEGE}/log-zeile.txt`, ZEILE_FEHLT);
+const DIAGNOSE_REGEL_WEG = String.raw`${QUARANTAENE_KAPUTT}
+q=${sh(SUDOERS)}
+k=${sh(`${QUARANTAENE}/rw-fernwartung`)}
+[ -e "$q" ] && [ -e "$k" ] && printf '%s\n' ${sh('Die Regel liegt noch in /etc/sudoers.d, in der Quarantäne nur eine Kopie. Verschieben, nicht kopieren.')}
+exit 0
+`;
+const DIAGNOSE_STATUS_WEG = String.raw`${QUARANTAENE_KAPUTT}
+s=${sh(STATUS)}
+k=${sh(`${QUARANTAENE}/rw-status`)}
+[ -e "$s" ] && [ -e "$k" ] && printf '%s\n' ${sh('rw-status liegt noch in /usr/local/bin, in der Quarantäne nur eine Kopie. Verschieben, nicht kopieren.')}
+exit 0
+`;
 
 /** Raumansicht „Serverschrank“: nur lesend, feste Schlüssel, begrenzte Ausgabe, ohne Hilfsprogramme. */
 const ABFRAGE_RAUM = String.raw`read -r host < /proc/sys/kernel/hostname
@@ -202,6 +252,7 @@ const schrittRechteZeile: ErmittlungsSchritt = {
     'Du bist das Testkonto azubi. Lesen ist erlaubt, Belege legst du als Textdatei in ~/belege/ ab.',
     'Ein Beleg ist die echte Ausgabe eines Befehls, in die Datei umgeleitet. Abgetippter Text zählt nicht. Geprüft wird beim nächsten Shell-Prompt; wenn du in nano arbeitest, erst speichern und nano verlassen.',
     'Schritt 1: Sichere die Regel samt der Zeile mit der Änderungskennung (RW-…) als ~/belege/rechte-zeile.txt. Die Regelzeile muss unverändert drinstehen.',
+    'Die Regel für jeden Fall: erst Belege sichern, dann reparieren. Wer vorher eingreift, verändert den Beweis.',
   ],
   verify: PRUEFE_RECHTE_ZEILE,
   diagnose: DIAGNOSE_RECHTE_ZEILE,
@@ -212,12 +263,35 @@ const schrittRechteZeile: ErmittlungsSchritt = {
   ],
 };
 
+const schrittKennung: ErmittlungsSchritt = {
+  art: 'ablesen',
+  id: 'kennung',
+  title: 'Lies die Änderungskennung ab',
+  pager: [
+    'Schritt 2: Über der Regel steht ein Kommentar mit einer Änderungskennung (RW-…). Unter dieser Kennung wurde die Regel eingespielt.',
+    'Trag die Kennung unten ein. Sie steht in deinem Beleg und im Audit-Log.',
+  ],
+  verify: 'false',
+  antwort: {
+    frage: 'Unter welcher Änderungskennung wurde die Regel eingespielt?',
+    format: 'RW, Bindestrich und eine Zahl, etwa RW-1234',
+    pruefung: String.raw`k=$(printf %s "$ANTWORT" | tr a-z A-Z)
+printf %s "$k" | grep -qE '^RW-[0-9]+$' || exit 1
+grep -qF -- " install-sudoers change=$k target=${SUDOERS}" ${AUDIT}`,
+  },
+  tipps: [
+    'Die Kennung steht schon in deinem Beleg rechte-zeile.txt, gleich über der Regel. Sie beginnt mit RW-.',
+    'cat zeigt dir den Inhalt deines Belegs. Such die Zeile mit dem Kommentar zur Fernwartung.',
+    `${LOESUNG}cat ~/belege/rechte-zeile.txt zeigt beide Zeilen; die Kennung beginnt mit RW- und hat vier Ziffern.`,
+  ],
+};
+
 const schrittMetadaten: ErmittlungsSchritt = {
   art: 'sichern',
   id: 'datei-metadaten',
   title: 'Sichere Besitzer, Rechte und Datum',
   pager: [
-    'Schritt 2: Die Regeldatei gehört root. Das sagt nur, wer sie angelegt hat, nicht wer die Änderung veranlasste. Trotzdem gehört es in die Akte.',
+    'Schritt 3: Die Regeldatei gehört root. Das sagt nur, wer sie angelegt hat, nicht wer die Änderung veranlasste. Trotzdem gehört es in die Akte.',
     'Halte in ~/belege/rechte-metadaten.txt fest, wem die Regeldatei gehört, welche Rechte sie hat und wann sie zuletzt geändert wurde. Dazu kommt rw-status, ein Programm mit Setuid-Bit.',
     'Beide Dateien gehören in denselben Beleg, und zwar als echte Ausgabe von ls -l mit Dateiname, Besitzer, Rechten und Datum. Von Hand abgetippte Werte erkennt die Prüfung nicht.',
   ],
@@ -227,6 +301,42 @@ const schrittMetadaten: ErmittlungsSchritt = {
     'Besitzer, Rechte und Datum einer Datei zeigt ein einziger Befehl. Das Programm rw-status liegt irgendwo unter /usr/local; sein Setuid-Bit erkennst du an einem s in den Rechten.',
     'ls -l zeigt Besitzer, Rechte und Datum, stat zeigt sie ausführlicher. Mit find /usr/local -perm -4000 findest du Dateien mit Setuid-Bit. Mit $( ) setzt du die Ausgabe eines Befehls in einen anderen ein. Willst du zwei Befehle nacheinander in dieselbe Datei schreiben, nimm beim zweiten >>, denn > würde die erste Ausgabe überschreiben.',
     `${LOESUNG}ls -l /etc/sudoers.d/rw-fernwartung $(find /usr/local -perm -4000 -type f) > ~/belege/rechte-metadaten.txt`,
+  ],
+};
+
+const schrittRegelWeg: ErmittlungsSchritt = {
+  art: 'reparieren',
+  id: 'regel-weg',
+  title: 'Nimm die fremde sudo-Regel aus dem Betrieb',
+  pager: [
+    'Schritt 4: Die Belege sind gesichert, jetzt wird repariert. Solange die Datei in /etc/sudoers.d liegt, darf Nadia mit sudo ohne Passwort Befehle als root ausführen.',
+    'Die Regel soll raus, ohne dass der Beweis verloren geht: Verschiebe die Datei rw-fernwartung in deine Quarantäne ~/quarantaene/. Der Ordner ist schon angelegt.',
+    'In /etc darfst du als azubi nichts ändern. Der Einsatzrahmen erlaubt dir genau zwei Verschiebungen mit sudo; alles andere lehnt sudo ab.',
+    'Geprüft wird der Zustand: Die Regel darf nicht mehr gelten und die sudo-Konfiguration muss gültig bleiben.',
+  ],
+  verify: PRUEFE_REGEL_WEG,
+  diagnose: DIAGNOSE_REGEL_WEG,
+  tipps: [
+    'Eine Regel in /etc/sudoers.d gilt, solange ihre Datei dort liegt. Sie muss aus dem Ordner verschwinden, soll aber als Beweis erhalten bleiben. Hol sie dir in deine Quarantäne.',
+    'mv verschiebt eine Datei. Weil /etc nur root gehört, brauchst du sudo vor dem Befehl; sudo -l zeigt dir, was du darfst. Das Ziel ist der Ordner ~/quarantaene/.',
+    `${LOESUNG}sudo mv /etc/sudoers.d/rw-fernwartung ~/quarantaene/`,
+  ],
+};
+
+const schrittStatusWeg: ErmittlungsSchritt = {
+  art: 'ordnen',
+  id: 'status-weg',
+  title: 'Stelle rw-status unter Quarantäne',
+  pager: [
+    'Schritt 5: Auch das Programm rw-status mit Setuid-Bit gehört nicht in den Betrieb, denn es läuft immer mit root-Rechten.',
+    'Ordne die Akte: Verschiebe rw-status unverändert in ~/quarantaene/. Kopieren genügt nicht, das Original muss aus /usr/local/bin verschwinden.',
+  ],
+  verify: PRUEFE_STATUS_WEG,
+  diagnose: DIAGNOSE_STATUS_WEG,
+  tipps: [
+    'Das Programm liegt irgendwo unter /usr/local. Es soll genau so, wie es ist, in deine Quarantäne wandern, also verschoben und nicht kopiert.',
+    'Wie bei der Regel: mv mit sudo davor, denn in /usr/local darfst du nichts verändern. Der Einsatzrahmen erlaubt dir das nur für diese Datei.',
+    `${LOESUNG}sudo mv /usr/local/bin/rw-status ~/quarantaene/`,
   ],
 };
 
@@ -290,7 +400,17 @@ export const episode1: Ermittlung = {
     },
   ],
   spuren: [
-    { id: 'rechte', titel: 'Rechte', schritte: [schrittRechteZeile, schrittMetadaten] },
+    {
+      id: 'rechte',
+      titel: 'Rechte',
+      schritte: [
+        schrittRechteZeile,
+        schrittKennung,
+        schrittMetadaten,
+        schrittRegelWeg,
+        schrittStatusWeg,
+      ],
+    },
     { id: 'log', titel: 'Log', schritte: [schrittAuditZeile] },
   ],
   vorwurf: {
@@ -364,10 +484,12 @@ export const episode1: Ermittlung = {
     text: [
       'Du arbeitest im Serverraum der Rechenwerk Ostwind GmbH mit dem Testkonto azubi.',
       'Diagnose außerhalb des ausgeschlossenen Ordners ist erlaubt.',
-      'Eigene Belege unter ~/belege/ darfst du anlegen und ändern.',
+      'Eigene Belege unter ~/belege/ und deine Quarantäne ~/quarantaene/ darfst du anlegen und ändern.',
+      'Zum Entschärfen darfst du per sudo genau zwei Dateien verschieben: die Regel rw-fernwartung aus /etc/sudoers.d und das Programm rw-status aus /usr/local/bin, jeweils nur nach ~/quarantaene/. Jeder andere sudo-Aufruf wird abgelehnt.',
       '/home/nadia/ ist ausgeschlossen. Ein Zugriff dort hat erzählerische Folgen.',
     ],
     verstoss: EINSATZRAHMEN_VERSTOSS,
+    sudoBefehle: SUDO_BEFEHLE,
     folge: [
       'Margit wird misstrauisch: Jemand hat im ausgeschlossenen Ordner gelesen.',
       'Der Vorwurf ist vorübergehend gesperrt. Ein weiterer erkannter Beleg hilft, spätestens drei vollständige Prüfungen öffnen ihn wieder.',
@@ -382,9 +504,19 @@ export const episode1: Ermittlung = {
   szene: [
     'Margit liest die Logzeile zweimal. „RW-1042“, sagt sie leise. „Das war Timo, mit unserer eigenen Fernwartung.“',
     'Er hat die Regel unter einer Änderungskennung eingespielt, die niemand gegengeprüft hat. Zu viele Rechte, und keiner hat nachgesehen.',
-    'Damit ist Episode 1 abgeschlossen. Warum Timo das tat, bleibt offen.',
+    'Regel und Programm liegen jetzt in der Quarantäne, die Fernwartung ist entschärft. Damit ist Episode 1 abgeschlossen. Warum Timo das tat, bleibt offen.',
   ],
 };
 
 /** Werkzeugkasten der Hilfe; Begriffe und Beispiele stammen aus dem gemeinsamen Glossar. */
-export const episode1Werkzeuge = tools('ls -l', 'stat', 'find', 'grep', '>', '>>');
+export const episode1Werkzeuge = tools(
+  'ls -l',
+  'stat',
+  'find',
+  'grep',
+  '>',
+  '>>',
+  'cat',
+  'mv',
+  'sudo'
+);

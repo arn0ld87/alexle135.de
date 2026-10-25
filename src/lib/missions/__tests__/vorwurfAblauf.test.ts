@@ -91,7 +91,7 @@ describe('vorwurfAblauf', () => {
     const z = startZustand();
     let state = z;
     const pruefeFrisch = vi.fn(async () => {
-      state = { ...state, belegeErkannt: ['b1'] };
+      state = { ...state, belegeErkannt: ['b1'], erledigt: { 'spur-a': 1 } };
       return true;
     });
     const res = await erstelleVorwurfAblauf({

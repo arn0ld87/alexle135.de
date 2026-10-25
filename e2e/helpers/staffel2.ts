@@ -16,6 +16,10 @@ export const RECHTE_REGEL =
   'grep -B1 nadia /etc/sudoers.d/rw-fernwartung > ~/belege/rechte-zeile.txt';
 export const RECHTE_METADATEN =
   'ls -l /etc/sudoers.d/rw-fernwartung $(find /usr/local -perm -4000 -type f) > ~/belege/rechte-metadaten.txt';
+// Schritte 2, 4 und 5 der Spur Rechte (ADR 0009): ablesen, reparieren, ordnen.
+export const FRAGE_KENNUNG = 'Unter welcher Änderungskennung wurde die Regel eingespielt?';
+export const REGEL_WEG = 'sudo mv /etc/sudoers.d/rw-fernwartung ~/quarantaene/';
+export const STATUS_WEG = 'sudo mv /usr/local/bin/rw-status ~/quarantaene/';
 // Ausgeschlossener Zugriff: Der Einsatzrahmen erlaubt azubi genau diesen sudo-Aufruf und protokolliert ihn.
 export const VERSTOSS = 'sudo /bin/cat /home/nadia/vertraulich.txt';
 
@@ -23,6 +27,11 @@ export const PAGER = {
   logErledigt: 'Erledigt: Sichere die passende Audit-Zeile',
   regelErledigt: 'Erledigt: Sichere die unerwartete sudo-Regel',
   metaErledigt: 'Erledigt: Sichere Besitzer, Rechte und Datum',
+  kennungErledigt: 'Erledigt: Lies die Änderungskennung ab',
+  regelWegErledigt: 'Erledigt: Nimm die fremde sudo-Regel aus dem Betrieb',
+  statusWegErledigt: 'Erledigt: Stelle rw-status unter Quarantäne',
+  rechteSpur: 'Spur abgeschlossen: Rechte',
+  vorwurfOffen: 'Der Vorwurf sitzt. Bevor der Fall abgeschlossen ist',
   richtig: 'Das passt zusammen: Die Regel trägt die Kennung RW-1042',
   falschePerson: 'Diese Person passt nicht zu deinen Belegen.',
   zuWenig: 'Die Person könnte stimmen, aber die Begründung trägt noch nicht.',
@@ -133,6 +142,27 @@ export async function waehleBelege(page: Page, ids: readonly BelegId[]): Promise
     }).toPass({ timeout: 90_000 });
     await belegBox(page, id).check();
   }
+}
+
+/** Trägt eine Antwort in das Antwortfeld des aktuellen Ablesen-Schritts ein und sendet sie. */
+export async function antworte(page: Page, frage: string, text: string): Promise<void> {
+  await flaeche(page, 'Ansicht');
+  await page.getByLabel(frage).fill(text);
+  await page.getByRole('button', { name: 'Antworten', exact: true }).click();
+}
+
+/**
+ * Erledigt den Rest der Spur Rechte ab dem genannten Schritt (kennung, meta oder regel). Ein
+ * richtiger Vorwurf schließt Episode 1 erst, wenn auch diese Schritte durch sind.
+ */
+export async function loeseRechteRest(page: Page, ab: 'kennung' | 'meta' | 'regel'): Promise<void> {
+  if (ab === 'kennung') {
+    await antworte(page, FRAGE_KENNUNG, 'RW-1042');
+    await expect(pager(page)).toContainText(PAGER.kennungErledigt, { timeout: 30_000 });
+  }
+  if (ab !== 'regel') await befehl(page, RECHTE_METADATEN, { pager: PAGER.metaErledigt });
+  await befehl(page, REGEL_WEG, { pager: PAGER.regelWegErledigt, timeout: 60_000 });
+  await befehl(page, STATUS_WEG, { pager: PAGER.statusWegErledigt, timeout: 60_000 });
 }
 
 export const dialog = (page: Page): Locator =>

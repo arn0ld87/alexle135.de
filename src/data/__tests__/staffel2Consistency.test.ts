@@ -9,7 +9,10 @@ import sharp from 'sharp';
 import { describe, expect, it } from 'vitest';
 import { abfrageSkript } from '../../lib/missions/abfrage';
 import { AKTENWAND_ABFRAGE } from '../../lib/missions/aktenwand';
-import { EINSATZRAHMEN_VERSTOSS } from '../../lib/missions/einsatzrahmenSetup';
+import {
+  EINSATZRAHMEN_VERSTOSS,
+  einsatzrahmenSetupSkript,
+} from '../../lib/missions/einsatzrahmenSetup';
 import {
   buendelSkript,
   ID_MUSTER,
@@ -20,7 +23,12 @@ import {
 import type { Ermittlung } from '../../lib/missions/ermittlungTypes';
 import { glossar } from '../../lib/missions/glossar';
 import { episode0, episode0Werkzeuge } from '../staffeln/staffel-2/episode-0';
-import { episode1, episode1Werkzeuge, LOESUNG } from '../staffeln/staffel-2/episode-1';
+import {
+  episode1,
+  episode1Werkzeuge,
+  LOESUNG,
+  SUDO_BEFEHLE,
+} from '../staffeln/staffel-2/episode-1';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '../../..');
 const PORTRAET_MAX_BYTES = 40 * 1024;
@@ -159,6 +167,48 @@ describe('Staffel 2, Episode 1: Struktur (T9-1)', () => {
   });
 });
 
+describe('Staffel 2, Episode 1: Schrittarten und sudo-Rahmen (ADR 0009)', () => {
+  it('folgt der Spur Rechte von sichern über ablesen und reparieren bis ordnen', () => {
+    expect(
+      Object.fromEntries(
+        episode1.spuren.map((s) => [s.id, s.schritte.map((x) => `${x.id}:${x.art}`)])
+      )
+    ).toEqual({
+      rechte: [
+        'sudo-zeile:sichern',
+        'kennung:ablesen',
+        'datei-metadaten:sichern',
+        'regel-weg:reparieren',
+        'status-weg:ordnen',
+      ],
+      log: ['audit-zeile:sichern'],
+    });
+  });
+
+  it('erlaubt per sudo genau die Verschiebungen von Regel und Programm in die Quarantäne', () => {
+    expect(episode1.einsatzrahmen.sudoBefehle).toBe(SUDO_BEFEHLE);
+    expect(SUDO_BEFEHLE).toHaveLength(6);
+    for (const befehl of SUDO_BEFEHLE) {
+      expect(befehl).toMatch(
+        /^\/bin\/mv \/(etc\/sudoers\.d\/rw-fernwartung|usr\/local\/bin\/rw-status) \/home\/azubi\/quarantaene(\/|\/rw-fernwartung|\/rw-status)?$/
+      );
+    }
+    expect(() => einsatzrahmenSetupSkript(SUDO_BEFEHLE)).not.toThrow();
+    const text = episode1.einsatzrahmen.text.join(' ');
+    expect(text).toContain('~/quarantaene/');
+    expect(text).toContain('rw-status');
+    expect(text).toContain('rw-fernwartung');
+  });
+
+  it('legt die Quarantäne im Setup an und räumt nur genau ihre beiden Dateien auf', () => {
+    expect(episode1.setup).toContain(
+      "install -d -o azubi -g azubi -m 0755 '/home/azubi/quarantaene'"
+    );
+    expect(episode1.setup).toContain('for name in rw-fernwartung rw-status');
+    expect(episode1.setup).not.toMatch(/rm -rf (?!"\$tmp")/);
+  });
+});
+
 describe('Staffel 2, Episode 1: Raumansicht und Hotspots (T9-2)', () => {
   const raum = episode1.ansichten.find((a) => a.art === 'raum');
 
@@ -263,16 +313,17 @@ describe('Staffel 2, Episode 1: Werkzeuge (T9-10)', () => {
 
 describe('Staffel 2, Episode 1: Diagnosen (T12)', () => {
   const diagnosen = episode1.spuren.flatMap((spur) =>
-    spur.schritte.map((schritt) => ({
-      name: `${spur.id}/${schritt.id}`,
-      diagnose: schritt.diagnose,
-    }))
+    spur.schritte
+      .filter((schritt) => schritt.art !== 'ablesen')
+      .map((schritt) => ({ name: `${spur.id}/${schritt.id}`, diagnose: schritt.diagnose }))
   );
 
-  it('gibt allen drei Schritten eine Diagnose, die als Bash gültig ist', () => {
+  it('gibt allen Schritten außer dem Ablesen eine Diagnose, die als Bash gültig ist', () => {
     expect(diagnosen.map((d) => d.name)).toEqual([
       'rechte/sudo-zeile',
       'rechte/datei-metadaten',
+      'rechte/regel-weg',
+      'rechte/status-weg',
       'log/audit-zeile',
     ]);
     for (const d of diagnosen) {
@@ -304,11 +355,16 @@ describe('Staffel 2, Episode 0 „Probelauf“ (T12)', () => {
     expect(episode0.beweisstueck.code).toBe('S2-E0-KASSE');
   });
 
-  it('hat zwei Spuren mit mindestens zwei Schrittarten und nur die Aktenwand als Ansicht', () => {
-    expect(episode0.spuren.map((s) => s.id)).toEqual(['akte', 'inhalt']);
-    const arten = new Set(episode0.spuren.flatMap((s) => s.schritte.map((x) => x.art)));
-    expect(arten.size).toBeGreaterThanOrEqual(2);
-    expect(arten.has('ablesen')).toBe(true);
+  it('hat zwei Spuren mit sichern, ablesen und reparieren und nur die Aktenwand als Ansicht', () => {
+    expect(
+      Object.fromEntries(
+        episode0.spuren.map((s) => [s.id, s.schritte.map((x) => `${x.id}:${x.art}`)])
+      )
+    ).toEqual({
+      akte: ['kasse-meta:sichern', 'besitzer:ablesen'],
+      inhalt: ['kasse-zeilen:sichern', 'kasse-zurueck:reparieren'],
+    });
+    expect(episode0.einsatzrahmen.sudoBefehle).toBeUndefined();
     expect(episode0.ansichten.map((a) => a.art)).toEqual(['aktenwand']);
     expect(episode0.ansichten[0].abfrage).toBe(AKTENWAND_ABFRAGE);
   });
@@ -329,11 +385,12 @@ describe('Staffel 2, Episode 0 „Probelauf“ (T12)', () => {
     expect(einstieg).toMatch(/Tipps/);
   });
 
-  it('hat Diagnosen für beide Belegschritte, aber keinen Verstoß im Einsatzrahmen', () => {
+  it('hat Diagnosen für Belege und Reparatur, aber keinen Verstoß im Einsatzrahmen', () => {
     const schritte = episode0.spuren.flatMap((s) => s.schritte);
     expect(schritte.filter((s) => s.diagnose).map((s) => s.id)).toEqual([
       'kasse-meta',
       'kasse-zeilen',
+      'kasse-zurueck',
     ]);
     expect(episode0.einsatzrahmen.verstoss).toBe('false');
     expect(episode0.einsatzrahmen.text.join(' ')).toContain('/srv/rechenwerk/uebung/');
@@ -391,6 +448,7 @@ describe('Staffel 2, Episode 0 „Probelauf“ (T12)', () => {
       'grep',
       '>',
       '>>',
+      'cp',
     ]);
     for (const werkzeug of episode0Werkzeuge) {
       expect(glossar.get(werkzeug.befehl)).toEqual(werkzeug);
