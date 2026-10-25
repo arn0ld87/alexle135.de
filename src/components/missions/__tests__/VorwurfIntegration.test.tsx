@@ -238,7 +238,9 @@ describe('Vorwurf am tatsächlichen Prüflauf', () => {
     const t = await starten();
     await t.user.click(screen.getByRole('button', { name: 'Absenden' }));
     await waitFor(() =>
-      expect(screen.getAllByText(/Der Vorwurf sitzt\. Bevor der Fall abgeschlossen ist/).length).toBeGreaterThan(0)
+      expect(
+        screen.getAllByText(/Der Vorwurf sitzt\. Bevor der Fall abgeschlossen ist/).length
+      ).toBeGreaterThan(0)
     );
     expect(screen.queryByRole('heading', { name: 'Fall gelöst' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Vorwurf erheben' })).toBeDisabled();

@@ -586,7 +586,17 @@ describe.skipIf(!enabled)('Episode 0 „Probelauf“ in der echten VM', () => {
       verdaechtigeId: 'kaffee',
       belegIds: ['kasse-meta', 'kasse-zeilen'],
     });
-    expect(richtig.ergebnis).toBe('richtig');
+    // Akte und Inhalt sind noch nicht fertig: Der Vorwurf sitzt, der Fall schließt erst danach.
+    expect(richtig.ergebnis).toBe('richtig-offen');
+    expect(richtig.zustand.geloest).toBe(false);
+    expect(richtig.antwort.join(' ')).toContain('Stelle die Liste aus der Sicherung wieder her');
+    zustand = richtig.zustand;
+    expect(await antworte('kaffee')).toBe(true);
+    expect(zustand.geloest).toBe(false);
+    await alsAzubi(tippLoesung('inhalt', 'kasse-zurueck'));
+    await pruefLauf();
+    expect(zustand.geloest).toBe(true);
+    expect(typen()).toContain('fall-geloest');
   }, 300_000);
 
   it('T12-0: Lösungsweg C, beide Belege vorab, der Besitzer folgt als Antwort', async () => {
@@ -600,7 +610,9 @@ describe.skipIf(!enabled)('Episode 0 „Probelauf“ in der echten VM', () => {
       verdaechtigeId: 'kaffee',
       belegIds: ['kasse-meta', 'kasse-zeilen'],
     });
-    expect(richtig.ergebnis).toBe('richtig');
+    expect(richtig.ergebnis).toBe('richtig-offen');
+    expect(richtig.zustand.vorwurfRichtig).toBe(true);
+    expect(richtig.zustand.geloest).toBe(false);
   }, 300_000);
 
   it('T12-0: Diagnose beim halben Beleg, einmal je Text, ohne einen Schritt zu erledigen', async () => {

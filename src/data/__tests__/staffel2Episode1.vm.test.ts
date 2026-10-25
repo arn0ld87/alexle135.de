@@ -652,9 +652,11 @@ describe.skipIf(!enabled)('Episode 1 „Zu viele Rechte“ in der echten VM', ()
       verdaechtigeId: 'timo',
       belegIds: ['rechte-zeile', 'log-zeile'],
     });
-    expect(richtig.ergebnis).toBe('richtig');
-    expect(richtig.antwort).toEqual(episode1.vorwurf.antworten.richtig);
-    expect(richtig.zustand.geloest).toBe(true);
+    // Die Rechte-Spur ist noch nicht fertig: Der Vorwurf sitzt, der Abschluss wartet.
+    expect(richtig.ergebnis).toBe('richtig-offen');
+    expect(richtig.antwort).not.toEqual(episode1.vorwurf.antworten.richtig);
+    expect(richtig.zustand.geloest).toBe(false);
+    expect(richtig.zustand.vorwurfRichtig).toBe(true);
   }, 600_000);
 
   it('T9-6: Rechte-Zeile und Log-Zeile reichen für Timo, auch wenn der zweite Rechte-Schritt offen ist', async () => {
@@ -668,10 +670,25 @@ describe.skipIf(!enabled)('Episode 1 „Zu viele Rechte“ in der echten VM', ()
       verdaechtigeId: 'timo',
       belegIds: ['rechte-zeile', 'log-zeile'],
     });
-    expect(richtig.ergebnis).toBe('richtig');
-    expect(richtig.zustand.geloest).toBe(true);
+    expect(richtig.ergebnis).toBe('richtig-offen');
+    expect(richtig.antwort.join(' ')).toContain('Der Vorwurf sitzt.');
+    expect(richtig.zustand.geloest).toBe(false);
     expect(richtig.zustand.erledigt).toEqual({ rechte: 1, log: 1 });
-  }, 300_000);
+
+    // Die Prüfung läuft weiter; der Fall schließt mit dem letzten Schritt der Spur Rechte.
+    zustand = richtig.zustand;
+    expect(await antworte('RW-1042')).toBe(true);
+    await alsAzubi(tippLoesung('rechte', 'datei-metadaten'));
+    await pruefLauf();
+    await alsAzubi(tippLoesung('rechte', 'regel-weg'));
+    await pruefLauf();
+    expect(zustand.geloest).toBe(false);
+    await alsAzubi(tippLoesung('rechte', 'status-weg'));
+    await pruefLauf();
+    expect(zustand.geloest).toBe(true);
+    expect(typen()).toEqual(expect.arrayContaining(['spur-erledigt', 'fall-geloest']));
+    expect(offenePruefungen(episode1, zustand)).toEqual([]);
+  }, 600_000);
 
   it('T9-8: wiederholtes Setup liefert denselben frischen Datensatz und lässt den Einsatzrahmen intakt', async () => {
     await frischerLauf();
