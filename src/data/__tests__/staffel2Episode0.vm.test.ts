@@ -38,7 +38,6 @@ const LISTE = `${UEBUNG}/kaffeekasse.csv`;
 const SICHERUNG = `${UEBUNG}/kaffeekasse.bak`;
 
 const BELEG_IDS = ['kasse-meta', 'kasse-zeilen'] as const;
-const GEAENDERT = '2026-04-15,Timo,0.50';
 type BelegId = (typeof BELEG_IDS)[number];
 
 const MELDUNG = {
