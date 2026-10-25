@@ -13,6 +13,7 @@ import {
   missionAssetUrl,
 } from '../../lib/missions/missionAssets';
 import type { MissionCommand, MissionReply } from '../../lib/missions/missionTypes';
+import { TERMINAL_TAB_HINWEIS, createTabExitHandler } from '../../lib/missions/terminalTabExit';
 import { readTerminalTheme } from '../../lib/missions/terminalTheme';
 import {
   terminalBeschaeftigt,
@@ -111,6 +112,7 @@ export default function V86Bildschirm({
       });
       const fit = new FitAddon();
       term.loadAddon(fit);
+      term.attachCustomKeyEventHandler(createTabExitHandler());
       term.open(termRef.current);
       fit.fit();
 
@@ -339,6 +341,11 @@ export default function V86Bildschirm({
         >
           {terminalStatusText(phase)}
         </span>
+        {reiter === 'terminal' && (
+          <span data-testid="v86-tab-hinweis" className="hidden sm:inline">
+            {TERMINAL_TAB_HINWEIS}
+          </span>
+        )}
         <div className="flex gap-2">
           {reiter === 'bildschirm' && (
             <button

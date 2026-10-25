@@ -124,4 +124,10 @@ describe('Bildschirmbedarf einer Ermittlung', () => {
       expect(read(datei), datei).not.toMatch(/V86Bildschirm|bildschirm\//i);
     }
   });
+
+  it('das Terminal im Bildschirm hat denselben Ausweg aus der Tastaturfalle (#151)', () => {
+    expect(read('src/components/missions/V86Bildschirm.tsx')).toContain(
+      'term.attachCustomKeyEventHandler(createTabExitHandler());'
+    );
+  });
 });
