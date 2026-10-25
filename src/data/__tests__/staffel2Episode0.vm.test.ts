@@ -38,6 +38,7 @@ const LISTE = `${UEBUNG}/kaffeekasse.csv`;
 const SICHERUNG = `${UEBUNG}/kaffeekasse.bak`;
 
 const BELEG_IDS = ['kasse-meta', 'kasse-zeilen'] as const;
+const GEAENDERT = '2026-04-15,Timo,0.50';
 type BelegId = (typeof BELEG_IDS)[number];
 
 const MELDUNG = {
@@ -48,6 +49,15 @@ const MELDUNG = {
     'Es fehlt noch die Zeile aus der Sicherung. Mit >> hängst du an, statt zu überschreiben.',
   listeFehlt:
     'Es fehlt noch die geänderte Zeile aus der Liste. Mit >> hängst du an, statt zu überschreiben.',
+  schonRepariert:
+    'Die Liste ist schon repariert, die geänderte Zeile steht nicht mehr darin. Lade die Seite neu und sichere vor dem Reparieren.',
+  betragNoch: 'Der falsche Betrag steht noch in der Liste. Der richtige steht in der Sicherung.',
+  leer: 'Die Liste ist leer. Hol den Inhalt der Sicherung zurück in die Liste.',
+  laenger:
+    'Die Liste ist jetzt länger als die Sicherung. Hänge nichts an, ersetze den ganzen Inhalt.',
+  kuerzer: 'In der Liste fehlen Zeilen. Sie soll wieder genau so aussehen wie die Sicherung.',
+  weicht:
+    'Die Liste weicht noch von der Sicherung ab. Sie muss genau so aussehen wie die Sicherung.',
 } as const;
 
 /** Der geprüfte Lösungsweg, den die dritte Tipp-Stufe nennt. */
@@ -59,6 +69,22 @@ const tippLoesung = (spurId: string, schrittId: string): string => {
   expect(tipp.startsWith(LOESUNG)).toBe(true);
   return tipp.slice(LOESUNG.length);
 };
+
+/** Gleichwertige Wege, die Liste aus der Sicherung wiederherzustellen; jeder muss den Schritt lösen. */
+const WEGE_ZURUECK: { name: string; befehl: string }[] = [
+  { name: 'Tipp', befehl: tippLoesung('inhalt', 'kasse-zurueck') },
+  { name: 'cat umleiten', befehl: `cat ${SICHERUNG} > ${LISTE}` },
+  { name: 'tee', befehl: `tee ${LISTE} < ${SICHERUNG} > /dev/null` },
+  {
+    name: 'sed über eine Zwischendatei',
+    befehl: `sed 's/0.50/2.50/' ${LISTE} > ~/neu.csv && cat ~/neu.csv > ${LISTE}`,
+  },
+  {
+    name: 'Zeilen von Hand',
+    befehl: `{ echo datum,name,betrag; echo 2026-04-13,Timo,5.00; echo 2026-04-14,Nadia,5.00; echo 2026-04-15,Timo,2.50; echo 2026-04-16,Nadia,7.00; echo 2026-04-17,Timo,3.50; } > ${LISTE}`,
+  },
+  { name: 'cp mit -f', befehl: `cp -f ${SICHERUNG} ${LISTE}` },
+];
 
 /** Gleichwertige Lösungswege je Beleg: jeder muss denselben gültigen Beleg erzeugen. */
 const WEGE: Record<BelegId, { name: string; befehl: string; rcEgal?: boolean }[]> = {
@@ -156,6 +182,26 @@ describe.skipIf(!enabled)('Episode 0 „Probelauf“ in der echten VM', () => {
     ereignisse = neu.ereignisse;
     return neu;
   };
+  const typen = () => ereignisse.map((e) => e.type);
+  // Prüfung und Diagnose des Reparaturschritts, wie das Bündel sie fährt.
+  const zurueckPruefung = async () => {
+    const schritt = episode0.spuren[1].schritte[1];
+    const ausgabe = leseBuendelAusgabe(
+      (
+        await run(
+          buendelSkript([
+            { id: 's.inhalt.kasse-zurueck', skript: schritt.verify },
+            { id: 'd.inhalt.kasse-zurueck', skript: schritt.diagnose ?? 'true', diagnose: true },
+          ])
+        )
+      ).output
+    );
+    expect(ausgabe.vollstaendig).toBe(true);
+    return {
+      geloest: ausgabe.ergebnisse['s.inhalt.kasse-zurueck'] === true,
+      diagnose: ausgabe.diagnosen?.['d.inhalt.kasse-zurueck'] ?? '',
+    };
+  };
   const diagnosen = () =>
     ereignisse.flatMap((e) =>
       e.type === 'diagnose' ? [`${e.spurId}/${e.schrittId}: ${e.text}`] : []
@@ -225,7 +271,7 @@ describe.skipIf(!enabled)('Episode 0 „Probelauf“ in der echten VM', () => {
   it('T12-0: das Setup legt Liste und Sicherung mit Besitzer, Zeit und einem veränderten Betrag an', async () => {
     const meta = await run(`stat -c '%n %U %a %y' ${LISTE} ${SICHERUNG}`);
     expect(meta.output.trim().split('\n')).toEqual([
-      `${LISTE} kaffee 644 2026-04-17 03:12:00.000000000 +0000`,
+      `${LISTE} kaffee 664 2026-04-17 03:12:00.000000000 +0000`,
       `${SICHERUNG} root 644 2026-04-16 22:05:00.000000000 +0000`,
     ]);
     const diff = await run(`diff ${SICHERUNG} ${LISTE}; true`);
@@ -242,19 +288,26 @@ describe.skipIf(!enabled)('Episode 0 „Probelauf“ in der echten VM', () => {
     ]);
   }, 180_000);
 
-  it('T12-0: azubi kann Liste, Sicherung und Übungsordner nicht verändern', async () => {
-    const vorher = await hashes([LISTE, SICHERUNG]);
+  it('T12-0: azubi darf nur die Liste beschreiben, nicht die Sicherung, den Ordner oder die Rechte', async () => {
+    const sicherung = await hashes([SICHERUNG]);
     for (const versuch of [
-      `echo x >> ${LISTE}`,
       `echo x >> ${SICHERUNG}`,
       `rm -f ${LISTE}`,
       `rm -f ${SICHERUNG}`,
       `mv ${LISTE} /tmp/anders`,
       `touch ${UEBUNG}/neu.txt`,
+      `sed -i s/0.50/2.50/ ${LISTE}`,
+      `chmod 600 ${LISTE}`,
+      `chown azubi ${LISTE}`,
     ]) {
       expect((await alsAzubi(versuch)).rc, versuch).not.toBe(0);
     }
-    expect(await hashes([LISTE, SICHERUNG])).toBe(vorher);
+    expect(await hashes([SICHERUNG])).toBe(sicherung);
+    const vorher = await hashes([LISTE]);
+    expect((await alsAzubi(`echo x >> ${LISTE}`)).rc).toBe(0);
+    expect(await hashes([LISTE])).not.toBe(vorher);
+    await setupEpisode();
+    expect(await hashes([LISTE])).toBe(vorher);
   }, 120_000);
 
   it('T12-0: vor der Lösung sind alle Prüfungen und Diagnosen negativ oder leer', async () => {
@@ -426,12 +479,94 @@ describe.skipIf(!enabled)('Episode 0 „Probelauf“ in der echten VM', () => {
     await pruefLauf();
     expect(zustand.erledigt).toEqual({ akte: 2, inhalt: 1 });
     expect(zustand.belegeErkannt).toEqual(['kasse-meta', 'kasse-zeilen']);
+    // Erst gesichert, dann repariert: Die Belege bleiben gültig, der Vorwurf trägt auch danach.
+    await alsAzubi(tippLoesung('inhalt', 'kasse-zurueck'));
+    await pruefLauf();
+    expect(zustand.erledigt).toEqual({ akte: 2, inhalt: 2 });
+    expect(zustand.belegeErkannt).toEqual(['kasse-meta', 'kasse-zeilen']);
+    expect(typen()).toEqual(expect.arrayContaining(['schritt-erledigt', 'spur-erledigt']));
+    expect(typen()).not.toContain('beleg-verloren');
     const richtig = pruefeVorwurf(episode0, zustand, {
       verdaechtigeId: 'kaffee',
       belegIds: ['kasse-meta', 'kasse-zeilen'],
     });
     expect(richtig.ergebnis).toBe('richtig');
     expect(richtig.zustand.geloest).toBe(true);
+  }, 300_000);
+
+  it('T12-R: vor der Reparatur ist der Schritt offen und die Diagnose stumm', async () => {
+    await frischerLauf();
+    expect(await zurueckPruefung()).toEqual({ geloest: false, diagnose: '' });
+  }, 120_000);
+
+  it('T12-R: jeder richtige Weg stellt die Liste her und löst genau den Reparaturschritt', async () => {
+    for (const weg of WEGE_ZURUECK) {
+      await frischerLauf();
+      const antwort = await alsAzubi(weg.befehl);
+      expect(antwort.rc, `${weg.name}: ${weg.befehl}\n${antwort.text}`).toBe(0);
+      expect(await zurueckPruefung(), weg.name).toEqual({ geloest: true, diagnose: '' });
+      expect((await run(`cmp -s ${LISTE} ${SICHERUNG}`)).exitCode, weg.name).toBe(0);
+      await alsAzubi('rm -f ~/neu.csv');
+    }
+  }, 600_000);
+
+  it('T12-R: typische Fehler lösen nichts und bekommen eine passende Diagnose', async () => {
+    const faelle: { name: string; befehl: string; text: string }[] = [
+      { name: 'angehängt', befehl: `cat ${SICHERUNG} >> ${LISTE}`, text: MELDUNG.betragNoch },
+      { name: 'leer', befehl: `: > ${LISTE}`, text: MELDUNG.leer },
+      {
+        name: 'zu lang ohne falschen Betrag',
+        befehl: `{ cat ${SICHERUNG}; echo 2026-04-18,Timo,1.00; } > ${LISTE}`,
+        text: MELDUNG.laenger,
+      },
+      { name: 'zu kurz', befehl: `head -3 ${SICHERUNG} > ${LISTE}`, text: MELDUNG.kuerzer },
+      {
+        name: 'anderer Betrag',
+        befehl: `sed 's/0.50/9.99/' ${LISTE} > ~/neu.csv && cat ~/neu.csv > ${LISTE}`,
+        text: MELDUNG.weicht,
+      },
+      {
+        name: 'Datum statt Betrag geändert',
+        befehl: `sed 's/2026-04-17,Timo,3.50/2026-04-18,Timo,3.50/' ${SICHERUNG} > ~/neu.csv && cat ~/neu.csv > ${LISTE}`,
+        text: MELDUNG.weicht,
+      },
+    ];
+    for (const fall of faelle) {
+      await frischerLauf();
+      expect((await alsAzubi(fall.befehl)).rc, fall.name).toBe(0);
+      expect(await zurueckPruefung(), fall.name).toEqual({ geloest: false, diagnose: fall.text });
+      await alsAzubi('rm -f ~/neu.csv');
+    }
+  }, 600_000);
+
+  it('T12-R: nach der Reparatur bleiben vorher gesicherte Belege gültig, neue Belege der Zeilen nicht', async () => {
+    await frischerLauf();
+    for (const id of BELEG_IDS) await alsAzubi(WEGE[id][0].befehl);
+    expect(await belegPruefung()).toEqual({ 'kasse-meta': true, 'kasse-zeilen': true });
+    await alsAzubi(WEGE_ZURUECK[0].befehl);
+    expect(await belegPruefung()).toEqual({ 'kasse-meta': true, 'kasse-zeilen': true });
+
+    // Ein Beleg der Zeilen lässt sich aus der reparierten Liste nicht mehr erzeugen; die Diagnose sagt warum.
+    await frischBelege();
+    await alsAzubi(WEGE['kasse-zeilen'][0].befehl);
+    expect(await belegPruefung()).toEqual({ 'kasse-meta': false, 'kasse-zeilen': false });
+    zustand = startZustand();
+    await pruefLauf();
+    expect(diagnosen()).toContain(`inhalt/kasse-zeilen: ${MELDUNG.schonRepariert}`);
+
+    // Besitzer, Rechte und Datum der Dateien lassen sich weiterhin sichern.
+    await alsAzubi(WEGE['kasse-meta'][0].befehl);
+    expect((await belegPruefung())['kasse-meta']).toBe(true);
+  }, 300_000);
+
+  it('T12-R: Reparatur zuerst, dann Rest: ein erneutes Setup stellt den Ausgangszustand her', async () => {
+    await frischerLauf();
+    const vorher = await hashes([LISTE, SICHERUNG]);
+    await alsAzubi(WEGE_ZURUECK[0].befehl);
+    expect(await hashes([LISTE, SICHERUNG])).not.toBe(vorher);
+    expect((await setupEpisode()).exitCode).toBe(0);
+    expect(await hashes([LISTE, SICHERUNG])).toBe(vorher);
+    expect((await zurueckPruefung()).geloest).toBe(false);
   }, 300_000);
 
   it('T12-0: Lösungsweg B, Inhalt vor Akte, mit falscher Person ohne Sperre', async () => {

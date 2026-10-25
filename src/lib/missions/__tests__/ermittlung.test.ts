@@ -211,7 +211,7 @@ describe('pruefeDaten', () => {
     const fehler = pruefeDaten(
       mit({
         spuren: [
-          { ...fixture.spuren[0], schritte: [schritt('S1', 'true'), schritt('s2', 'false')] },
+          { ...fixture.spuren[0], schritte: [schritt('S1', 'true'), schritt('s2', 'false', 'eingreifen')] },
           fixture.spuren[1],
         ],
       })
@@ -288,7 +288,7 @@ describe('pruefeDaten', () => {
     const fehler = pruefeDaten(
       mit({
         spuren: [
-          { ...fixture.spuren[0], schritte: [schritt('s1', 'true'), schritt('s1', 'false')] },
+          { ...fixture.spuren[0], schritte: [schritt('s1', 'true'), schritt('s1', 'false', 'eingreifen')] },
           fixture.spuren[1],
         ],
       })
@@ -430,7 +430,10 @@ describe('pruefeDaten', () => {
   it('meldet ein leeres Schritt-Skript', () => {
     const fehler = pruefeDaten(
       mit({
-        spuren: [{ ...fixture.spuren[1], schritte: [schritt('s1', '  ')] }, fixture.spuren[0]],
+        spuren: [
+          { ...fixture.spuren[1], schritte: [schritt('s1', '  ', 'reparieren')] },
+          fixture.spuren[0],
+        ],
       })
     );
     expect(fehler).toHaveLength(1);

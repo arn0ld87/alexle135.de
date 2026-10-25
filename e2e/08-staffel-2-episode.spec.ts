@@ -1,11 +1,16 @@
 import { expect, test } from '@playwright/test';
 import {
+  ANFANG,
   BELEG_DATEI,
+  FRAGE_KENNUNG,
   LOG,
   PAGER,
   RECHTE_METADATEN,
   RECHTE_REGEL,
+  REGEL_WEG,
+  STATUS_WEG,
   aktualisiere,
+  antworte,
   anzahlImPager,
   befehl,
   belegBox,
@@ -76,10 +81,15 @@ test('T10-1: Raum lesen, Log vor Rechte-Zeile sichern, richtiger Vorwurf', async
 test('T10-2: umgekehrte Spurenreihenfolge, Rechte-Spur bleibt linear', async ({ page }) => {
   await startEpisode(page);
 
-  // Zweiter Rechte-Schritt zuerst: Er zählt nicht, solange der erste fehlt.
+  // Dritter Rechte-Schritt zuerst: Er zählt nicht, solange die Schritte davor fehlen.
   await befehl(page, RECHTE_METADATEN);
   await befehl(page, RECHTE_REGEL, { pager: PAGER.regelErledigt });
   expect(await anzahlImPager(page, PAGER.metaErledigt)).toBe(0);
+  // Auch ein weiterer Prompt ändert daran nichts, erst die Antwort schaltet den Beleg-Schritt frei.
+  await befehl(page, 'true');
+  expect(await anzahlImPager(page, PAGER.metaErledigt)).toBe(0);
+  await antworte(page, FRAGE_KENNUNG, 'RW-1042');
+  await expect(pager(page)).toContainText(PAGER.kennungErledigt, { timeout: 30_000 });
   await befehl(page, 'true', { pager: PAGER.metaErledigt });
   await befehl(page, LOG, { pager: PAGER.logErledigt });
 
@@ -110,8 +120,7 @@ test('T10-3: falsche Person bei erkannten Belegen', async ({ page }) => {
 
   // Die Sperre ist begrenzt: Der dritte erkannte Beleg hebt sie auf (Sperre lag bei zwei erkannten
   // Belegen auf dem dritten), danach ist der Vorwurf wieder möglich.
-  await befehl(page, RECHTE_METADATEN, { pager: PAGER.metaErledigt });
-  await expect(pager(page)).toContainText(PAGER.wieder, { timeout: 30_000 });
+  await befehl(page, RECHTE_METADATEN, { pager: PAGER.wieder, timeout: 60_000 });
   await flaeche(page, 'Ansicht');
   await expect(vorwurfKnopf(page)).toBeEnabled({ timeout: 30_000 });
   await expect(page.getByRole('region', { name: 'Ansichten' })).not.toContainText(PAGER.gesperrt);
@@ -120,7 +129,7 @@ test('T10-3: falsche Person bei erkannten Belegen', async ({ page }) => {
 test('T10-4: richtige Person, aber nur Belege aus der Rechte-Spur', async ({ page }) => {
   await startEpisode(page);
   await befehl(page, RECHTE_REGEL, { pager: PAGER.regelErledigt });
-  await befehl(page, RECHTE_METADATEN, { pager: PAGER.metaErledigt });
+  await befehl(page, RECHTE_METADATEN);
   await waehleBelege(page, ['rechte-zeile', 'rechte-metadaten']);
 
   await erhebeVorwurf(page, 'Timo Kessler');
@@ -174,7 +183,7 @@ test('T10-6: Doppelklick auf Absenden bewertet nur einmal', async ({ page }) => 
   await startEpisode(page);
   await befehl(page, LOG, { pager: PAGER.logErledigt });
   await befehl(page, RECHTE_REGEL, { pager: PAGER.regelErledigt });
-  await befehl(page, RECHTE_METADATEN, { pager: PAGER.metaErledigt });
+  await befehl(page, RECHTE_METADATEN);
   await waehleBelege(page, ['log-zeile', 'rechte-zeile', 'rechte-metadaten']);
 
   await erhebeVorwurf(page, 'Timo Kessler', { doppelklick: true });
@@ -183,6 +192,78 @@ test('T10-6: Doppelklick auf Absenden bewertet nur einmal', async ({ page }) => 
   await expect(page.getByText('Der Rechtefund')).toHaveCount(1);
   expect(await anzahlImPager(page, PAGER.richtig)).toBe(1);
   expect(await anzahlImPager(page, PAGER.falschePerson)).toBe(0);
+});
+
+test('ADR 0009: Episode 1 mit allen Schrittarten durchspielen, bis zum Vorwurf und Abschluss', async ({
+  page,
+}) => {
+  await startEpisode(page);
+
+  await befehl(page, LOG, { pager: PAGER.logErledigt });
+  await befehl(page, RECHTE_REGEL, { pager: PAGER.regelErledigt });
+
+  // Ablesen: erst falsch (Hinweis, nichts erledigt), dann richtig.
+  await antworte(page, FRAGE_KENNUNG, 'RW-1041');
+  await expect(pager(page)).toContainText('Das passt nicht zu dem, was das System zeigt.', {
+    timeout: 30_000,
+  });
+  expect(await anzahlImPager(page, PAGER.kennungErledigt)).toBe(0);
+  await antworte(page, FRAGE_KENNUNG, 'RW-1042');
+  await expect(pager(page)).toContainText(PAGER.kennungErledigt, { timeout: 30_000 });
+
+  await befehl(page, RECHTE_METADATEN, { pager: PAGER.metaErledigt });
+
+  // Reparieren: Kopieren statt Verschieben löst nichts und bekommt eine Diagnose.
+  await befehl(page, 'cp /etc/sudoers.d/rw-fernwartung ~/quarantaene/', {
+    pager: 'Die Regel liegt noch in /etc/sudoers.d, in der Quarantäne nur eine Kopie.',
+  });
+  expect(await anzahlImPager(page, PAGER.regelWegErledigt)).toBe(0);
+  await befehl(page, REGEL_WEG, { pager: PAGER.regelWegErledigt, timeout: 60_000 });
+
+  // Ordnen schließt die Spur Rechte ab.
+  await befehl(page, STATUS_WEG, { pager: PAGER.statusWegErledigt, timeout: 60_000 });
+  await expect(pager(page)).toContainText(PAGER.rechteSpur);
+
+  // Die vor dem Eingriff gesicherten Belege zählen weiter; der Einsatzrahmen ist unversehrt.
+  await waehleBelege(page, ['log-zeile', 'rechte-zeile', 'rechte-metadaten']);
+  await flaeche(page, 'Ansicht');
+  await expect(page.getByRole('region', { name: 'Einsatzrahmen' })).not.toContainText(
+    'Einsatzrahmen verletzt.'
+  );
+  await erhebeVorwurf(page, 'Timo Kessler');
+  await erwarteAbschluss(page);
+  expect(await anzahlImPager(page, PAGER.richtig)).toBe(1);
+});
+
+test('ADR 0009: Neu laden startet Episode 1 frisch, Regel und Programm liegen wieder am Platz', async ({
+  page,
+}) => {
+  await startEpisode(page);
+  await befehl(page, RECHTE_REGEL, { pager: PAGER.regelErledigt });
+  await antworte(page, FRAGE_KENNUNG, 'RW-1042');
+  await expect(pager(page)).toContainText(PAGER.kennungErledigt, { timeout: 30_000 });
+  await befehl(page, REGEL_WEG);
+  await befehl(page, STATUS_WEG);
+  await befehl(page, 'ls /etc/sudoers.d ~/quarantaene');
+  await expect(rows(page)).toContainText('rw-status');
+
+  await page.reload();
+  await expect(page.getByTestId('v86-status')).toContainText('echtes Linux', { timeout: 120_000 });
+  await expect(rows(page)).toContainText(/azubi@rw-srv01/, { timeout: 120_000 });
+  await expect(pager(page)).toContainText(ANFANG, { timeout: 60_000 });
+  expect(await anzahlImPager(page, PAGER.regelErledigt)).toBe(0);
+  await expect(page.getByRole('heading', { level: 2, name: /^Episode 1/ })).toBeVisible();
+  await flaeche(page, 'Ansicht');
+  await expect(
+    page.getByRole('button', { name: 'Rechte, 0 von 5 Schritten erledigt' })
+  ).toBeVisible();
+
+  // Frischer Zustand in der VM: Regel und Programm sind zurück, die Quarantäne ist leer.
+  await befehl(page, 'ls /etc/sudoers.d /usr/local/bin; echo ZZ""Q$(ls ~/quarantaene | wc -l)Z');
+  await expect(rows(page)).toContainText('rw-fernwartung');
+  await expect(rows(page)).toContainText('ZZQ0Z');
+  // Und die Episode ist wieder spielbar.
+  await befehl(page, RECHTE_REGEL, { pager: PAGER.regelErledigt });
 });
 
 test('T10-9: leere, fehlerhafte und geänderte Dateien in der Aktenwand', async ({ page }) => {
