@@ -373,7 +373,9 @@ describe.skipIf(!enabled)('Episode 1 „Zu viele Rechte“ in der echten VM', ()
     expect(liste.text).not.toContain('/usr/bin/id');
     expect(liste.text).not.toContain('NOPASSWD: /usr/bin/id');
     expect(liste.text).toContain(T8_BEFEHL);
-    for (const befehl of SUDO_BEFEHLE) expect(liste.text, befehl).toContain(befehl);
+    // sudo -l bricht lange Zeilen um.
+    const einzeilig = liste.text.replace(/\s+/g, ' ');
+    for (const befehl of SUDO_BEFEHLE) expect(einzeilig, befehl).toContain(befehl);
     expect(liste.text).not.toContain('*');
     for (const versuch of [
       `sudo -n /usr/bin/id`,
