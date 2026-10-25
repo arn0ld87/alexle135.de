@@ -119,6 +119,9 @@ export default defineConfig({
       // Build-Datum für die Betriebszeile im Footer (JJJJ-MM-TT, UTC). Die Konfiguration
       // läuft zur Build-Zeit, das Datum ist also das des Builds und nicht das des Requests.
       'import.meta.env.PUBLIC_BUILD_DATE': JSON.stringify(new Date().toISOString().slice(0, 10)),
+      // Build-Zeitpunkt als Veröffentlichungsgrenze (src/utils/content.ts): Listen, Feed und
+      // Suchindex zeigen zur Laufzeit nur Beiträge, deren Detailseite dieser Build erzeugt hat.
+      'import.meta.env.PUBLIC_BUILD_TIME': JSON.stringify(new Date().toISOString()),
     },
     plugins: [
       tailwindcss(),

@@ -1,8 +1,19 @@
 import type { CollectionEntry } from 'astro:content';
 
+/**
+ * Die Detailseiten `/blog/<slug>/` entstehen beim Build (prerender); Listen, Feed und
+ * Suchindex laufen dagegen zur Laufzeit (SSR). Ein Beitrag, dessen Datum erst nach dem
+ * Build verstreicht, hätte darum zwar einen Eintrag, aber keine Seite (404). Als Grenze
+ * gilt deshalb die frühere von Build-Zeit und jetzt; er erscheint mit dem nächsten Deploy.
+ */
+function publishCutoff(): number {
+  const buildTime = Date.parse(import.meta.env.PUBLIC_BUILD_TIME ?? '');
+  return Number.isNaN(buildTime) ? Date.now() : Math.min(buildTime, Date.now());
+}
+
 export function isPublishedBlogPost(post: CollectionEntry<'blog'>): boolean {
   const publishedAt = post.data.publishedAt;
-  return !post.data.draft && (!publishedAt || publishedAt.getTime() <= Date.now());
+  return !post.data.draft && (!publishedAt || publishedAt.getTime() <= publishCutoff());
 }
 
 export function sortContentByDate(

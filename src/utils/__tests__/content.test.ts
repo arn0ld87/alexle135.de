@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { CollectionEntry } from 'astro:content';
 import { getRelatedPosts, isPublishedBlogPost } from '../content';
 
@@ -37,6 +37,27 @@ describe('isPublishedBlogPost', () => {
 
   it('returns true when publishedAt is absent and not draft', () => {
     const post = { data: { draft: false } } as unknown as CollectionEntry<'blog'>;
+    expect(isPublishedBlogPost(post)).toBe(true);
+  });
+});
+
+describe('isPublishedBlogPost: Build-Zeitpunkt als Grenze', () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it('blendet einen Beitrag aus, dessen Datum erst nach dem Build verstrichen ist', () => {
+    // Detailseite wurde beim Build nicht erzeugt (Datum lag danach), das Datum ist inzwischen vorbei.
+    vi.stubEnv('PUBLIC_BUILD_TIME', new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString());
+    const post = {
+      data: { draft: false, publishedAt: yesterday },
+    } as unknown as CollectionEntry<'blog'>;
+    expect(isPublishedBlogPost(post)).toBe(false);
+  });
+
+  it('zeigt einen Beitrag, dessen Datum vor dem Build lag', () => {
+    vi.stubEnv('PUBLIC_BUILD_TIME', new Date().toISOString());
+    const post = {
+      data: { draft: false, publishedAt: yesterday },
+    } as unknown as CollectionEntry<'blog'>;
     expect(isPublishedBlogPost(post)).toBe(true);
   });
 });
