@@ -380,8 +380,9 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
 
   const aktiveSpur = ermittlung.spuren.find((spur) => spur.id === aktiveSpurId) ?? null;
 
+  // Desktop: Kopf und Pager stehen, nur die linke Spalte scrollt; das Terminal bleibt fest.
   return (
-    <div className="grid gap-4 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
+    <div className="grid gap-4 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col">
       <h2 className="ds-display-s text-[color:var(--ink)]">
         Episode {ermittlung.nr}{' '}
         <span className="text-[color:var(--muted)]">· {ermittlung.titel}</span>
@@ -416,8 +417,10 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
           Terminal
         </button>
       </div>
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
-        <div className={`min-w-0 ${bereich === 'ansicht' ? 'lg:block' : 'hidden lg:block'}`}>
+      <div className="grid gap-4 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
+        <div
+          className={`min-w-0 lg:min-h-0 lg:overflow-y-auto lg:pr-1 ${bereich === 'ansicht' ? 'lg:block' : 'hidden lg:block'}`}
+        >
           <EinsatzrahmenHinweis
             text={ermittlung.einsatzrahmen.text}
             verletzt={anzeigeZustand.einsatzrahmenVerletzt}
@@ -461,7 +464,9 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
             }
           />
         </div>
-        <div className={`min-w-0 ${bereich === 'terminal' ? 'lg:block' : 'hidden lg:block'}`}>
+        <div
+          className={`min-w-0 lg:min-h-0 ${bereich === 'terminal' ? 'lg:block' : 'hidden lg:block'}`}
+        >
           <Suspense
             fallback={
               <p className="font-mono text-xs text-[color:var(--muted)]">Terminal lädt …</p>
