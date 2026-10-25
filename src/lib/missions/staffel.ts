@@ -11,6 +11,8 @@ export interface AkteEintrag {
   /** Abgerufene Tipps über alle Schritte. */
   hintsUsed: number;
   finishedAt: number;
+  /** Nur Staffel 2: Vorwürfe, die der gelöste Lauf bis zum richtigen brauchte. */
+  vorwurfVersuche?: number;
 }
 
 export type Akte = Record<string, AkteEintrag>;
@@ -20,6 +22,8 @@ export interface StaffelStand {
   /** IDs der verdienten Abzeichen, in der Reihenfolge des Verdienens. */
   abzeichen: string[];
   rotePrompts: number;
+  /** Zeitpunkt des letzten Löschens der Staffel; ältere Einträge anderer Tabs gelten nicht mehr. */
+  zurueckgesetztAm?: number;
 }
 
 export const leererStand = (): StaffelStand => ({ akte: {}, abzeichen: [], rotePrompts: 0 });

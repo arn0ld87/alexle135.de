@@ -1,14 +1,21 @@
 ---
 import V2Layout from '../../../../layouts/V2Layout.astro';
-import ErmittlungApp from '../../../../components/missions/ErmittlungApp';
+import Staffel2Seite from '../../../../components/missions/Staffel2Seite';
 import {
+  STAFFEL2_PFAD,
+  staffel2Episoden,
+  staffel2Uebersicht,
   waehleEpisode,
   weiterZurNaechsten,
 } from '../../../../data/staffeln/staffel-2';
 
-// ?episode=<nr> wählt eine Episode der Liste; ohne Angabe oder bei einem unbekannten Wert Episode 0.
-const { ermittlung: episode, werkzeuge } = waehleEpisode(Astro.url.searchParams.get('episode'));
-const weiter = weiterZurNaechsten(episode);
+// ?episode=<nr> wählt eine Episode der Liste, ein unbekannter Wert Episode 0. Ohne Angabe wählt der
+// Browser die erste ungelöste Episode (der Server kennt den Stand nicht) und bekommt dafür alle.
+const wert = Astro.url.searchParams.get('episode');
+const gewaehlt = wert === null ? null : waehleEpisode(wert).ermittlung.nr;
+const episoden = staffel2Episoden
+  .filter((eintrag) => gewaehlt === null || eintrag.ermittlung.nr === gewaehlt)
+  .map((eintrag) => ({ ...eintrag, weiter: weiterZurNaechsten(eintrag.ermittlung) }));
 ---
 
 <V2Layout
@@ -33,11 +40,12 @@ const weiter = weiterZurNaechsten(episode);
         Zur Projektseite
       </a>
     </header>
-    <ErmittlungApp
+    <Staffel2Seite
       client:only="react"
-      ermittlung={episode}
-      werkzeuge={werkzeuge}
-      weiter={weiter}
+      episoden={episoden}
+      uebersicht={staffel2Uebersicht}
+      gewaehlt={gewaehlt}
+      startHref={STAFFEL2_PFAD}
     />
   </main>
 </V2Layout>

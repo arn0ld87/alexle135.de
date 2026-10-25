@@ -262,6 +262,102 @@ describe('createStaffelStore', () => {
     expect(Object.keys(store.read('test').akte)).toEqual(['v0']);
     expect(Object.keys(store.read('andere').akte)).toEqual(['v1']);
   });
+
+  describe('Staffel 2', () => {
+    // Stand aus der Zeit vor Staffel 2: Format und Inhalt von Staffel 1 dürfen sich nicht ändern.
+    const alt = {
+      test: {
+        akte: { v0: { durationMs: 5, withSolution: false, hintsUsed: 2, finishedAt: 9 } },
+        abzeichen: ['rot'],
+        rotePrompts: 3,
+      },
+    };
+
+    it('liest einen alten Stand von Staffel 1 unverändert und lässt ihn beim Eintragen stehen', () => {
+      const storage = memoryStorage({ [STAFFEL_STORE_KEY]: JSON.stringify(alt) });
+      const store = createStaffelStore(storage);
+      expect(store.read('test')).toEqual(alt.test);
+      store.loeseEpisode('staffel-2', 'probelauf', eintrag({ vorwurfVersuche: 2 }));
+      expect(JSON.parse(storage.data.get(STAFFEL_STORE_KEY)!)).toEqual({
+        ...alt,
+        'staffel-2': {
+          akte: { probelauf: eintrag({ vorwurfVersuche: 2 }) },
+          abzeichen: [],
+          rotePrompts: 0,
+        },
+      });
+    });
+
+    it('behält beim erneuten Lösen den besseren Lauf', () => {
+      const store = createStaffelStore(memoryStorage());
+      store.loeseEpisode('staffel-2', 'e', eintrag({ withSolution: true, durationMs: 1 }));
+      store.loeseEpisode('staffel-2', 'e', eintrag({ durationMs: 500 }));
+      store.loeseEpisode('staffel-2', 'e', eintrag({ durationMs: 900 }));
+      expect(store.read('staffel-2').akte.e.durationMs).toBe(500);
+    });
+
+    it('führt zwei Tabs zusammen', () => {
+      const storage = memoryStorage();
+      createStaffelStore(storage).loeseEpisode('staffel-2', 'a', eintrag());
+      createStaffelStore(storage).loeseEpisode('staffel-2', 'b', eintrag());
+      expect(Object.keys(createStaffelStore(storage).read('staffel-2').akte).sort()).toEqual([
+        'a',
+        'b',
+      ]);
+    });
+
+    it('löscht nur Staffel 2', () => {
+      const storage = memoryStorage({ [STAFFEL_STORE_KEY]: JSON.stringify(alt) });
+      const store = createStaffelStore(storage);
+      store.loeseEpisode('staffel-2', 'a', eintrag());
+      store.loescheStaffel('staffel-2');
+      const leer = { akte: {}, abzeichen: [], rotePrompts: 0 };
+      expect(store.read('staffel-2')).toMatchObject(leer);
+      expect(createStaffelStore(storage).read('staffel-2')).toMatchObject(leer);
+      expect(JSON.parse(storage.data.get(STAFFEL_STORE_KEY)!).test).toEqual(alt.test);
+    });
+
+    // Codex-Finding zu #163: Ein offener zweiter Tab darf Gelöschtes nicht zurückschreiben.
+    it('hält das Löschen gegen einen offenen zweiten Tab', () => {
+      const storage = memoryStorage();
+      const tabA = createStaffelStore(storage);
+      const tabB = createStaffelStore(storage);
+      tabA.loeseEpisode('staffel-2', 'a', eintrag({ finishedAt: 1_000 }));
+      expect(Object.keys(tabB.read('staffel-2').akte)).toEqual(['a']);
+      tabA.loescheStaffel('staffel-2');
+      // Tab B zeigt nach dem Lesen nichts mehr und schreibt beim nächsten Abschluss nur Neues.
+      expect(tabB.read('staffel-2').akte).toEqual({});
+      tabB.loeseEpisode('staffel-2', 'b', eintrag({ finishedAt: Date.now() + 10 }));
+      const neu = createStaffelStore(storage).read('staffel-2');
+      expect(Object.keys(neu.akte)).toEqual(['b']);
+      expect(Object.keys(tabA.read('staffel-2').akte)).toEqual(['b']);
+    });
+
+    it('verwirft Abzeichen und rote Prompts eines Tabs, der das Löschen nicht kennt', () => {
+      const storage = memoryStorage();
+      const tabA = createStaffelStore(storage);
+      const tabB = createStaffelStore(storage);
+      tabB.roterPrompt(staffel);
+      tabA.loescheStaffel('test');
+      expect(tabB.read('test').rotePrompts).toBe(0);
+    });
+
+    it('lässt Staffel 1 ohne Zeitstempel unverändert', () => {
+      const storage = memoryStorage({ [STAFFEL_STORE_KEY]: JSON.stringify(alt) });
+      const store = createStaffelStore(storage);
+      expect(store.read('test')).toEqual(alt.test);
+      expect(store.read('test')).not.toHaveProperty('zurueckgesetztAm');
+    });
+
+    it('verwirft einen Eintrag mit kaputten Versuchen', () => {
+      const storage = memoryStorage({
+        [STAFFEL_STORE_KEY]: JSON.stringify({
+          'staffel-2': { akte: { a: { ...eintrag(), vorwurfVersuche: 'x' }, b: eintrag() } },
+        }),
+      });
+      expect(Object.keys(createStaffelStore(storage).read('staffel-2').akte)).toEqual(['b']);
+    });
+  });
 });
 
 // Engine → Store: Was die Seite bei einem Vorfall der Reihe nach erfährt.

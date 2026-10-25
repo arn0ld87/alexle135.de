@@ -66,12 +66,25 @@ export async function flaeche(page: Page, name: 'Ansicht' | 'Terminal'): Promise
 /** Öffnet die Episode, wartet auf das gebootete Linux, den Prompt und den fertigen Auftrag. */
 export async function startEpisode(
   page: Page,
-  opts: { width?: number; height?: number; reducedMotion?: boolean; episode?: 0 | 1 } = {}
+  opts: {
+    width?: number;
+    height?: number;
+    reducedMotion?: boolean;
+    episode?: 0 | 1;
+    /** Ruft die Seite ohne `?episode=` auf; `episode` bestimmt dann nur, worauf gewartet wird. */
+    ohneAngabe?: boolean;
+  } = {}
 ): Promise<void> {
-  const { width = 1440, height = 1000, reducedMotion = true, episode = 1 } = opts;
+  const {
+    width = 1440,
+    height = 1000,
+    reducedMotion = true,
+    episode = 1,
+    ohneAngabe = false,
+  } = opts;
   await page.setViewportSize({ width, height });
   if (reducedMotion) await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto(episode === 0 ? STAFFEL2_E0 : STAFFEL2);
+  await page.goto(ohneAngabe ? STAFFEL2_BASIS : episode === 0 ? STAFFEL2_E0 : STAFFEL2);
   const consent = page.locator('#cookie-banner');
   if (await consent.isVisible()) {
     await consent.getByRole('button', { name: 'Ablehnen', exact: true }).click();
