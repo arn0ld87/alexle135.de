@@ -105,6 +105,7 @@ test('T10-2: umgekehrte Spurenreihenfolge, Rechte-Spur bleibt linear', async ({ 
   await expect(pager(page)).toContainText(PAGER.vorwurfOffen, { timeout: 45_000 });
   await loeseRechteRest(page, 'regel');
   await erwarteAbschluss(page);
+  await expect(pager(page)).toContainText(PAGER.richtig);
   expect(await anzahlImPager(page, PAGER.richtig)).toBe(1);
 });
 
@@ -186,6 +187,7 @@ test('T10-5: Beleg nach der letzten Prüfung gelöscht, Frischprüfung erkennt d
   await expect(pager(page)).toContainText(PAGER.vorwurfOffen, { timeout: 45_000 });
   await loeseRechteRest(page, 'kennung');
   await erwarteAbschluss(page);
+  await expect(pager(page)).toContainText(PAGER.richtig);
   expect(await anzahlImPager(page, PAGER.richtig)).toBe(1);
 });
 
@@ -203,6 +205,7 @@ test('T10-6: Doppelklick auf Absenden bewertet nur einmal', async ({ page }) => 
   await erwarteAbschluss(page);
   await expect(page.getByRole('heading', { name: 'Fall gelöst' })).toHaveCount(1);
   await expect(page.getByText('Der Rechtefund')).toHaveCount(1);
+  await expect(pager(page)).toContainText(PAGER.richtig);
   expect(await anzahlImPager(page, PAGER.richtig)).toBe(1);
   expect(await anzahlImPager(page, PAGER.falschePerson)).toBe(0);
 });
@@ -245,6 +248,7 @@ test('ADR 0009: Episode 1 mit allen Schrittarten durchspielen, bis zum Vorwurf u
   );
   await erhebeVorwurf(page, 'Timo Kessler');
   await erwarteAbschluss(page);
+  await expect(pager(page)).toContainText(PAGER.richtig);
   expect(await anzahlImPager(page, PAGER.richtig)).toBe(1);
 });
 
