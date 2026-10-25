@@ -55,6 +55,14 @@ Staffel 1 heißt „Fall Kehrwoche“: Nachts um 03:12 spielt Alex' Server verr�
 
 Episode 0 bringt nur die Bedienung bei und zählt nicht zur Gesamtzeit. Das Finale öffnet sich erst, wenn die Akte voll ist. Alle Daten im Spiel sind erfunden: Logs, IPs, Notizen und Secrets.
 
+[Staffel 1 „Fall Kehrwoche“ spielen →](/projekte/terminal-missionen/app/)
+
+## Staffel 2: Rechenwerk Ostwind (Vorschau)
+
+In Staffel 2 prüfst du mit dem Testkonto azubi die Server der Rechenwerk Ostwind GmbH, innerhalb eines schriftlich vereinbarten Einsatzrahmens. Du verfolgst mehrere Spuren in freier Reihenfolge, sicherst Belege mit Shell-Befehlen in `~/belege/` und erhebst auf der Aktenwand einen Vorwurf, den du belegen musst. Spielbar sind Episode 0 „Probelauf“ und Episode 1 „Zu viele Rechte“; weitere Episoden folgen.
+
+[Staffel 2 „Rechenwerk Ostwind“ spielen →](/projekte/terminal-missionen/app/staffel-2/)
+
 ## Wie es gebaut ist
 
 Im Browser läuft [v86](https://github.com/copy/v86), ein x86-Emulator in WebAssembly. Darin bootet ein eigenes Alpine-Image mit 128 MB Speicher, das ich selbst baue und selbst hoste. Damit der Start nicht jedes Mal einen kompletten Boot braucht, lädt der Browser einen fertigen Speicherstand der VM. Das Terminal ist xterm.js an der ersten seriellen Schnittstelle.

@@ -7,10 +7,11 @@
 //   /ai                  — englischer One-Pager für Bewerbungen, noindex
 //   /ki-agenten-lab      — noindex, konsistent mit /ai
 //   /blog/terminal-demo  — interne Demo, kein Produktiv-Content
-//   /projekte/(windows-)terminal-missionen/app — WebContainer-Entrypoints, kein Index-Content
+//   /projekte/windows-terminal-missionen/app — WebContainer-Entrypoint, kein Index-Content
 //   /apps/compose-builder — doppelte Utility-Oberfläche, über die stärkere Elternseite abgedeckt
+// Die Linux-Krimi-Apps (Staffel 1 und 2) sind indexierbar und bleiben in der Sitemap.
 const BLOCKED =
-  /^\/(admin|api|ai|design-system|ki-agenten-lab|kontakt\/danke|status)(\/|$)|^\/apps\/compose-builder\/?$|^\/projekte\/(windows-terminal-missionen|terminal-missionen)\/app(\/|$)|^\/blog\/terminal-demo\/?$/;
+  /^\/(admin|api|ai|design-system|ki-agenten-lab|kontakt\/danke|status)(\/|$)|^\/apps\/compose-builder\/?$|^\/projekte\/windows-terminal-missionen\/app(\/|$)|^\/blog\/terminal-demo\/?$/;
 
 export function isExcludedFromSitemap(pathname: string): boolean {
   return BLOCKED.test(pathname);

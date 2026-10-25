@@ -15,8 +15,6 @@ describe('isExcludedFromSitemap', () => {
     '/api/search.json',
     '/kontakt/danke/',
     '/apps/compose-builder/',
-    '/projekte/terminal-missionen/app/',
-    '/projekte/terminal-missionen/app/staffel-2',
     '/projekte/windows-terminal-missionen/app/',
     '/blog/terminal-demo/',
   ])('schließt %s aus', (pathname) => {
@@ -33,6 +31,8 @@ describe('isExcludedFromSitemap', () => {
     '/changelog/',
     '/blog/',
     '/projekte/terminal-missionen/',
+    '/projekte/terminal-missionen/app/',
+    '/projekte/terminal-missionen/app/staffel-2/',
     '/legal/impressum/',
   ])('lässt %s in der Sitemap', (pathname) => {
     expect(isExcludedFromSitemap(pathname)).toBe(false);
