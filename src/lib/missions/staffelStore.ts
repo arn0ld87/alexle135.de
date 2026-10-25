@@ -68,7 +68,9 @@ function parseStand(v: unknown): StaffelStand {
     : [];
   const rotePrompts =
     typeof v.rotePrompts === 'number' && v.rotePrompts >= 0 ? Math.floor(v.rotePrompts) : 0;
-  return { akte, abzeichen, rotePrompts };
+  const stand: StaffelStand = { akte, abzeichen, rotePrompts };
+  if (typeof v.zurueckgesetztAm === 'number') stand.zurueckgesetztAm = v.zurueckgesetztAm;
+  return stand;
 }
 
 /** Lauf a ist besser als b: ohne Lösung schlägt mit Lösung, sonst zählt die kürzere Zeit. */
@@ -77,8 +79,7 @@ function besser(a: AkteEintrag, b: AkteEintrag): boolean {
   return a.durationMs < b.durationMs;
 }
 
-/** Zwei Stände derselben Staffel vereinen: je Vorfall der bessere Lauf, alle Abzeichen. */
-function mergeStand(a: StaffelStand, b: StaffelStand): StaffelStand {
+function vereine(a: StaffelStand, b: StaffelStand): StaffelStand {
   const akte: Akte = { ...a.akte };
   for (const [id, e] of Object.entries(b.akte)) if (!akte[id] || besser(e, akte[id])) akte[id] = e;
   return {
@@ -86,6 +87,26 @@ function mergeStand(a: StaffelStand, b: StaffelStand): StaffelStand {
     abzeichen: [...new Set([...a.abzeichen, ...b.abzeichen])],
     rotePrompts: Math.max(a.rotePrompts, b.rotePrompts),
   };
+}
+
+/**
+ * Zwei Stände derselben Staffel vereinen: je Vorfall der bessere Lauf, alle Abzeichen. Hat einer die
+ * Staffel gelöscht, gilt von beiden nur, was danach entstand: Akte-Einträge nach dem Zeitstempel, aber
+ * Abzeichen und rote Prompts nur vom Stand, der das Löschen kennt (sie lassen sich nicht datieren).
+ * So schreibt ein offener zweiter Tab Gelöschtes nicht zurück.
+ */
+function mergeStand(a: StaffelStand, b: StaffelStand): StaffelStand {
+  const t = Math.max(a.zurueckgesetztAm ?? 0, b.zurueckgesetztAm ?? 0);
+  if (!t) return vereine(a, b);
+  const gilt = (stand: StaffelStand): StaffelStand => {
+    const kennt = stand.zurueckgesetztAm === t;
+    return {
+      akte: Object.fromEntries(Object.entries(stand.akte).filter(([, e]) => e.finishedAt > t)),
+      abzeichen: kennt ? stand.abzeichen : [],
+      rotePrompts: kennt ? stand.rotePrompts : 0,
+    };
+  };
+  return { ...vereine(gilt(a), gilt(b)), zurueckgesetztAm: t };
 }
 
 export function createStaffelStore(storage: StorageLike | null = defaultStorage()) {
@@ -121,7 +142,10 @@ export function createStaffelStore(storage: StorageLike | null = defaultStorage(
   const memory = readAll();
 
   function read(staffelId: string): StaffelStand {
-    return mergeStand(parseStand(readAll()[staffelId]), parseStand(memory[staffelId]));
+    const stand = mergeStand(parseStand(readAll()[staffelId]), parseStand(memory[staffelId]));
+    // Der Cache übernimmt, was ein anderer Tab geschrieben oder gelöscht hat.
+    memory[staffelId] = stand;
+    return stand;
   }
 
   function write(staffelId: string, stand: StaffelStand) {
@@ -171,18 +195,12 @@ export function createStaffelStore(storage: StorageLike | null = defaultStorage(
       if (!previous || besser(eintrag, previous)) stand.akte[episodeId] = eintrag;
       write(staffelId, stand);
     },
-    /** Löscht den Stand einer Staffel; andere Staffeln bleiben unberührt. */
+    /**
+     * Löscht den Stand einer Staffel; andere Staffeln bleiben unberührt. Der Zeitstempel bleibt
+     * stehen, damit ein offener zweiter Tab Gelöschtes nicht zurückschreibt.
+     */
     loescheStaffel(staffelId: string) {
-      delete memory[staffelId];
-      try {
-        const rest = Object.fromEntries(
-          Object.entries(readAll()).filter(([id]) => id !== staffelId)
-        );
-        if (Object.keys(rest).length) storage?.setItem(STAFFEL_STORE_KEY, JSON.stringify(rest));
-        else storage?.removeItem(STAFFEL_STORE_KEY);
-      } catch {
-        // Speicher gesperrt: Der Speicher dieser Sitzung ist trotzdem leer.
-      }
+      write(staffelId, { ...leererStand(), zurueckgesetztAm: Date.now() });
     },
     /** Ein Befehl endete mit Exit ≠ 0 (roter Prompt). */
     roterPrompt(staffel: Staffel): StaffelEreignis[] {

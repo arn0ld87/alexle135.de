@@ -22,6 +22,8 @@ export interface StaffelStand {
   /** IDs der verdienten Abzeichen, in der Reihenfolge des Verdienens. */
   abzeichen: string[];
   rotePrompts: number;
+  /** Zeitpunkt des letzten Löschens der Staffel; ältere Einträge anderer Tabs gelten nicht mehr. */
+  zurueckgesetztAm?: number;
 }
 
 export const leererStand = (): StaffelStand => ({ akte: {}, abzeichen: [], rotePrompts: 0 });

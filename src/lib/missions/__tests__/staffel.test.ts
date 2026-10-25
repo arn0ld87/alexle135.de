@@ -311,11 +311,42 @@ describe('createStaffelStore', () => {
       const store = createStaffelStore(storage);
       store.loeseEpisode('staffel-2', 'a', eintrag());
       store.loescheStaffel('staffel-2');
-      expect(store.read('staffel-2')).toEqual(leererStand());
-      expect(createStaffelStore(storage).read('staffel-2')).toEqual(leererStand());
-      expect(JSON.parse(storage.data.get(STAFFEL_STORE_KEY)!)).toEqual(alt);
-      store.loescheStaffel('test');
-      expect(storage.data.has(STAFFEL_STORE_KEY)).toBe(false);
+      const leer = { akte: {}, abzeichen: [], rotePrompts: 0 };
+      expect(store.read('staffel-2')).toMatchObject(leer);
+      expect(createStaffelStore(storage).read('staffel-2')).toMatchObject(leer);
+      expect(JSON.parse(storage.data.get(STAFFEL_STORE_KEY)!).test).toEqual(alt.test);
+    });
+
+    // Codex-Finding zu #163: Ein offener zweiter Tab darf Gelöschtes nicht zurückschreiben.
+    it('hält das Löschen gegen einen offenen zweiten Tab', () => {
+      const storage = memoryStorage();
+      const tabA = createStaffelStore(storage);
+      const tabB = createStaffelStore(storage);
+      tabA.loeseEpisode('staffel-2', 'a', eintrag({ finishedAt: 1_000 }));
+      expect(Object.keys(tabB.read('staffel-2').akte)).toEqual(['a']);
+      tabA.loescheStaffel('staffel-2');
+      // Tab B zeigt nach dem Lesen nichts mehr und schreibt beim nächsten Abschluss nur Neues.
+      expect(tabB.read('staffel-2').akte).toEqual({});
+      tabB.loeseEpisode('staffel-2', 'b', eintrag({ finishedAt: Date.now() + 10 }));
+      const neu = createStaffelStore(storage).read('staffel-2');
+      expect(Object.keys(neu.akte)).toEqual(['b']);
+      expect(Object.keys(tabA.read('staffel-2').akte)).toEqual(['b']);
+    });
+
+    it('verwirft Abzeichen und rote Prompts eines Tabs, der das Löschen nicht kennt', () => {
+      const storage = memoryStorage();
+      const tabA = createStaffelStore(storage);
+      const tabB = createStaffelStore(storage);
+      tabB.roterPrompt(staffel);
+      tabA.loescheStaffel('test');
+      expect(tabB.read('test').rotePrompts).toBe(0);
+    });
+
+    it('lässt Staffel 1 ohne Zeitstempel unverändert', () => {
+      const storage = memoryStorage({ [STAFFEL_STORE_KEY]: JSON.stringify(alt) });
+      const store = createStaffelStore(storage);
+      expect(store.read('test')).toEqual(alt.test);
+      expect(store.read('test')).not.toHaveProperty('zurueckgesetztAm');
     });
 
     it('verwirft einen Eintrag mit kaputten Versuchen', () => {
