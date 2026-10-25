@@ -36,7 +36,7 @@ fi
 # Nur das rootfs-Stage ist i386 (im Dockerfile fest); alles andere läuft nativ,
 # sonst ist die headless Emulation für den Savestate unbenutzbar langsam.
 BUILD_ARGS=(
-  --platform "$HOST_PLATFORM" --target assets --file mission-image-gui/Dockerfile
+  --platform "$HOST_PLATFORM" --target assets --file Dockerfile
   --build-arg "V86_VERSION=$V86_VERSION" --build-arg "MEMORY_MB=$MEMORY_MB"
   --build-arg "VGA_MEMORY_MB=$VGA_MEMORY_MB"
 )
