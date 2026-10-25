@@ -79,7 +79,7 @@ test('Episode 2: Wiedergänger beenden, Zettel auf dem Bildschirm lesen, Nadia �
 
   // Spur Zettel: Bildschirm starten und das Foto im Bildbetrachter ansehen.
   await tippeImTerminal(page, 'bildschirm');
-  await expect(rows(page)).toContainText('Bildschirm läuft.', { timeout: 240_000 });
+  await expect(rows(page)).toContainText('Bildschirm läuft', { timeout: 240_000 });
   await tippeImTerminal(
     page,
     `feh ~/fotos/IMG_0417.png & until xwininfo -root -tree | grep -q '"feh'; do sleep 1; done; echo ZETTEL-$((40+2))`
@@ -93,6 +93,7 @@ test('Episode 2: Wiedergänger beenden, Zettel auf dem Bildschirm lesen, Nadia �
   await shot(page, 'ep2-bildschirm-zettel');
 
   // Antwortfeld: erst eine Kennung aus dem Journal, die nicht auf dem Zettel steht, dann die richtige.
+  await page.getByRole('button', { name: /Zettel.*Schritten/ }).click();
   const feld = page.getByLabel('Welche Änderungskennung steht auf dem Zettel? (RW-…)');
   await feld.fill('RW-2117');
   await page.getByRole('button', { name: 'Antworten', exact: true }).click();
