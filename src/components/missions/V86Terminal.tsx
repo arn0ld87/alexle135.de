@@ -8,6 +8,7 @@ import { MISSION_OSC, parseMissionRequest } from '../../lib/missions/missionBrid
 import { createPromptDelivery } from '../../lib/missions/promptDelivery';
 import { MISSION_ASSET_BASE, missionAssetUrl } from '../../lib/missions/missionAssets';
 import type { MissionCommand, MissionReply } from '../../lib/missions/missionTypes';
+import { TERMINAL_TAB_HINWEIS, createTabExitHandler } from '../../lib/missions/terminalTabExit';
 import { readTerminalTheme } from '../../lib/missions/terminalTheme';
 import {
   terminalBeschaeftigt,
@@ -92,6 +93,7 @@ export default function V86Terminal({
       });
       const fit = new FitAddon();
       term.loadAddon(fit);
+      term.attachCustomKeyEventHandler(createTabExitHandler());
       term.open(termRef.current);
       fit.fit();
 
@@ -257,6 +259,9 @@ export default function V86Terminal({
           aria-live={fehler ? 'assertive' : 'polite'}
         >
           {terminalStatusText(phase)}
+        </span>
+        <span data-testid="v86-tab-hinweis" className="ml-auto hidden sm:inline">
+          {TERMINAL_TAB_HINWEIS}
         </span>
         <button
           type="button"

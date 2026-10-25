@@ -34,6 +34,8 @@ interface ImportMetaEnv {
   readonly PUBLIC_MISSION_ASSETS_VERSION?: string;
   /** Build-Datum (JJJJ-MM-TT), zur Build-Zeit über vite.define aus astro.config.mjs gesetzt. */
   readonly PUBLIC_BUILD_DATE?: string;
+  /** Build-Zeitpunkt (ISO 8601), über vite.define gesetzt; Veröffentlichungsgrenze in utils/content.ts. */
+  readonly PUBLIC_BUILD_TIME?: string;
 }
 
 interface ImportMeta {

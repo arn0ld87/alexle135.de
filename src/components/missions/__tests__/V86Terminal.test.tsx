@@ -40,6 +40,7 @@ const { FakeV86, FakeTerminal, FakeFitAddon } = vi.hoisted(() => {
     rows = 24;
     parser = { registerOscHandler: () => true };
     loadAddon() {}
+    attachCustomKeyEventHandler = vi.fn();
     open() {}
     write() {}
     focus() {}
@@ -118,6 +119,12 @@ describe('V86Terminal', () => {
     await waitFor(() => expect(status().textContent).toBe('echtes Linux · Alpine · ohne Netzwerk'));
     expect(onReady).toHaveBeenCalledTimes(1);
     expect(neuStarten()).not.toBeDisabled();
+  });
+
+  it('nennt den Ausweg aus der Tastaturfalle (Esc, dann Tab)', async () => {
+    render(<V86Terminal />);
+    await instanz(1);
+    expect(screen.getByTestId('v86-tab-hinweis').textContent).toBe('Tab verlassen: Esc, dann Tab');
   });
 
   it('zeigt ohne Antwort des Agenten genau eine Fehlermeldung; „Neu starten“ bootet neu', async () => {
