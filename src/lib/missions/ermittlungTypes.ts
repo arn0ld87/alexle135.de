@@ -91,6 +91,8 @@ export interface VorwurfRegel {
   mindestBelege: number;
   /** true: unter den genannten Belegen gegen den Täter ist mindestens einer aus jeder Spur. */
   jedeSpur: boolean;
+  /** true: Ein falscher Vorwurf oder Rahmenverstoß sperrt den Vorwurf nie (Übungsepisode). */
+  ohneSperre?: boolean;
   antworten: VorwurfAntworten;
 }
 
@@ -132,6 +134,8 @@ export interface ErmittlungsZustand {
   sperreRestPruefungen: number;
   vorwurfVersuche: number;
   geloest: boolean;
+  /** Je Schritt (`spurId/schrittId`) die zuletzt gemeldete Diagnose; fehlt, solange keine steht. */
+  letzteDiagnose?: Readonly<Record<string, string>>;
 }
 
 export type ErmittlungsEreignis =
@@ -141,6 +145,7 @@ export type ErmittlungsEreignis =
   | { type: 'beleg-verloren'; belegId: string }
   | { type: 'einsatzrahmen-verletzt' }
   | { type: 'sperre-aufgehoben' }
+  | { type: 'diagnose'; spurId: string; schrittId: string; text: string }
   | { type: 'pruefung-unvollstaendig' };
 
 export type VorwurfErgebnis =
@@ -155,11 +160,15 @@ export type VorwurfErgebnis =
 export interface Pruefung {
   id: string;
   skript: string;
+  /** true: Das Skript liefert eine Meldung statt eines Ergebnisses (Diagnose, ändert nichts). */
+  diagnose?: boolean;
 }
 
 export interface PruefungsAusgabe {
   /** id → bestanden (Exit 0). Nur IDs, die in der Ausgabe stehen. */
   ergebnisse: Readonly<Record<string, boolean>>;
+  /** id → bereinigte Meldung einer Diagnose; nur gesetzt, wenn die Ausgabe welche enthält. */
+  diagnosen?: Readonly<Record<string, string>>;
   /** true nur, wenn die Schlusszeile da ist und ihre Zahl der Anzahl gelesener Prüfzeilen entspricht. */
   vollstaendig: boolean;
 }

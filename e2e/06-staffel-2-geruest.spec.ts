@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 // Staffel 2 braucht die gebootete Missions-VM; ohne MISSION_VM laufen nur die übrigen E2E-Tests.
 test.skip(!process.env.MISSION_VM, 'MISSION_VM ist nicht gesetzt.');
 
-const STAFFEL2 = '/projekte/terminal-missionen/app/staffel-2';
+const STAFFEL2 = '/projekte/terminal-missionen/app/staffel-2?episode=1';
 const STAFFEL1 = '/projekte/terminal-missionen/app';
 // Kleinster echter Beleg aus Episode 1: die Audit-Zeile zur Regeldatei unter /etc/sudoers.d.
 const ANFANG = 'Serverraum der Rechenwerk Ostwind GmbH';
@@ -21,18 +21,24 @@ async function messePrompt(
   budgetMs: number
 ) {
   await expect
-    .poll(async () => /log-zeile\.txt[\s\S]*azubi@rw-srv01/.test((await rows.textContent()) ?? ''), {
-      timeout: Math.max(1, budgetMs - (Date.now() - start)),
-      intervals: [20, 50, 100],
-    })
+    .poll(
+      async () => /log-zeile\.txt[\s\S]*azubi@rw-srv01/.test((await rows.textContent()) ?? ''),
+      {
+        timeout: Math.max(1, budgetMs - (Date.now() - start)),
+        intervals: [20, 50, 100],
+      }
+    )
     .toBe(true);
   return Date.now() - start;
 }
 
 async function messePager(page: import('@playwright/test').Page, start: number, budgetMs: number) {
-  await expect(page.getByTestId('pager')).toContainText('Erledigt: Sichere die passende Audit-Zeile', {
-    timeout: Math.max(1, budgetMs - (Date.now() - start)),
-  });
+  await expect(page.getByTestId('pager')).toContainText(
+    'Erledigt: Sichere die passende Audit-Zeile',
+    {
+      timeout: Math.max(1, budgetMs - (Date.now() - start)),
+    }
+  );
   return Date.now() - start;
 }
 
@@ -63,7 +69,9 @@ test('Staffel 2: der Prompt blockiert nicht und die Prüfung meldet im Pager', a
 
 // Der Linux-Krimi zielt auf den PC (Entscheidung 2026-10-24): kein Budget für 6-fache
 // CPU-Drosselung mehr. Darstellung auf schmalen Bildschirmen prüfen weiterhin 07 und 08.
-test.skip('Staffel 2: unter CPU-Drosselung meldet die Prüfung weiter im Pager', async ({ page }) => {
+test.skip('Staffel 2: unter CPU-Drosselung meldet die Prüfung weiter im Pager', async ({
+  page,
+}) => {
   test.setTimeout(240_000);
   await page.setViewportSize({ width: 1400, height: 1000 });
   await page.goto(STAFFEL2);
@@ -84,7 +92,9 @@ test.skip('Staffel 2: unter CPU-Drosselung meldet die Prüfung weiter im Pager',
     messePrompt(rows, start, 60_000).catch(() => null),
     messePager(page, start, 60_000),
   ]);
-  console.log(`T03-LATENZ gedrosselt-prompt=${promptMs === null ? 'nicht beobachtet' : `${promptMs}ms`}`);
+  console.log(
+    `T03-LATENZ gedrosselt-prompt=${promptMs === null ? 'nicht beobachtet' : `${promptMs}ms`}`
+  );
   console.log(`T03-LATENZ gedrosselt-pager=${pagerMs}ms`);
 });
 

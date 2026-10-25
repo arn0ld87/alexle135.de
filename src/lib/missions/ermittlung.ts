@@ -15,6 +15,7 @@ import type {
 
 export const ID_MUSTER = /^[a-z0-9-]{1,40}$/;
 export const pruefIdSchritt = (spurId: string, schrittId: string) => `s.${spurId}.${schrittId}`;
+export const pruefIdDiagnose = (spurId: string, schrittId: string) => `d.${spurId}.${schrittId}`;
 export const pruefIdBeleg = (belegId: string) => `b.${belegId}`;
 export const PRUEF_ID_VERSTOSS = 'e.verstoss';
 /** So viele vollständige Prüfungen nach einer Sperre, bis sie spätestens endet. */
@@ -35,6 +36,8 @@ const SCHRITTARTEN: readonly Schrittart[] = [
  * Episode 0 (Einstieg) braucht nur zwei Arten.
  */
 export const SCHRITTART_REGELN_AB_EPISODE = 2;
+/** Längste Diagnose-Meldung in Zeichen. */
+export const DIAGNOSE_MAX_ZEICHEN = 200;
 /** Erlaubte Zeichen einer getrimmten Antwort; alles andere lässt die App gar nicht erst laufen. */
 export const ANTWORT_MUSTER = /^[A-Za-z0-9 .:_/-]+$/;
 /** Timeout (ms) für die Prüfung einer Antwort in der VM. */
@@ -219,6 +222,13 @@ export function offenePruefungen(e: Ermittlung, z: ErmittlungsZustand): Pruefung
     const schritt = aktuellerSchritt(spur, z);
     if (schritt) {
       pruefungen.push({ id: pruefIdSchritt(spur.id, schritt.id), skript: schritt.verify });
+      if (schritt.diagnose) {
+        pruefungen.push({
+          id: pruefIdDiagnose(spur.id, schritt.id),
+          skript: schritt.diagnose,
+          diagnose: true,
+        });
+      }
     }
   }
   for (const beleg of e.vorwurf.belege) {
@@ -237,11 +247,21 @@ export function offenePruefungen(e: Ermittlung, z: ErmittlungsZustand): Pruefung
  */
 export function buendelSkript(pruefungen: readonly Pruefung[]): string {
   const anzahl = new Map<string, number>();
-  for (const p of pruefungen) anzahl.set(p.skript, (anzahl.get(p.skript) ?? 0) + 1);
+  const ergebnisse = pruefungen.filter((p) => !p.diagnose);
+  for (const p of ergebnisse) anzahl.set(p.skript, (anzahl.get(p.skript) ?? 0) + 1);
   const ergebnisVar = new Map<string, string>();
   const teile: string[] = [];
   for (const p of pruefungen) {
     if (!/^[a-z0-9.-]{1,90}$/.test(p.id)) throw new Error(`Ungültige Prüf-ID: ${p.id}`);
+    if (p.diagnose) {
+      // Nur die erste Zeile, ohne Steuerzeichen und gekürzt, mit Bash-Builtins; Fehler bleiben stumm.
+      teile.push(
+        `dz=$( (\n${p.skript}\n) 2>/dev/null </dev/null | { IFS= read -r dz; printf %s "$dz"; } )\n` +
+          `dz=\${dz//[[:cntrl:]]/}\n` +
+          `printf 'diagnose\\t%s\\t%s\\n' '${p.id}' "\${dz:0:${DIAGNOSE_MAX_ZEICHEN}}"`
+      );
+      continue;
+    }
     let ergebnis = '"$?"';
     let lauf = `(\n${p.skript}\n) >/dev/null 2>&1 </dev/null\n`;
     if ((anzahl.get(p.skript) ?? 0) > 1) {
@@ -253,7 +273,7 @@ export function buendelSkript(pruefungen: readonly Pruefung[]): string {
     }
     teile.push(`${lauf}printf 'pruefung\\t%s\\t%s\\n' '${p.id}' ${ergebnis}`);
   }
-  teile.push(`printf 'ende\\t%s\\n' '${pruefungen.length}'`);
+  teile.push(`printf 'ende\\t%s\\n' '${ergebnisse.length}'`);
   return `${teile.join('\n')}\n`;
 }
 
@@ -266,9 +286,15 @@ export function antwortSkript(pruefung: string, antwort: string): string {
   return `ANTWORT=$(printf %s '${base64}' | base64 -d)\nexport ANTWORT\n(\n${pruefung}\n) >/dev/null 2>&1 </dev/null\n`;
 }
 
+/** Meldung der Gast-Diagnose: ohne Steuerzeichen, auf höchstens DIAGNOSE_MAX_ZEICHEN gekürzt. */
+const bereinigeDiagnose = (text: string): string =>
+  // eslint-disable-next-line no-control-regex
+  text.replace(/[\u0000-\u001f\u007f-\u009f]/g, '').slice(0, DIAGNOSE_MAX_ZEICHEN);
+
 /** Liest die Ausgabe eines Bündels; vollständig nur mit passender Schlusszahl. */
 export function leseBuendelAusgabe(text: string): PruefungsAusgabe {
   const ergebnisse = Object.create(null) as Record<string, boolean>;
+  const diagnosen = Object.create(null) as Record<string, string>;
   let gelesen = 0;
   let schluss: number | null = null;
   for (const roh of text.split('\n')) {
@@ -277,11 +303,16 @@ export function leseBuendelAusgabe(text: string): PruefungsAusgabe {
     if (teile.length === 3 && teile[0] === 'pruefung' && /^\d+$/.test(teile[2])) {
       ergebnisse[teile[1]] = teile[2] === '0';
       gelesen++;
+    } else if (teile.length >= 3 && teile[0] === 'diagnose') {
+      diagnosen[teile[1]] = bereinigeDiagnose(teile.slice(2).join('\t'));
     } else if (teile.length === 2 && teile[0] === 'ende' && /^\d+$/.test(teile[1])) {
       schluss = Number(teile[1]);
     }
   }
-  return { ergebnisse, vollstaendig: schluss !== null && schluss === gelesen };
+  const vollstaendig = schluss !== null && schluss === gelesen;
+  return Object.keys(diagnosen).length
+    ? { ergebnisse, diagnosen, vollstaendig }
+    : { ergebnisse, vollstaendig };
 }
 
 /** Führt eine vollständige Ausgabe in den Zustand; unvollständige Ausgaben ändern nichts. */
@@ -305,6 +336,21 @@ export function wendePruefungAn(
     erledigt[spur.id] = neu;
     ereignisse.push({ type: 'schritt-erledigt', spurId: spur.id, schrittId: schritt.id });
     if (neu >= spur.schritte.length) ereignisse.push({ type: 'spur-erledigt', spurId: spur.id });
+  }
+
+  const letzteDiagnose: Record<string, string> = { ...z.letzteDiagnose };
+  for (const spur of e.spuren) {
+    const schritt = aktuellerSchritt(spur, z);
+    if (!schritt?.diagnose) continue;
+    const key = `${spur.id}/${schritt.id}`;
+    const verify = ausgabe.ergebnisse[pruefIdSchritt(spur.id, schritt.id)];
+    const text = ausgabe.diagnosen?.[pruefIdDiagnose(spur.id, schritt.id)] ?? '';
+    if (verify !== false || !text) {
+      delete letzteDiagnose[key];
+    } else if (letzteDiagnose[key] !== text) {
+      letzteDiagnose[key] = text;
+      ereignisse.push({ type: 'diagnose', spurId: spur.id, schrittId: schritt.id, text });
+    }
   }
 
   const vorher = new Set(z.belegeErkannt);
@@ -368,6 +414,7 @@ export function wendePruefungAn(
       sperreRestPruefungen,
       vorwurfVersuche: z.vorwurfVersuche,
       geloest: z.geloest,
+      ...(Object.keys(letzteDiagnose).length ? { letzteDiagnose } : {}),
     },
     ereignisse,
   };
@@ -394,6 +441,7 @@ export function wendeAntwortAn(
 
 /** Sperre einen Beleg hinter den Stand; ohne weiteren Beleg bleibt sie aus (Sackgassen-Regel). */
 export function naechsteSperre(e: Ermittlung, z: ErmittlungsZustand): number | null {
+  if (e.vorwurf.ohneSperre) return null;
   const ziel = z.belegeErkannt.length + 1;
   if (ziel > e.vorwurf.belege.length) return null;
   return Math.max(ziel, z.sperreBis ?? 0);

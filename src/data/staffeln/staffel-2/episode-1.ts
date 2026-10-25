@@ -4,6 +4,7 @@ import timoBild from '../../../assets/missions/staffel-2/timo.webp';
 import { AKTENWAND_ABFRAGE } from '../../../lib/missions/aktenwand';
 import { EINSATZRAHMEN_VERSTOSS } from '../../../lib/missions/einsatzrahmenSetup';
 import type { Ermittlung, ErmittlungsSchritt } from '../../../lib/missions/ermittlungTypes';
+import { diagnoseBelegDa, diagnoseZweiDateien } from '../../../lib/missions/ermittlungsDiagnose';
 import { tools } from '../../../lib/missions/glossar';
 
 /**
@@ -160,6 +161,17 @@ done < "$a"
 [ "$n" = 1 ] && has "$zeile"
 `}`;
 
+const ZEILE_FEHLT = 'Die Zeile steht nicht unverändert im Beleg.';
+
+/** Diagnosen (Ticket 12): Der Beleg ist da, aber das verify scheitert; die Meldung sagt, woran es liegt. */
+const DIAGNOSE_RECHTE_ZEILE = diagnoseBelegDa(`${BELEGE}/rechte-zeile.txt`, ZEILE_FEHLT);
+const DIAGNOSE_RECHTE_METADATEN = diagnoseZweiDateien(
+  `${BELEGE}/rechte-metadaten.txt`,
+  'rw-status',
+  'rw-fernwartung'
+);
+const DIAGNOSE_LOG_ZEILE = diagnoseBelegDa(`${BELEGE}/log-zeile.txt`, ZEILE_FEHLT);
+
 /** Raumansicht „Serverschrank“: nur lesend, feste Schlüssel, begrenzte Ausgabe, ohne Hilfsprogramme. */
 const ABFRAGE_RAUM = String.raw`read -r host < /proc/sys/kernel/hostname
 printf 'host\t%s\n' "$host"
@@ -192,6 +204,7 @@ const schrittRechteZeile: ErmittlungsSchritt = {
     'Schritt 1: Sichere die Regel samt der Zeile mit der Änderungskennung (RW-…) als ~/belege/rechte-zeile.txt. Die Regelzeile muss unverändert drinstehen.',
   ],
   verify: PRUEFE_RECHTE_ZEILE,
+  diagnose: DIAGNOSE_RECHTE_ZEILE,
   tipps: [
     'Die Regeln für sudo liegen in Dateien unter /etc/sudoers.d. Eine davon nennt eine Person, die dort nichts zu suchen hat, und eine Änderungskennung steht gleich dabei.',
     'Mit ls siehst du, welche Dateien im Ordner liegen, mit grep suchst du darin nach Text. Mit grep -B1 nimmst du die Zeile davor mit, und > schreibt das Ergebnis in eine Datei. Achtung: > überschreibt die Datei jedes Mal, >> hängt nur hinten an.',
@@ -209,6 +222,7 @@ const schrittMetadaten: ErmittlungsSchritt = {
     'Beide Dateien gehören in denselben Beleg, und zwar als echte Ausgabe von ls -l mit Dateiname, Besitzer, Rechten und Datum. Von Hand abgetippte Werte erkennt die Prüfung nicht.',
   ],
   verify: PRUEFE_RECHTE_METADATEN,
+  diagnose: DIAGNOSE_RECHTE_METADATEN,
   tipps: [
     'Besitzer, Rechte und Datum einer Datei zeigt ein einziger Befehl. Das Programm rw-status liegt irgendwo unter /usr/local; sein Setuid-Bit erkennst du an einem s in den Rechten.',
     'ls -l zeigt Besitzer, Rechte und Datum, stat zeigt sie ausführlicher. Mit find /usr/local -perm -4000 findest du Dateien mit Setuid-Bit. Mit $( ) setzt du die Ausgabe eines Befehls in einen anderen ein. Willst du zwei Befehle nacheinander in dieselbe Datei schreiben, nimm beim zweiten >>, denn > würde die erste Ausgabe überschreiben.',
@@ -226,6 +240,7 @@ const schrittAuditZeile: ErmittlungsSchritt = {
     'Die ganze Zeile muss unverändert in der Datei stehen, so wie sie im Log steht, ohne eigene Kürzungen oder Ergänzungen.',
   ],
   verify: PRUEFE_LOG_ZEILE,
+  diagnose: DIAGNOSE_LOG_ZEILE,
   tipps: [
     'Das Log ist eine Textdatei. Jede Zeile nennt Zeit, Person, Aktion, Änderungskennung (change=) und Ziel (target=).',
     'grep sucht Zeilen mit einem bestimmten Wort. Such nach dem Ordner, in dem die Regeln für sudo liegen, und leite das Ergebnis mit > in eine Datei um.',
