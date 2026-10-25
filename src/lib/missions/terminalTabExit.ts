@@ -13,7 +13,13 @@ export function createTabExitHandler(): (event: KeyboardEvent) => boolean {
   let escGedrueckt = false;
   return (event) => {
     if (event.type !== 'keydown') return true;
-    if (event.key === 'Tab' && !event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey) {
+    if (
+      event.key === 'Tab' &&
+      !event.shiftKey &&
+      !event.ctrlKey &&
+      !event.altKey &&
+      !event.metaKey
+    ) {
       const verlassen = escGedrueckt;
       escGedrueckt = false;
       return !verlassen;
