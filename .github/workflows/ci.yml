@@ -236,6 +236,10 @@ jobs:
       - name: Build (SSR)
         run: pnpm build
 
+      # Client-JS- und Bildbudget auf dem SSR-Build (vorher eigener Workflow bundle-size)
+      - name: Check bundle size
+        run: pnpm check:bundle
+
       # Technische Prüfungen nach dem Build (#200)
       - name: HTML validation (html-validate)
         run: pnpm check:html

@@ -1,8 +1,10 @@
 name: Lighthouse CI
 
 on:
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
+  # Wöchentlich montags 04:00 UTC gegen main; nicht mehr bei jedem PR (Laufzeit, kein Required Check).
+  schedule:
+    - cron: '0 4 * * 1'
 
 concurrency:
   group: lighthouse-${{ github.ref }}
