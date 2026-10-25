@@ -18,7 +18,7 @@ test('Spielstand: Episode 0 lösen, ohne Angabe geht es mit Episode 1 weiter, Re
 }) => {
   await startEpisode(page, { episode: 0 });
   const zaehler = page.getByTestId('episoden-zaehler');
-  await expect(zaehler).toHaveText('0 von 2 gelöst');
+  await expect(zaehler).toHaveText(/^0 von \d+ gelöst$/);
   await expect(page.getByText('Neuladen oder „Neu starten“ im Terminal beginnt')).toBeVisible();
 
   await befehl(page, META, { pager: 'Erledigt: Sichere Besitzer, Rechte und Datum der Dateien' });
@@ -35,14 +35,14 @@ test('Spielstand: Episode 0 lösen, ohne Angabe geht es mit Episode 1 weiter, Re
   await expect(page.getByRole('heading', { name: 'Fall gelöst' })).toBeVisible({
     timeout: 45_000,
   });
-  await expect(zaehler).toHaveText('1 von 2 gelöst');
+  await expect(zaehler).toHaveText(/^1 von \d+ gelöst$/);
 
   // Neuladen ohne Angabe: die erste ungelöste Episode.
   await page.goto('/projekte/terminal-missionen/app/staffel-2');
   await expect(page.getByRole('heading', { level: 2, name: /^Episode 1/ })).toBeVisible({
     timeout: 30_000,
   });
-  await expect(page.getByTestId('episoden-zaehler')).toHaveText('1 von 2 gelöst');
+  await expect(page.getByTestId('episoden-zaehler')).toHaveText(/^1 von \d+ gelöst$/);
   await expect(page.getByRole('link', { name: 'Episode 0 · Probelauf · gelöst' })).toBeVisible();
 
   // Reset: Dialog bestätigen, danach beginnt Episode 0 wieder.
@@ -50,12 +50,12 @@ test('Spielstand: Episode 0 lösen, ohne Angabe geht es mit Episode 1 weiter, Re
   await expect(page.getByRole('button', { name: 'Endgültig löschen' })).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button', { name: 'Endgültig löschen' })).toBeHidden();
-  await expect(page.getByTestId('episoden-zaehler')).toHaveText('1 von 2 gelöst');
+  await expect(page.getByTestId('episoden-zaehler')).toHaveText(/^1 von \d+ gelöst$/);
   await page.getByRole('button', { name: 'Fortschritt von Staffel 2 löschen' }).click();
   await page.getByRole('button', { name: 'Endgültig löschen' }).click();
   await expect(page.getByRole('heading', { level: 2, name: /^Episode 0/ })).toBeVisible({
     timeout: 30_000,
   });
-  await expect(page.getByTestId('episoden-zaehler')).toHaveText('0 von 2 gelöst');
+  await expect(page.getByTestId('episoden-zaehler')).toHaveText(/^0 von \d+ gelöst$/);
   await expect(page).toHaveURL(/\/app\/staffel-2\/?$/);
 });

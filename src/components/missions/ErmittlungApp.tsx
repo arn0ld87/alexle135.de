@@ -6,6 +6,7 @@ import {
   aktuellerSchritt,
   antwortSkript,
   istGesperrt,
+  alleSpurenErledigt,
   offeneSchritteText,
   startZustand,
   wendeAntwortAn,
@@ -583,11 +584,15 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
               !submitGuard.current
             }
             vorwurfHinweis={
-              anzeigeZustand.vorwurfRichtig
-                ? offeneSchritteText(ermittlung, anzeigeZustand).join(' ')
-                : istGesperrt(anzeigeZustand)
-                  ? ermittlung.vorwurf.antworten.gesperrt.join(' ')
-                  : vorwurfHinweis
+              anzeigeZustand.geloest
+                ? null
+                : anzeigeZustand.vorwurfRichtig
+                  ? alleSpurenErledigt(ermittlung, anzeigeZustand)
+                    ? null
+                    : offeneSchritteText(ermittlung, anzeigeZustand).join(' ')
+                  : istGesperrt(anzeigeZustand)
+                    ? ermittlung.vorwurf.antworten.gesperrt.join(' ')
+                    : vorwurfHinweis
             }
           />
         </div>
