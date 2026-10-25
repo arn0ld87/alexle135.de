@@ -74,13 +74,16 @@ function maybeSave() {
     return;
   if (!warming) {
     warming = true;
-    console.log(`Prompt nach ${((Date.now() - startedAt) / 1000).toFixed(1)} s, wärme Bildschirm vor`);
+    console.log(
+      `Prompt nach ${((Date.now() - startedAt) / 1000).toFixed(1)} s, wärme Bildschirm vor`
+    );
     serial0 = '';
     emulator.serial_send_bytes(0, new TextEncoder().encode(WARM + '\n'));
     return;
   }
   if (!serial0.includes('@@WARM@@')) return;
-  for (const m of serial0.replace(ANSI, '').matchAll(/^@@[TF] (.*)$/gm)) console.log(`Vorwärmen: ${m[1]}`);
+  for (const m of serial0.replace(ANSI, '').matchAll(/^@@[TF] (.*)$/gm))
+    console.log(`Vorwärmen: ${m[1]}`);
   saving = true;
   console.log(
     `Prompt und Agent nach ${((Date.now() - startedAt) / 1000).toFixed(1)} s (Emulation + Laden)`

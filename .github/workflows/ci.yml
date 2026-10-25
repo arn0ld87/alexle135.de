@@ -183,11 +183,9 @@ jobs:
       - name: Playwright-Browser installieren (Chromium)
         run: pnpm exec playwright install --with-deps chromium
 
+      # Das Bildschirm-Image braucht hier niemand: Die Bildschirm-E2E läuft nur mit MISSION_VM.
       - name: Missions-Assets bauen (v86-Image nach public/missions/linux/)
         run: bash scripts/mission-image/build.sh
-
-      - name: Bildschirm-Assets bauen (nach public/missions/linux/bildschirm/)
-        run: bash scripts/mission-image-gui/build.sh
 
       - name: App bauen (SSR)
         run: pnpm build
@@ -255,8 +253,9 @@ jobs:
   docker:
     name: Docker image
     runs-on: ubuntu-24.04
-    # Missions-Image (i386-Alpine + Savestate per headless v86) kostet einige Minuten.
-    timeout-minutes: 30
+    # Missions-Image (i386-Alpine + Savestate per headless v86) kostet einige Minuten, das
+    # Bildschirm-Image (ADR 0008) noch einmal gut zehn (gns3, ohne Cache: 11 min).
+    timeout-minutes: 50
     services:
       postgres:
         image: postgres:18

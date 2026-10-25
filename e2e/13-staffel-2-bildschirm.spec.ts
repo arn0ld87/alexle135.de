@@ -29,7 +29,9 @@ async function tippeImTerminal(page: Page, befehl: string) {
   await page.keyboard.press('Enter');
 }
 
-test('Bildschirm: Gastprogramm schreibt als azubi, „Stand prüfen“ prüft', async ({ page }, info) => {
+test('Bildschirm: Gastprogramm schreibt als azubi, „Stand prüfen“ prüft', async ({
+  page,
+}, info) => {
   test.setTimeout(420_000);
   const abrufe = vmAbrufe(page);
   await page.setViewportSize({ width: 1400, height: 1000 });
