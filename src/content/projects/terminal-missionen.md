@@ -61,7 +61,7 @@ Episode 0 bringt nur die Bedienung bei und zählt nicht zur Gesamtzeit. Das Fina
 
 In Staffel 2 prüfst du mit dem Testkonto azubi die Server der Rechenwerk Ostwind GmbH, innerhalb eines schriftlich vereinbarten Einsatzrahmens. Du verfolgst mehrere Spuren in freier Reihenfolge, sicherst Belege mit Shell-Befehlen in `~/belege/` und erhebst auf der Aktenwand einen Vorwurf, den du belegen musst. Spielbar sind Episode 0 „Probelauf“ und Episode 1 „Zu viele Rechte“; weitere Episoden folgen.
 
-[Staffel 2 „Rechenwerk Ostwind“ spielen →](/projekte/terminal-missionen/app/staffel-2)
+[Staffel 2 „Rechenwerk Ostwind“ spielen →](/projekte/terminal-missionen/app/staffel-2/)
 
 ## Wie es gebaut ist
 

@@ -32,7 +32,7 @@ describe('isExcludedFromSitemap', () => {
     '/blog/',
     '/projekte/terminal-missionen/',
     '/projekte/terminal-missionen/app/',
-    '/projekte/terminal-missionen/app/staffel-2',
+    '/projekte/terminal-missionen/app/staffel-2/',
     '/legal/impressum/',
   ])('lässt %s in der Sitemap', (pathname) => {
     expect(isExcludedFromSitemap(pathname)).toBe(false);

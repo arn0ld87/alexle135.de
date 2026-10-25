@@ -10,7 +10,7 @@ import { unified } from '@astrojs/markdown-remark';
 import tailwindcss from '@tailwindcss/vite';
 import rehypeTaskListLabels from './src/lib/rehypeTaskListLabels.mjs';
 import { getSecurityHeaders } from './src/lib/security-headers.ts';
-import { SITEMAP_EXTRA, sitemapFilter } from './src/lib/sitemapFilter.ts';
+import { sitemapFilter } from './src/lib/sitemapFilter.ts';
 
 // --- Security headers (CSP) -------------------------------------------------
 // Werte kommen aus src/lib/security-headers.ts (Single Source of Truth).
@@ -58,7 +58,6 @@ export default defineConfig({
       // Ausschlussregel (inkl. Begründungen) und Regressionstest:
       // src/lib/sitemapFilter.ts, src/lib/__tests__/sitemapFilter.test.ts
       filter: sitemapFilter,
-      customPages: SITEMAP_EXTRA.map((pfad) => new URL(pfad, 'https://alex-schneider.dev').href),
       serialize: (item) => {
         try {
           const { pathname } = new URL(item.url);
