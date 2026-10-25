@@ -6,8 +6,7 @@ tags:
   - Linux
   - Security
   - Lernspiel
-techStack:
-  ['v86', 'Alpine Linux', 'xterm.js', 'React 19', 'TypeScript', 'Astro', 'Xorg', 'Openbox']
+techStack: ['v86', 'Alpine Linux', 'xterm.js', 'React 19', 'TypeScript', 'Astro', 'Xorg', 'Openbox']
 role: 'Konzept, Ermittlungs-Engine & Episodendesign'
 meinTeil: 'Ich habe die Ermittlungs-Engine mit Spuren, Belegen und Vorwurf gebaut, die Prüfung über mission-agent auf den VM-Zustand gelegt, das Alpine-Image gebaut und den Einsatzrahmen mit echtem sudo-Protokoll entworfen.'
 frameLabel: 'Titelkarte · Staffel 2 · 7 Episoden'
