@@ -396,12 +396,12 @@ export default function V86Bildschirm({
                   e.currentTarget.blur();
                 }
               }}
-              className={`v86-bildschirm relative overflow-hidden bg-black outline-none ${
+              className={`v86-bildschirm relative overflow-hidden bg-[var(--terminal-bg)] outline-none ${
                 eingabe ? 'ring-2 ring-[var(--accent)]' : ''
               }`}
               style={{ width: groesse.w, height: groesse.h }}
             >
-              <div className="whitespace-pre font-mono text-[14px] leading-[14px] text-white" />
+              <div className="whitespace-pre font-mono text-[14px] leading-[14px] text-[var(--terminal-fg)]" />
               <canvas className="block h-full w-full" />
             </div>
           </div>

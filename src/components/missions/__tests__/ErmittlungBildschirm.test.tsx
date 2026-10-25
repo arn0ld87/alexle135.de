@@ -101,7 +101,10 @@ describe('Bildschirmbedarf einer Ermittlung', () => {
     render(<ErmittlungApp ermittlung={mitBildschirm} />);
     await waitFor(() => expect(pagerText()).toContain('Leg in ~/belege'));
     act(() => h.erstmals());
-    expect(pagerText()).toContain('Das ist der Bildschirm des Rechners.');
+    // Der Pager tippt Nachrichten nacheinander ein; der Hinweis folgt auf den Auftrag.
+    await waitFor(() => expect(pagerText()).toContain('Das ist der Bildschirm des Rechners.'), {
+      timeout: 15_000,
+    });
   });
 
   it('Episoden 0 und 1 deklarieren keinen Bildschirm', () => {

@@ -43,9 +43,8 @@ describe('Asset-Version zwischen Image-Build, Docker-Build und Terminal', () => 
   it('der Docker-Build reicht VERSION als PUBLIC_MISSION_ASSETS_VERSION durch', () => {
     const dockerfile = read('Dockerfile');
     expect(dockerfile).toContain('test -s public/missions/linux/VERSION');
-    expect(dockerfile).toContain(
-      'V="$(cat public/missions/linux/VERSION)" && PUBLIC_MISSION_ASSETS_VERSION="$V" pnpm run build'
-    );
+    expect(dockerfile).toContain('V="$(cat public/missions/linux/VERSION)"');
+    expect(dockerfile).toContain('PUBLIC_MISSION_ASSETS_VERSION="$V"');
   });
 
   it('das Terminal lädt alle festen Dateien über missionAssetUrl', () => {

@@ -94,7 +94,11 @@ describe('Bildschirm-Image und V86Bildschirm', () => {
 
   it('prüft den Bildbeleg im Image-Build auf reine Pixel', () => {
     expect(gui).toContain('RUN python3 /tools/pruefe-bildbeleg.py /probe.png');
-    expect(read('scripts/mission-image-gui/tools/pruefe-bildbeleg.py')).not.toMatch(/tEXt|eXIf/);
+    const erlaubt = /^ERLAUBT = \{(.*)\}$/m.exec(
+      read('scripts/mission-image-gui/tools/pruefe-bildbeleg.py')
+    )?.[1];
+    expect(erlaubt).toBeDefined();
+    expect(erlaubt).not.toMatch(/tEXt|zTXt|iTXt|eXIf/);
   });
 });
 
