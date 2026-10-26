@@ -161,7 +161,11 @@ const breadcrumbSchema = buildBreadcrumbSchema(Astro.url.pathname);
   <body
     class:list={[
       'flex flex-col bg-[color:var(--paper)] text-[color:var(--ink)] antialiased',
-      spielmodus ? 'h-dvh overflow-hidden' : 'min-h-screen',
+      // Unter 640 px Fensterhöhe (z. B. 200 % Zoom) scrollt die Seite wieder, sonst bliebe kein
+      // Platz für das Terminal.
+      spielmodus
+        ? 'min-h-dvh [@media(min-height:640px)]:h-dvh [@media(min-height:640px)]:overflow-hidden'
+        : 'min-h-screen',
     ]}
   >
     <a

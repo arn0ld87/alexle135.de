@@ -607,7 +607,7 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
           >
             {ermittlung.bildschirm ? (
               <LazyV86Bildschirm
-                className="h-full min-h-0"
+                className="h-full min-h-0 [@media(max-height:639px)]:h-[20rem]"
                 onReady={onReady}
                 onMissionCommand={onMissionCommand}
                 onStandPruefen={standPruefen}
@@ -615,7 +615,7 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
               />
             ) : (
               <LazyV86Terminal
-                className="h-full min-h-0"
+                className="h-full min-h-0 [@media(max-height:639px)]:h-[20rem]"
                 onReady={onReady}
                 onMissionCommand={onMissionCommand}
               />
