@@ -515,7 +515,12 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
         )}
       {rahmenFehler && <p role="alert">{rahmenFehler}</p>}
       {pruefHinweis && <p role="status">{pruefHinweis}</p>}
-      {anzeigeZustand.geloest && <ErmittlungsAbschluss ermittlung={ermittlung} weiter={weiter} />}
+      {/* Die Seite scrollt nicht (#170): Der Abschluss nimmt sich den Platz und scrollt selbst. */}
+      {anzeigeZustand.geloest && (
+        <div className="min-h-0 shrink overflow-y-auto">
+          <ErmittlungsAbschluss ermittlung={ermittlung} weiter={weiter} />
+        </div>
+      )}
       <div className="flex gap-2 lg:hidden">
         <button
           type="button"
