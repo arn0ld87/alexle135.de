@@ -106,6 +106,11 @@ test('Staffel 2: mobile Flächen behalten Terminalausgabe und Spurenauswahl', as
   test.setTimeout(240_000);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(STAFFEL2);
+  // Im Spielmodus (#170) liegt das Cookie-Banner über dem Terminal, bis entschieden ist.
+  const consent = page.locator('#cookie-banner');
+  if (await consent.isVisible()) {
+    await consent.getByRole('button', { name: 'Ablehnen', exact: true }).click();
+  }
   await expect(page.getByTestId('v86-status')).toContainText('echtes Linux', { timeout: 90_000 });
   const rows = await warteAufPrompt(page, 'rw-srv01');
   await expect(page.getByTestId('pager')).toContainText(ANFANG, { timeout: 15_000 });

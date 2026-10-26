@@ -38,6 +38,11 @@ interface Props {
   modifiedTime?: string;
   /** Alt-Text für og:image / twitter:image. */
   imageAlt?: string;
+  /**
+   * Spielmodus der Missions-Apps: ohne Website-Navigation und Footer, der Inhalt füllt genau das
+   * Fenster (100dvh) und die Seite selbst scrollt nie (#170).
+   */
+  spielmodus?: boolean;
 }
 
 const {
@@ -54,6 +59,7 @@ const {
   publishedTime,
   modifiedTime,
   imageAlt,
+  spielmodus = false,
 } = Astro.props;
 const canonicalURL = canonical ? new URL(canonical, Astro.site) : new URL(Astro.url.pathname, Astro.site);
 const robotsContent = robots ?? (noindex ? 'noindex, nofollow' : undefined);
@@ -152,18 +158,27 @@ const breadcrumbSchema = buildBreadcrumbSchema(Astro.url.pathname);
     <GoogleAnalytics />
   </head>
 
-  <body class="flex min-h-screen flex-col bg-[color:var(--paper)] text-[color:var(--ink)] antialiased">
+  <body
+    class:list={[
+      'flex flex-col bg-[color:var(--paper)] text-[color:var(--ink)] antialiased',
+      // Unter 640 px Fensterhöhe (z. B. 200 % Zoom) scrollt die Seite wieder, sonst bliebe kein
+      // Platz für das Terminal.
+      spielmodus
+        ? 'min-h-dvh [@media(min-height:640px)]:h-dvh [@media(min-height:640px)]:overflow-hidden'
+        : 'min-h-screen',
+    ]}
+  >
     <a
       href="#main-content"
       class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-none focus:border focus:border-[color:var(--ink)] focus:bg-[color:var(--paper)] focus:px-4 focus:py-2 focus:font-mono focus:text-xs focus:tracking-[0.08em] focus:text-[color:var(--ink)] focus:outline-2 focus:outline-offset-4 focus:outline-[color:var(--accent)]"
     >
       Zum Inhalt springen
     </a>
-    <V2Header />
-    <div id="main-content" class="flex-1">
+    {!spielmodus && <V2Header />}
+    <div id="main-content" class:list={['flex-1', spielmodus && 'flex min-h-0 flex-col']}>
       <slot />
     </div>
-    <V2Footer />
+    {!spielmodus && <V2Footer />}
     <CookieBanner />
   </body>
 </html>

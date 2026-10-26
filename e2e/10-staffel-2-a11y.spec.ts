@@ -78,7 +78,7 @@ test('T10-10a Desktop 1440x1000: Tastatur, Dialog, Fokus, Abschluss und axe', as
   // Raum-Ansicht per Tastatur: Einsatzrahmen, Spuren, Hilfe, Ansichten, Aktualisieren, Hotspots.
   await oeffneAnsicht(page, 'Serverschrank');
   await page.getByRole('button', { name: 'Schild am Rack', exact: true }).waitFor();
-  await page.getByRole('link', { name: /Zur Projektseite/ }).focus();
+  await page.getByRole('link', { name: /Spiel verlassen/ }).focus();
   const raum = await tabHalte(page, 40);
   for (const erwartet of [
     /Einsatzrahmen/,
@@ -278,13 +278,9 @@ test('T10-10d Tab bleibt im Terminal, Esc dann Tab verlässt es (Tastaturfalle, 
   // Nacktes Tab gehört der Shell (Vervollständigung): Der Fokus bleibt im Terminal.
   await page.keyboard.press('Tab');
   expect(await imTerminal()).toBe(true);
-  // Esc, dann Tab: Der Fokus wandert auf das nächste fokussierbare Element außerhalb.
+  // Esc, dann Tab: Der Fokus verlässt das Terminal. Im Spielmodus (#170) folgt bis zur
+  // Aktionsleiste (UI-05) kein Element mehr, der Browser übernimmt den Fokus.
   await page.keyboard.press('Escape');
   await page.keyboard.press('Tab');
   await expect.poll(imTerminal).toBe(false);
-  expect(
-    await page.evaluate(
-      () => document.activeElement !== null && document.activeElement !== document.body
-    )
-  ).toBe(true);
 });

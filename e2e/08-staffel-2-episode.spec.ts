@@ -82,6 +82,28 @@ test('T10-1: Raum lesen, Log vor Rechte-Zeile sichern, richtiger Vorwurf', async
   expect(await anzahlImPager(page, PAGER.richtig)).toBe(1);
   await expect(page.getByText('Der Rechtefund')).toHaveCount(1);
   await expect(page.getByRole('heading', { name: 'Fall gelöst' })).toHaveCount(1);
+
+  // Spielmodus (#170): Auch auf dem Handy ist der ganze Abschluss bis zum letzten Element
+  // erreichbar, obwohl die Seite selbst nicht scrollt.
+  const abschluss = page.locator('section[aria-labelledby="ermittlung-abschluss"]');
+  const letztes = abschluss.locator('a, p').last();
+  for (const height of [844, 667]) {
+    await page.setViewportSize({ width: 390, height });
+    // Kein scrollIntoView: Das scrollt per Skript auch Container mit overflow:hidden, die Finger
+    // und Mausrad nicht bewegen. Erreichbar ist, was im Fenster liegt oder in einem Bereich mit
+    // eigenem Scrollen.
+    const erreichbar = await letztes.evaluate((el) => {
+      if (el.getBoundingClientRect().bottom <= window.innerHeight) return true;
+      for (let p = el.parentElement; p; p = p.parentElement) {
+        const { overflowY } = getComputedStyle(p);
+        if ((overflowY === 'auto' || overflowY === 'scroll') && p.scrollHeight > p.clientHeight) {
+          return p.getBoundingClientRect().bottom <= window.innerHeight;
+        }
+      }
+      return false;
+    });
+    expect(erreichbar, `Abschluss bei 390x${height}`).toBe(true);
+  }
 });
 
 test('T10-2: umgekehrte Spurenreihenfolge, Rechte-Spur bleibt linear', async ({ page }) => {
