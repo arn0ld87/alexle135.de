@@ -101,14 +101,13 @@ test('T10-8b: Erholung durch drei vollständige Prüfungen', async ({ page }) =>
     await expect(vorwurfKnopf(page)).toBeDisabled({ timeout: 30_000 });
   }
 
-  // Nach der 1. und 2. vollständigen Prüfung bleibt die Sperre, erst die 3. gibt frei.
-  for (let i = 1; i <= 2; i++) {
-    await befehl(page, 'true');
-    await pruefungAbwarten(page);
-    await flaeche(page, 'Ansicht');
-    await expect(vorwurfKnopf(page)).toBeDisabled();
-    await expect(vorwurfHinweis(page)).toContainText(PAGER.gesperrt);
-  }
+  // Der Prompt nach VERSTOSS erkennt den Verstoß, die Prüfung nach `true` in verstossAusfuehren ist die 1.
+  // vollständige danach. Nach der 2. bleibt die Sperre, erst die 3. gibt frei.
+  await befehl(page, 'true');
+  await pruefungAbwarten(page);
+  await flaeche(page, 'Ansicht');
+  await expect(vorwurfKnopf(page)).toBeDisabled();
+  await expect(vorwurfHinweis(page)).toContainText(PAGER.gesperrt);
   await befehl(page, 'true');
   await pruefungAbwarten(page);
   await flaeche(page, 'Ansicht');
