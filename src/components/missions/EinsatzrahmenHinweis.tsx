@@ -14,7 +14,7 @@ export default function EinsatzrahmenHinweis({
   return (
     <section aria-label="Einsatzrahmen" className="min-w-0 space-y-2">
       <details className="rounded border border-[color:var(--line)] px-3 py-2">
-        <summary className="ds-display-s cursor-pointer text-[color:var(--ink)]">
+        <summary className="cursor-pointer font-mono text-[11.5px] tracking-[0.14em] text-[color:var(--lk-dim)] uppercase">
           Einsatzrahmen
         </summary>
         <div className="mt-2 space-y-1 text-sm text-[color:var(--ink)]">

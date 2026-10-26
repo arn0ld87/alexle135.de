@@ -334,12 +334,17 @@ describe('ErmittlungApp', () => {
     await screen.findByTestId('stub-terminal');
     const user = userEvent.setup();
     const schalter = screen.getByRole('button', { name: 'Fallakte' });
+    const akte = document.getElementById(schalter.getAttribute('aria-controls')!)!;
+    expect(schalter).toHaveAttribute('aria-expanded', 'false');
+    expect(akte).not.toBeVisible();
+    expect(screen.getByTestId('stub-terminal')).toBeInTheDocument();
+    await user.click(schalter);
     expect(schalter).toHaveAttribute('aria-expanded', 'true');
+    expect(akte).toBeVisible();
     await user.click(schalter);
     expect(schalter).toHaveAttribute('aria-expanded', 'false');
-    expect(document.getElementById(schalter.getAttribute('aria-controls')!)).toHaveAttribute(
-      'hidden'
-    );
+    expect(akte).toHaveAttribute('hidden');
+    expect(screen.getByTestId('stub-terminal')).toBeInTheDocument();
   });
 
   it('weist andere mission-Befehle mit Exit 1 ab', async () => {
