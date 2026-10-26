@@ -310,6 +310,8 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
 
   const oeffneVorwurf = useCallback(() => {
     if (anzeigeZustand.geloest) return;
+    // Die Akte als Overlay hält den Fokus fest; neben dem Vorwurf-Dialog darf sie nicht offen bleiben.
+    if (!istSpaltenModus()) setAkteOffen(false);
     if (anzeigeZustand.vorwurfRichtig) {
       setVorwurfHinweis(offeneSchritteText(ermittlung, anzeigeZustand).join(' '));
       return;
