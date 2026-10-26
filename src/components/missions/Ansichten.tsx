@@ -22,9 +22,6 @@ interface AnsichtenProps {
   ausgewaehlteBelegIds: readonly string[];
   onBelegAuswahlAendern: (ids: readonly string[]) => void;
   onBelegSnapshot?: (ids: readonly string[]) => void;
-  onVorwurfOeffnen?: () => void;
-  vorwurfOeffnenAktiv?: boolean;
-  vorwurfHinweis?: string | null;
 }
 
 const START: AbfrageZustand = { status: 'bereit', ansichtId: null, ausgabe: null };
@@ -39,9 +36,6 @@ export default function Ansichten({
   ausgewaehlteBelegIds,
   onBelegAuswahlAendern,
   onBelegSnapshot,
-  onVorwurfOeffnen,
-  vorwurfOeffnenAktiv,
-  vorwurfHinweis,
 }: AnsichtenProps) {
   const [abfrage, setAbfrage] = useState<AbfrageZustand>(START);
   const controller = useRef<ErmittlungsAbfragen | null>(null);
@@ -166,9 +160,6 @@ export default function Ansichten({
                   zustand={zustand}
                   ausgewaehlteBelegIds={ausgewaehlteBelegIds}
                   onAuswahlAendern={onBelegAuswahlAendern}
-                  onVorwurfOeffnen={onVorwurfOeffnen}
-                  vorwurfOeffnenAktiv={vorwurfOeffnenAktiv}
-                  vorwurfHinweis={vorwurfHinweis}
                 />
               )}
             </div>

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { flaeche, oeffneAkte, STAFFEL2 } from './helpers/staffel2';
+import { flaeche, oeffneAkte, STAFFEL2, vorwurfKnopf } from './helpers/staffel2';
 
 // #152: Auf dem Desktop scrollt nur die Fallakte; Terminal und Pager bleiben stehen.
 test('T11-1 Desktop 1440x900: Fallakte scrollt, Terminal bleibt fest', async ({ page }) => {
@@ -53,7 +53,7 @@ for (const groesse of [
     }));
     expect(seite.scroll).toBeLessThanOrEqual(seite.hoehe);
 
-    for (const ziel of [page.getByTestId('pager'), terminal]) {
+    for (const ziel of [page.getByTestId('pager'), terminal, vorwurfKnopf(page)]) {
       const box = await ziel.boundingBox();
       expect(box).not.toBeNull();
       expect(box!.y).toBeGreaterThanOrEqual(0);

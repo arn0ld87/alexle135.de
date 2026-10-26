@@ -36,6 +36,7 @@ import Ansichten from './Ansichten';
 import Fallakte, { istSpaltenModus } from './Fallakte';
 import AntwortFeld from './AntwortFeld';
 import EinsatzrahmenHinweis from './EinsatzrahmenHinweis';
+import Aktionsleiste from './Aktionsleiste';
 import ErmittlungsAbschluss, { type WeiterLink } from './ErmittlungsAbschluss';
 import ErmittlungsHilfe from './ErmittlungsHilfe';
 import Pager from './Pager';
@@ -759,26 +760,6 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
                 ausgewaehlteBelegIds={ausgewaehlteBelegIds}
                 onBelegAuswahlAendern={waehleBelege}
                 onBelegSnapshot={bereinigeBelegSnapshot}
-                onVorwurfOeffnen={anzeigeZustand.geloest ? undefined : oeffneVorwurf}
-                vorwurfOeffnenAktiv={
-                  setupGeneration > 0 &&
-                  !anzeigeZustand.geloest &&
-                  !anzeigeZustand.vorwurfRichtig &&
-                  !istGesperrt(anzeigeZustand) &&
-                  !prueftVorwurf &&
-                  !submitGuard.current
-                }
-                vorwurfHinweis={
-                  anzeigeZustand.geloest
-                    ? null
-                    : anzeigeZustand.vorwurfRichtig
-                      ? alleSpurenErledigt(ermittlung, anzeigeZustand)
-                        ? null
-                        : offeneSchritteText(ermittlung, anzeigeZustand).join(' ')
-                      : istGesperrt(anzeigeZustand)
-                        ? ermittlung.vorwurf.antworten.gesperrt.join(' ')
-                        : vorwurfHinweis
-                }
               />
             </div>
           </div>
@@ -815,6 +796,32 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
           />
         </div>
       </div>
+      <Aktionsleiste
+        linux={rahmenFehler ? 'fehler' : setupGeneration > 0 ? 'bereit' : 'laedt'}
+        spurenErledigt={erledigteSpuren}
+        spurenGesamt={spurStatus.length}
+        belegeGefunden={anzeigeZustand.belegeErkannt.length}
+        onVorwurfOeffnen={anzeigeZustand.geloest ? undefined : oeffneVorwurf}
+        vorwurfAktiv={
+          setupGeneration > 0 &&
+          !anzeigeZustand.geloest &&
+          !anzeigeZustand.vorwurfRichtig &&
+          !istGesperrt(anzeigeZustand) &&
+          !prueftVorwurf &&
+          !submitGuard.current
+        }
+        vorwurfHinweis={
+          anzeigeZustand.geloest
+            ? null
+            : anzeigeZustand.vorwurfRichtig
+              ? alleSpurenErledigt(ermittlung, anzeigeZustand)
+                ? null
+                : offeneSchritteText(ermittlung, anzeigeZustand).join(' ')
+              : istGesperrt(anzeigeZustand)
+                ? ermittlung.vorwurf.antworten.gesperrt.join(' ')
+                : vorwurfHinweis
+        }
+      />
       <VorwurfDialog
         open={dialogOffen}
         ermittlung={ermittlung}
