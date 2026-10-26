@@ -285,12 +285,12 @@ export default function V86Terminal({
         {spiel ? (
           <VmZustand phase={phase} />
         ) : (
-          {busy && (
+          busy && (
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 font-mono text-sm text-[var(--terminal-fg-muted)]">
               <span>{phase.kind === 'start' ? 'Linux startet …' : 'Linux wird geladen …'}</span>
               <span className="text-xs">Auf dem Handy dauert der erste Start etwas länger.</span>
             </div>
-          )}
+          )
         )}
       </div>
     </div>
