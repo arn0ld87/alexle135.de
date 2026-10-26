@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { act, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { episode0 } from '../../../data/staffeln/staffel-2/episode-0';
 import { episode1 } from '../../../data/staffeln/staffel-2/episode-1';
@@ -14,7 +15,6 @@ import ErmittlungApp from '../ErmittlungApp';
 
 const h = vi.hoisted(() => ({
   client: null as unknown as AgentClient,
-  standPruefen: null as unknown as () => void,
   erstmals: null as unknown as () => void,
 }));
 
@@ -36,16 +36,15 @@ vi.mock('../V86Bildschirm', async () => {
   return {
     default: function StubBildschirm(props: {
       onReady?: (client: AgentClient) => void;
-      onStandPruefen?: () => void;
+      reiter?: string;
       onBildschirmErstmals?: () => void;
     }) {
       const { onReady } = props;
-      h.standPruefen = props.onStandPruefen as () => void;
       h.erstmals = props.onBildschirmErstmals as () => void;
       useEffect(() => {
         onReady?.(h.client);
       }, [onReady]);
-      return <div data-testid="stub-bildschirm" />;
+      return <div data-testid="stub-bildschirm" data-reiter={props.reiter} />;
     },
   };
 });
@@ -90,7 +89,12 @@ describe('Bildschirmbedarf einer Ermittlung', () => {
     await waitFor(() => expect(run).toHaveBeenCalledTimes(4));
     expect(run.mock.calls.filter((c) => istBuendel(c[0] as string))).toHaveLength(0);
 
-    act(() => h.standPruefen());
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('tab', { name: 'Bildschirm' }));
+    expect(screen.getByTestId('stub-bildschirm')).toHaveAttribute('data-reiter', 'bildschirm');
+    const standPruefen = screen.getByRole('button', { name: 'Stand prüfen' });
+    await waitFor(() => expect(standPruefen).toBeEnabled());
+    await user.click(standPruefen);
     await waitFor(() =>
       expect(run.mock.calls.filter((c) => istBuendel(c[0] as string))).toHaveLength(1)
     );

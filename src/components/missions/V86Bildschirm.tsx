@@ -47,6 +47,11 @@ interface V86BildschirmProps {
   onStandPruefen?: () => void;
   /** Einmal je Seite, wenn der Reiter „Bildschirm“ zum ersten Mal geöffnet wird. */
   onBildschirmErstmals?: () => void;
+  /**
+   * Gesetzt: Die Seite steuert den Reiter (eigene Tableiste); die eigene Reitergruppe und
+   * „Stand prüfen“ entfallen. Der Emulator bleibt derselbe.
+   */
+  reiter?: 'terminal' | 'bildschirm';
   className?: string;
 }
 
@@ -57,6 +62,7 @@ export default function V86Bildschirm({
   onPhase,
   onStandPruefen,
   onBildschirmErstmals,
+  reiter: reiterVorgabe,
   className = '',
 }: V86BildschirmProps) {
   const termRef = useRef<HTMLDivElement>(null);
@@ -67,7 +73,9 @@ export default function V86Bildschirm({
     keyboard_send_scancodes: (codes: number[]) => void;
   } | null>(null);
   const fitRef = useRef<(() => void) | null>(null);
-  const [reiter, setReiter] = useState<'terminal' | 'bildschirm'>('terminal');
+  const [reiterIntern, setReiter] = useState<'terminal' | 'bildschirm'>('terminal');
+  const gesteuert = reiterVorgabe !== undefined;
+  const reiter = reiterVorgabe ?? reiterIntern;
   const [eingabe, setEingabe] = useState(false);
   const erstmalsRef = useRef(false);
   const onReadyRef = useRef(onReady);
@@ -293,8 +301,7 @@ export default function V86Bildschirm({
     setEingabe(an);
   };
 
-  const zeige = (ziel: 'terminal' | 'bildschirm') => {
-    setReiter(ziel);
+  const reiterGewechselt = (ziel: 'terminal' | 'bildschirm') => {
     if (ziel === 'terminal') {
       eingabeAn(false);
       requestAnimationFrame(() => fitRef.current?.());
@@ -303,6 +310,15 @@ export default function V86Bildschirm({
       onBildschirmErstmals?.();
     }
   };
+  const reiterGewechseltRef = useRef(reiterGewechselt);
+  reiterGewechseltRef.current = reiterGewechselt;
+  const zeige = (ziel: 'terminal' | 'bildschirm') => {
+    setReiter(ziel);
+    reiterGewechselt(ziel);
+  };
+  useEffect(() => {
+    if (reiterVorgabe) reiterGewechseltRef.current(reiterVorgabe);
+  }, [reiterVorgabe]);
 
   const reiterKlasse = (aktiv: boolean) =>
     `border px-2 py-0.5 ${
@@ -316,6 +332,7 @@ export default function V86Bildschirm({
       className={`flex flex-col border border-[var(--terminal-border)] bg-[var(--terminal-bg)] ${className}`}
     >
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--terminal-border)] px-3 py-2 font-mono text-xs text-[var(--terminal-fg-muted)]">
+        {!gesteuert && (
         <div className="flex gap-1" role="group" aria-label="Terminal oder Bildschirm">
           <button
             type="button"
@@ -334,6 +351,7 @@ export default function V86Bildschirm({
             Bildschirm
           </button>
         </div>
+        )}
         <span
           data-testid="v86-status"
           role={fehler ? 'alert' : 'status'}
@@ -347,7 +365,7 @@ export default function V86Bildschirm({
           </span>
         )}
         <div className="flex gap-2">
-          {reiter === 'bildschirm' && (
+          {reiter === 'bildschirm' && !gesteuert && (
             <button
               type="button"
               onClick={() => onStandPruefen?.()}

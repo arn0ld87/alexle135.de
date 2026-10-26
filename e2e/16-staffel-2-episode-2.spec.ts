@@ -38,7 +38,7 @@ const PAGER = {
 } as const;
 
 async function tippeImTerminal(page: Page, text: string) {
-  await page.getByRole('button', { name: 'Terminal', exact: true }).click();
+  await page.getByRole('tab', { name: 'Terminal', exact: true }).click();
   await page.getByTestId('v86-terminal').click({ position: { x: 30, y: 30 } });
   await page.keyboard.type(text);
   await page.keyboard.press('Enter');

@@ -36,6 +36,13 @@ vi.mock('../V86Terminal', async () => {
   };
 });
 
+const mitBildschirm: Ermittlung = { ...platzhalter, bildschirm: true };
+vi.mock('../V86Bildschirm', () => ({
+  default: function StubBildschirm() {
+    return <div data-testid="stub-bildschirm" />;
+  },
+}));
+
 const pagerText = () => screen.getByTestId('pager').textContent ?? '';
 const istBuendel = (skript: string) => skript.startsWith('(');
 const istAbfrage = (skript: string) => skript.startsWith('__a=$(printf');
@@ -270,18 +277,69 @@ describe('ErmittlungApp', () => {
     }
   );
 
-  it('hängt das Terminal beim Umschalten nicht aus', async () => {
+  it('hängt das Terminal beim Umschalten nicht aus (R1 über alle Tabs)', async () => {
     render(<ErmittlungApp ermittlung={platzhalter} />);
     const terminal = await screen.findByTestId('stub-terminal');
+    const user = userEvent.setup();
 
-    await act(async () => {
-      screen.getByRole('button', { name: 'Ansicht' }).click();
-    });
-    expect(screen.getByRole('button', { name: 'Ansicht' }).getAttribute('aria-pressed')).toBe(
+    await user.click(screen.getByRole('tab', { name: 'Serverraum' }));
+    expect(screen.getByRole('tab', { name: 'Serverraum' })).toHaveAttribute(
+      'aria-selected',
       'true'
     );
     expect(screen.getByTestId('stub-terminal')).toBe(terminal);
-    expect(terminal.parentElement?.className).toContain('hidden');
+    expect(terminal.closest('[role="tabpanel"]')).toHaveAttribute('hidden');
+
+    await user.click(screen.getByRole('tab', { name: 'Terminal' }));
+    expect(screen.getByTestId('stub-terminal')).toBe(terminal);
+    expect(terminal.closest('[role="tabpanel"]')).not.toHaveAttribute('hidden');
+  });
+
+  it('wechselt die Tabs mit Pfeiltasten, Pos1 und Ende und fokussiert sie', async () => {
+    render(<ErmittlungApp ermittlung={mitBildschirm} />);
+    await screen.findByTestId('stub-bildschirm');
+    const user = userEvent.setup();
+    const tab = (name: string) => screen.getByRole('tab', { name });
+    expect(tab('Terminal')).toHaveAttribute('aria-selected', 'true');
+
+    tab('Terminal').focus();
+    await user.keyboard('{ArrowRight}');
+    expect(tab('Bildschirm')).toHaveAttribute('aria-selected', 'true');
+    expect(tab('Bildschirm')).toHaveFocus();
+    expect(tab('Bildschirm')).toHaveAttribute('tabindex', '0');
+    expect(tab('Terminal')).toHaveAttribute('tabindex', '-1');
+
+    await user.keyboard('{End}');
+    expect(tab('Serverraum')).toHaveAttribute('aria-selected', 'true');
+    await user.keyboard('{ArrowRight}');
+    expect(tab('Terminal')).toHaveAttribute('aria-selected', 'true');
+    await user.keyboard('{ArrowLeft}');
+    expect(tab('Serverraum')).toHaveFocus();
+    await user.keyboard('{Home}');
+    expect(tab('Terminal')).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('zeigt den Tab Bildschirm nur bei Episoden mit Bildschirm', async () => {
+    render(<ErmittlungApp ermittlung={platzhalter} />);
+    await screen.findByTestId('stub-terminal');
+    expect(screen.queryByRole('tab', { name: 'Bildschirm' })).toBeNull();
+    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual([
+      'Terminal',
+      'Serverraum',
+    ]);
+  });
+
+  it('schaltet die Fallakte ein und aus', async () => {
+    render(<ErmittlungApp ermittlung={platzhalter} />);
+    await screen.findByTestId('stub-terminal');
+    const user = userEvent.setup();
+    const schalter = screen.getByRole('button', { name: 'Fallakte' });
+    expect(schalter).toHaveAttribute('aria-expanded', 'true');
+    await user.click(schalter);
+    expect(schalter).toHaveAttribute('aria-expanded', 'false');
+    expect(document.getElementById(schalter.getAttribute('aria-controls')!)).toHaveAttribute(
+      'hidden'
+    );
   });
 
   it('weist andere mission-Befehle mit Exit 1 ab', async () => {
@@ -677,12 +735,12 @@ describe('ErmittlungApp: freie Spurenwahl (T4)', () => {
     await user.click(spurButton('Protokoll, 0 von 2 Schritten erledigt'));
     expect(run).toHaveBeenCalledTimes(4);
 
-    await user.click(screen.getByRole('button', { name: 'Ansicht' }));
+    await user.click(screen.getByRole('tab', { name: 'Serverraum' }));
     expect(screen.getByTestId('stub-terminal')).toBe(terminal);
-    expect(terminal.parentElement?.className).toContain('hidden');
+    expect(terminal.closest('[role="tabpanel"]')).toHaveAttribute('hidden');
 
     await user.click(spurButton('Ankommen, 0 von 2 Schritten erledigt'));
-    await user.click(screen.getByRole('button', { name: 'Terminal' }));
+    await user.click(screen.getByRole('tab', { name: 'Terminal' }));
     expect(screen.getByTestId('stub-terminal')).toBe(terminal);
     expect(run).toHaveBeenCalledTimes(4);
   });
@@ -748,8 +806,8 @@ describe('ErmittlungApp: Raumansicht (T5)', () => {
 
     await user.click(screen.getByRole('button', { name: 'Protokoll, 0 von 2 Schritten erledigt' }));
     view.rerender(<ErmittlungApp ermittlung={zweiSpuren} />);
-    await user.click(screen.getByRole('button', { name: 'Ansicht' }));
-    await user.click(screen.getByRole('button', { name: 'Terminal' }));
+    await user.click(screen.getByRole('tab', { name: 'Serverraum' }));
+    await user.click(screen.getByRole('tab', { name: 'Terminal' }));
 
     expect(run).toHaveBeenCalledTimes(4);
   });

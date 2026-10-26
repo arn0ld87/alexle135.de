@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { AgentClient } from '../../lib/missions/agentClient';
 import {
   ANTWORT_MUSTER,
@@ -70,7 +70,17 @@ interface ErmittlungAppProps {
   onGeloest?: (abschluss: AkteEintrag) => void;
 }
 
-type Bereich = 'ansicht' | 'terminal';
+type Tab = 'terminal' | 'bildschirm' | 'serverraum';
+
+const TAB_NAME: Record<Tab, string> = {
+  terminal: 'Terminal',
+  bildschirm: 'Bildschirm',
+  serverraum: 'Serverraum',
+};
+
+/** Ab lg steht die Fallakte neben der Arbeitsfläche; darunter ersetzt sie sie. */
+const istBreit = () =>
+  typeof window.matchMedia !== 'function' || window.matchMedia('(min-width: 1024px)').matches;
 
 /** Erste Spur mit offenem Schritt in Datenreihenfolge; sonst die erste Spur; sonst null. */
 function ersteSpur(spuren: readonly Spur[], zustand: ErmittlungsZustand): Spur | null {
@@ -82,7 +92,12 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
   const [pager, setPager] = useState<PagerNachricht[]>([]);
   const [pruefHinweis, setPruefHinweis] = useState<string | null>(null);
   const [rahmenFehler, setRahmenFehler] = useState<string | null>(null);
-  const [bereich, setBereich] = useState<Bereich>('terminal');
+  const [tab, setTab] = useState<Tab>('terminal');
+  // Terminal und Bildschirm sind zwei Reiter desselben laufenden V86Bildschirm.
+  const [vmReiter, setVmReiter] = useState<'terminal' | 'bildschirm'>('terminal');
+  const [akteOffen, setAkteOffen] = useState(istBreit);
+  const tabRefs = useRef<Partial<Record<Tab, HTMLButtonElement | null>>>({});
+  const idBasis = useId();
   const [anzeigeZustand, setAnzeigeZustand] = useState<ErmittlungsZustand>(startZustand);
   const [setupGeneration, setSetupGeneration] = useState(0);
   // Zählt nur erfolgreiche Setups: Ein gescheitertes setzt die gezeigten Tipps nicht zurück.
@@ -271,6 +286,12 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
 
   // „Stand prüfen“ am Bildschirm: derselbe volle Prüflauf wie nach einem Befehl (ADR 0008).
   const standPruefen = useCallback(() => lauf.current?.anstossen(), []);
+  const waehleTab = useCallback((neu: Tab) => {
+    setTab(neu);
+    if (neu !== 'serverraum') setVmReiter(neu);
+    // Schmal ersetzt die Akte die Arbeitsfläche; ein Tab zeigt wieder die Fläche.
+    if (!istBreit()) setAkteOffen(false);
+  }, []);
   const bildschirmErstmals = useCallback(() => melde('auftrag', BILDSCHIRM_HINWEIS), [melde]);
 
   const pruefeFrischFn = useCallback(
@@ -502,6 +523,15 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
           ? 'aktiv'
           : 'offen',
   }));
+  const tabs: readonly Tab[] = ermittlung.bildschirm
+    ? ['terminal', 'bildschirm', 'serverraum']
+    : ['terminal', 'serverraum'];
+  const tabId = (t: Tab) => `${idBasis}-tab-${t}`;
+  // Terminal und Bildschirm teilen ein Panel (derselbe laufende Emulator).
+  const panelId = (t: Tab) => `${idBasis}-panel-${t === 'serverraum' ? t : 'terminal'}`;
+  const akteId = `${idBasis}-akte`;
+  const leistenKnopf =
+    'inline-flex h-9 items-center rounded-[var(--lk-r-sm)] border px-3 text-[13px] whitespace-nowrap text-[color:var(--lk-ink)] hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--lk-accent)] max-[759px]:px-2.5';
   const erledigteSpuren = spurStatus.filter((spur) => spur.status === 'erledigt').length;
 
   // Spielmodus (#170): Kopf und Pager stehen, die Arbeitsfläche füllt den Rest der Fensterhöhe.
@@ -574,118 +604,202 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
           />
         )}
       {rahmenFehler && <p role="alert">{rahmenFehler}</p>}
-      {pruefHinweis && <p role="status">{pruefHinweis}</p>}
       {/* Die Seite scrollt nicht (#170): Der Abschluss nimmt sich den Platz und scrollt selbst. */}
       {anzeigeZustand.geloest && (
         <div className="min-h-0 shrink overflow-y-auto">
           <ErmittlungsAbschluss ermittlung={ermittlung} weiter={weiter} />
         </div>
       )}
-      <div className="flex gap-2 lg:hidden">
-        <button
-          type="button"
-          aria-pressed={bereich === 'ansicht'}
-          onClick={() => setBereich('ansicht')}
-          className={`flex-1 rounded border px-3 py-2 font-mono text-xs tracking-wide uppercase ${
-            bereich === 'ansicht'
-              ? 'border-[color:var(--accent)] text-[color:var(--ink)]'
-              : 'border-transparent text-[color:var(--muted)]'
-          }`}
-        >
-          Ansicht
-        </button>
-        <button
-          type="button"
-          aria-pressed={bereich === 'terminal'}
-          onClick={() => setBereich('terminal')}
-          className={`flex-1 rounded border px-3 py-2 font-mono text-xs tracking-wide uppercase ${
-            bereich === 'terminal'
-              ? 'border-[color:var(--accent)] text-[color:var(--ink)]'
-              : 'border-transparent text-[color:var(--muted)]'
-          }`}
-        >
-          Terminal
-        </button>
-      </div>
-      <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
-        <div
-          className={`min-h-0 min-w-0 overflow-y-auto lg:overflow-y-auto lg:pr-1 ${bereich === 'ansicht' ? 'lg:block' : 'hidden lg:block'}`}
-        >
-          <EinsatzrahmenHinweis
-            text={ermittlung.einsatzrahmen.text}
-            verletzt={anzeigeZustand.einsatzrahmenVerletzt}
-            gesperrt={istGesperrt(anzeigeZustand)}
-          />
-          <Spurenliste
-            spuren={ermittlung.spuren}
-            zustand={anzeigeZustand}
-            aktiveSpurId={aktiveSpurId}
-            onSpurWaehlen={waehleSpur}
-          />
-          {/* Neuer key nach erfolgreichem Setup: gezeigte Tipps beginnen wieder bei null. */}
-          <ErmittlungsHilfe
-            key={hilfeStand}
-            spurId={aktiveSpur?.id ?? null}
-            schritt={aktiverSchritt}
-            werkzeuge={werkzeuge}
-            onTippGezeigt={merkeTipp}
-          />
-          <Ansichten
-            ansichten={ermittlung.ansichten}
-            bereit={setupGeneration > 0}
-            generation={setupGeneration}
-            run={abfrageRun}
-            belegRegeln={ermittlung.vorwurf.belege}
-            zustand={anzeigeZustand}
-            ausgewaehlteBelegIds={ausgewaehlteBelegIds}
-            onBelegAuswahlAendern={waehleBelege}
-            onBelegSnapshot={bereinigeBelegSnapshot}
-            onVorwurfOeffnen={anzeigeZustand.geloest ? undefined : oeffneVorwurf}
-            vorwurfOeffnenAktiv={
-              setupGeneration > 0 &&
-              !anzeigeZustand.geloest &&
-              !anzeigeZustand.vorwurfRichtig &&
-              !istGesperrt(anzeigeZustand) &&
-              !prueftVorwurf &&
-              !submitGuard.current
-            }
-            vorwurfHinweis={
-              anzeigeZustand.geloest
-                ? null
-                : anzeigeZustand.vorwurfRichtig
-                  ? alleSpurenErledigt(ermittlung, anzeigeZustand)
-                    ? null
-                    : offeneSchritteText(ermittlung, anzeigeZustand).join(' ')
-                  : istGesperrt(anzeigeZustand)
-                    ? ermittlung.vorwurf.antworten.gesperrt.join(' ')
-                    : vorwurfHinweis
-            }
-          />
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[var(--lk-r)] border border-[color:var(--lk-line-strong)] bg-[color:var(--lk-panel)]">
+        <div className="flex shrink-0 flex-wrap items-center gap-1.5 border-b border-[color:var(--lk-line)] bg-[rgba(8,11,16,0.65)] p-1.5 max-[759px]:gap-1 max-[759px]:p-[5px]">
+          <div
+            role="tablist"
+            aria-label="Arbeitsfläche"
+            className="flex gap-1.5 max-[759px]:gap-0.5"
+            onKeyDown={(e) => {
+              const index = tabs.indexOf(tab);
+              const ziel =
+                e.key === 'ArrowRight'
+                  ? tabs[(index + 1) % tabs.length]
+                  : e.key === 'ArrowLeft'
+                    ? tabs[(index - 1 + tabs.length) % tabs.length]
+                    : e.key === 'Home'
+                      ? tabs[0]
+                      : e.key === 'End'
+                        ? tabs[tabs.length - 1]
+                        : undefined;
+              if (!ziel) return;
+              e.preventDefault();
+              waehleTab(ziel);
+              tabRefs.current[ziel]?.focus();
+            }}
+          >
+            {tabs.map((eintrag) => (
+              <button
+                key={eintrag}
+                ref={(el) => {
+                  tabRefs.current[eintrag] = el;
+                }}
+                type="button"
+                role="tab"
+                id={tabId(eintrag)}
+                aria-selected={tab === eintrag}
+                aria-controls={panelId(eintrag)}
+                tabIndex={tab === eintrag ? 0 : -1}
+                onClick={() => waehleTab(eintrag)}
+                className={`inline-flex h-[42px] items-center rounded-[var(--lk-r-sm)] border px-4 text-[14.5px] font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--lk-accent)] max-[759px]:h-9 max-[759px]:px-2.5 max-[759px]:text-[13.5px] ${
+                  tab === eintrag
+                    ? 'border-[color:var(--lk-accent)] bg-[color:var(--lk-accent-soft)] text-[color:var(--lk-ink)]'
+                    : 'border-transparent text-[color:var(--lk-muted)] hover:bg-white/5 hover:text-[color:var(--lk-ink)]'
+                }`}
+              >
+                {TAB_NAME[eintrag]}
+              </button>
+            ))}
+          </div>
+          <div className="ml-auto flex min-w-0 items-center gap-1.5">
+            {pruefHinweis && (
+              <p
+                role="status"
+                className="min-w-0 text-[13px] text-[color:var(--lk-warn)]"
+              >
+                {pruefHinweis}
+              </p>
+            )}
+            {ermittlung.bildschirm && tab === 'bildschirm' && (
+              <button
+                type="button"
+                onClick={standPruefen}
+                disabled={setupGeneration === 0}
+                aria-label="Stand prüfen"
+                className={`${leistenKnopf} border-[color:var(--lk-line-strong)] disabled:opacity-50`}
+              >
+                <span aria-hidden="true" className="min-[760px]:hidden">
+                  ✓
+                </span>
+                <span aria-hidden="true" className="max-[759px]:hidden">
+                  Stand prüfen
+                </span>
+              </button>
+            )}
+            <button
+              type="button"
+              aria-expanded={akteOffen}
+              aria-controls={akteId}
+              onClick={() => setAkteOffen((offen) => !offen)}
+              className={`${leistenKnopf} ${
+                akteOffen
+                  ? 'border-[color:var(--lk-accent)] bg-[color:var(--lk-accent-soft)]'
+                  : 'border-[color:var(--lk-line-strong)]'
+              }`}
+            >
+              Fallakte
+            </button>
+          </div>
         </div>
         <div
-          className={`min-h-0 min-w-0 ${bereich === 'terminal' ? 'lg:block' : 'hidden lg:block'}`}
+          className={`grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)] ${
+            akteOffen ? 'lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]' : ''
+          }`}
         >
-          <Suspense
-            fallback={
-              <p className="font-mono text-xs text-[color:var(--muted)]">Terminal lädt …</p>
-            }
+          <div
+            id={akteId}
+            hidden={!akteOffen}
+            className="min-h-0 min-w-0 overflow-y-auto border-[color:var(--lk-line)] p-3 lg:border-r"
           >
-            {ermittlung.bildschirm ? (
-              <LazyV86Bildschirm
-                className="h-full min-h-0 [@media(max-height:639px)]:h-[20rem]"
-                onReady={onReady}
-                onMissionCommand={onMissionCommand}
-                onStandPruefen={standPruefen}
-                onBildschirmErstmals={bildschirmErstmals}
+            <EinsatzrahmenHinweis
+              text={ermittlung.einsatzrahmen.text}
+              verletzt={anzeigeZustand.einsatzrahmenVerletzt}
+              gesperrt={istGesperrt(anzeigeZustand)}
+            />
+            <Spurenliste
+              spuren={ermittlung.spuren}
+              zustand={anzeigeZustand}
+              aktiveSpurId={aktiveSpurId}
+              onSpurWaehlen={waehleSpur}
+            />
+            {/* Neuer key nach erfolgreichem Setup: gezeigte Tipps beginnen wieder bei null. */}
+            <ErmittlungsHilfe
+              key={hilfeStand}
+              spurId={aktiveSpur?.id ?? null}
+              schritt={aktiverSchritt}
+              werkzeuge={werkzeuge}
+              onTippGezeigt={merkeTipp}
+            />
+          </div>
+          {/* Panels bleiben gemountet (nur `hidden`): Die VM darf nie neu starten. */}
+          <div className={`min-h-0 min-w-0 ${akteOffen ? 'max-lg:hidden' : ''}`}>
+            <div
+              role="tabpanel"
+              id={panelId('terminal')}
+              aria-labelledby={tabId(tab === 'serverraum' ? vmReiter : tab)}
+              hidden={tab === 'serverraum'}
+              className="h-full min-h-0 bg-[#0A0D12]"
+            >
+              <Suspense
+                fallback={
+                  <p className="p-3 font-mono text-xs text-[color:var(--lk-muted)]">
+                    Terminal lädt …
+                  </p>
+                }
+              >
+                {ermittlung.bildschirm ? (
+                  <LazyV86Bildschirm
+                    className="h-full min-h-0 [@media(max-height:639px)]:h-[20rem]"
+                    reiter={vmReiter}
+                    onReady={onReady}
+                    onMissionCommand={onMissionCommand}
+                    onBildschirmErstmals={bildschirmErstmals}
+                  />
+                ) : (
+                  <LazyV86Terminal
+                    className="h-full min-h-0 [@media(max-height:639px)]:h-[20rem]"
+                    onReady={onReady}
+                    onMissionCommand={onMissionCommand}
+                  />
+                )}
+              </Suspense>
+            </div>
+            <div
+              role="tabpanel"
+              id={panelId('serverraum')}
+              aria-labelledby={tabId('serverraum')}
+              hidden={tab !== 'serverraum'}
+              className="h-full min-h-0 overflow-y-auto p-3"
+            >
+              <Ansichten
+                ansichten={ermittlung.ansichten}
+                bereit={setupGeneration > 0}
+                generation={setupGeneration}
+                run={abfrageRun}
+                belegRegeln={ermittlung.vorwurf.belege}
+                zustand={anzeigeZustand}
+                ausgewaehlteBelegIds={ausgewaehlteBelegIds}
+                onBelegAuswahlAendern={waehleBelege}
+                onBelegSnapshot={bereinigeBelegSnapshot}
+                onVorwurfOeffnen={anzeigeZustand.geloest ? undefined : oeffneVorwurf}
+                vorwurfOeffnenAktiv={
+                  setupGeneration > 0 &&
+                  !anzeigeZustand.geloest &&
+                  !anzeigeZustand.vorwurfRichtig &&
+                  !istGesperrt(anzeigeZustand) &&
+                  !prueftVorwurf &&
+                  !submitGuard.current
+                }
+                vorwurfHinweis={
+                  anzeigeZustand.geloest
+                    ? null
+                    : anzeigeZustand.vorwurfRichtig
+                      ? alleSpurenErledigt(ermittlung, anzeigeZustand)
+                        ? null
+                        : offeneSchritteText(ermittlung, anzeigeZustand).join(' ')
+                      : istGesperrt(anzeigeZustand)
+                        ? ermittlung.vorwurf.antworten.gesperrt.join(' ')
+                        : vorwurfHinweis
+                }
               />
-            ) : (
-              <LazyV86Terminal
-                className="h-full min-h-0 [@media(max-height:639px)]:h-[20rem]"
-                onReady={onReady}
-                onMissionCommand={onMissionCommand}
-              />
-            )}
-          </Suspense>
+            </div>
+          </div>
         </div>
       </div>
       <VorwurfDialog

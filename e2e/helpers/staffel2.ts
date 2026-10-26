@@ -61,12 +61,16 @@ const marken = new WeakMap<Page, number>();
 export const rows = (page: Page): Locator => page.locator('.xterm-rows').first();
 export const pager = (page: Page): Locator => page.getByTestId('pager');
 
-/** Wechselt auf schmalen Bildschirmen zwischen Ansicht und Terminal; auf breiten ohne Wirkung. */
+/** Wählt den Tab der Arbeitsfläche: „Ansicht“ ist der Serverraum; ein Tab schließt auf schmalen Fenstern die Fallakte. */
 export async function flaeche(page: Page, name: 'Ansicht' | 'Terminal'): Promise<void> {
-  const knopf = page.getByRole('button', { name, exact: true });
-  if ((await knopf.isVisible()) && (await knopf.getAttribute('aria-pressed')) !== 'true') {
-    await knopf.click();
-  }
+  const tab = page.getByRole('tab', { name: name === 'Ansicht' ? 'Serverraum' : name, exact: true });
+  if ((await tab.getAttribute('aria-selected')) !== 'true') await tab.click();
+}
+
+/** Öffnet die Fallakte (Einsatzrahmen, Spuren, Hilfe), falls sie zu ist. */
+export async function oeffneAkte(page: Page): Promise<void> {
+  const schalter = page.getByRole('button', { name: 'Fallakte', exact: true });
+  if ((await schalter.getAttribute('aria-expanded')) !== 'true') await schalter.click();
 }
 
 /** Öffnet die Episode, wartet auf das gebootete Linux, den Prompt und den fertigen Auftrag. */
