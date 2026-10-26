@@ -58,5 +58,7 @@ for (const groesse of [
       expect(box!.y).toBeGreaterThanOrEqual(0);
       expect(box!.y + box!.height).toBeLessThanOrEqual(groesse.height);
     }
+    // Die Arbeitsfläche bleibt benutzbar und wird nicht auf null gedrückt.
+    expect((await terminal.boundingBox())!.height).toBeGreaterThanOrEqual(240);
   });
 }

@@ -493,9 +493,10 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
   const aktiveSpur = ermittlung.spuren.find((spur) => spur.id === aktiveSpurId) ?? null;
   const aktiverSchritt = aktiveSpur ? aktuellerSchritt(aktiveSpur, anzeigeZustand) : null;
 
-  // Desktop: Kopf und Pager stehen, nur die linke Spalte scrollt; das Terminal bleibt fest.
+  // Spielmodus (#170): Kopf und Pager stehen, die Arbeitsfläche füllt den Rest der Fensterhöhe.
+  // Gescrollt wird nur in der linken Spalte und im Terminal; das Terminal bleibt fest.
   return (
-    <div className="grid gap-4 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col">
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
       <h2 className="ds-display-s text-[color:var(--ink)]">
         Episode {ermittlung.nr}{' '}
         <span className="text-[color:var(--muted)]">· {ermittlung.titel}</span>
@@ -541,9 +542,9 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
           Terminal
         </button>
       </div>
-      <div className="grid gap-4 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
+      <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
         <div
-          className={`min-w-0 lg:min-h-0 lg:overflow-y-auto lg:pr-1 ${bereich === 'ansicht' ? 'lg:block' : 'hidden lg:block'}`}
+          className={`min-h-0 min-w-0 overflow-y-auto lg:overflow-y-auto lg:pr-1 ${bereich === 'ansicht' ? 'lg:block' : 'hidden lg:block'}`}
         >
           <EinsatzrahmenHinweis
             text={ermittlung.einsatzrahmen.text}
@@ -597,7 +598,7 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
           />
         </div>
         <div
-          className={`min-w-0 lg:min-h-0 ${bereich === 'terminal' ? 'lg:block' : 'hidden lg:block'}`}
+          className={`min-h-0 min-w-0 ${bereich === 'terminal' ? 'lg:block' : 'hidden lg:block'}`}
         >
           <Suspense
             fallback={
@@ -606,7 +607,7 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
           >
             {ermittlung.bildschirm ? (
               <LazyV86Bildschirm
-                className="h-[70dvh] min-h-[24rem] lg:h-full lg:min-h-[12rem]"
+                className="h-full min-h-0"
                 onReady={onReady}
                 onMissionCommand={onMissionCommand}
                 onStandPruefen={standPruefen}
@@ -614,7 +615,7 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
               />
             ) : (
               <LazyV86Terminal
-                className="h-[60dvh] min-h-[20rem] lg:h-full lg:min-h-[12rem]"
+                className="h-full min-h-0"
                 onReady={onReady}
                 onMissionCommand={onMissionCommand}
               />

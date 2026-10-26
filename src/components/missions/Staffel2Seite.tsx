@@ -73,8 +73,9 @@ export default function Staffel2Seite(props: Staffel2SeiteProps) {
     [akte, uebersicht]
   );
 
+  // Spielmodus (#170): Die Seite füllt das Fenster, die Ermittlung nimmt den Rest der Höhe.
   return (
-    <>
+    <div className="flex min-h-0 flex-1 flex-col">
       <Episodenuebersicht
         episoden={uebersicht}
         geloest={geloest}
@@ -88,6 +89,6 @@ export default function Staffel2Seite(props: Staffel2SeiteProps) {
         weiter={aktiv.weiter}
         onGeloest={speichere}
       />
-    </>
+    </div>
   );
 }
