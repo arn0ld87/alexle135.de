@@ -493,15 +493,75 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
   const aktiveSpur = ermittlung.spuren.find((spur) => spur.id === aktiveSpurId) ?? null;
   const aktiverSchritt = aktiveSpur ? aktuellerSchritt(aktiveSpur, anzeigeZustand) : null;
 
+  const spurStatus = ermittlung.spuren.map((spur) => ({
+    id: spur.id,
+    status:
+      aktuellerSchritt(spur, anzeigeZustand) === null
+        ? 'erledigt'
+        : spur.id === aktiveSpurId
+          ? 'aktiv'
+          : 'offen',
+  }));
+  const erledigteSpuren = spurStatus.filter((spur) => spur.status === 'erledigt').length;
+
   // Spielmodus (#170): Kopf und Pager stehen, die Arbeitsfläche füllt den Rest der Fensterhöhe.
   // Gescrollt wird nur in der linken Spalte und im Terminal; das Terminal bleibt fest.
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
-      <h2 className="ds-display-s text-[color:var(--ink)]">
-        Episode {ermittlung.nr}{' '}
-        <span className="text-[color:var(--muted)]">· {ermittlung.titel}</span>
-      </h2>
-      <Pager nachrichten={pager} />
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 pt-2 [@media(max-height:820px)]:gap-y-1 [@media(max-height:820px)]:pt-0">
+        <h2 className="text-xl leading-tight font-bold tracking-[-0.01em] text-[color:var(--lk-ink)] max-[759px]:w-full sm:text-[30px] [@media(max-height:820px)]:text-[23px] [@media(max-height:820px)]:max-[759px]:text-xl">
+          Episode {ermittlung.nr}{' '}
+          <span className="text-[color:var(--lk-muted)]">· {ermittlung.titel}</span>
+        </h2>
+        <p
+          data-testid="server-chip"
+          className="inline-flex h-8 items-center gap-2 rounded-lg border border-[color:var(--lk-line-strong)] bg-[rgba(15,21,30,0.75)] px-3 font-mono text-[13px] text-[color:var(--lk-ink)] [@media(max-height:820px)]:h-7"
+        >
+          <span
+            aria-hidden="true"
+            className="hidden text-[11.5px] tracking-[0.1em] text-[color:var(--lk-muted)] sm:inline"
+          >
+            SERVER
+          </span>
+          <span>{hostname}</span>
+          <span
+            aria-hidden="true"
+            className={`size-2 shrink-0 rounded-full ${setupGeneration > 0 ? 'bg-[color:var(--lk-ok)]' : 'bg-[color:var(--lk-warn)]'}`}
+          />
+          <span className="sr-only">
+            Server, Status: {setupGeneration > 0 ? 'bereit' : 'startet'}
+          </span>
+        </p>
+        <div className="ml-auto flex items-center gap-3 text-sm text-[color:var(--lk-muted)]">
+          <p data-testid="spuren-fortschritt">
+            {erledigteSpuren} von {spurStatus.length} Spuren
+          </p>
+          <ol aria-hidden="true" className="flex items-center">
+            {spurStatus.map(({ id, status }, i) => (
+              <li
+                key={id}
+                className={`flex items-center before:h-0.5 before:w-5 before:max-[759px]:w-2.5 first:before:hidden ${
+                  spurStatus[i - 1]?.status === 'erledigt'
+                    ? 'before:bg-[color:var(--lk-accent)]'
+                    : 'before:bg-[color:var(--lk-line-strong)]'
+                }`}
+                data-status={status}
+              >
+                <span
+                  className={`size-3 rounded-full border-2 ${
+                    status === 'erledigt'
+                      ? 'border-[color:var(--lk-accent)] bg-[color:var(--lk-accent)]'
+                      : status === 'aktiv'
+                        ? 'border-[color:var(--lk-accent)] bg-[color:var(--lk-accent)] shadow-[0_0_0_4px_rgba(232,85,47,0.25)]'
+                        : 'border-[#5c6573]'
+                  }`}
+                />
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
+      <Pager nachrichten={pager} spiel />
       {setupGeneration > 0 &&
         aktiveSpur &&
         aktiverSchritt?.art === 'ablesen' &&

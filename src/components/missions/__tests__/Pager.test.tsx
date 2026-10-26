@@ -141,4 +141,56 @@ describe('Pager', () => {
     expect(screen.getByRole('button', { name: 'Ton aus' })).toBeTruthy();
     expect(localStorage.getItem('pager:ton')).toBe('aus');
   });
+
+  describe('Spielmodus (#170)', () => {
+    const offen = () => {
+      setReducedMotion(true);
+      render(<Pager spiel nachrichten={[n(1, ['eins']), n(2, ['zwei'])]} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Verlauf' }));
+      return document.getElementById('pager-verlauf')!;
+    };
+
+    it('zeigt den Verlauf als Overlay und schließt ihn per Knopf', () => {
+      const verlauf = offen();
+      expect(verlauf.hidden).toBe(false);
+      expect([...verlauf.querySelectorAll('li')].map((li) => li.textContent)).toEqual(['eins']);
+      fireEvent.click(screen.getByRole('button', { name: 'Schließen' }));
+      expect(verlauf.hidden).toBe(true);
+    });
+
+    it('zeigt bei leerem Verlauf einen Hinweis', () => {
+      setReducedMotion(true);
+      render(<Pager spiel nachrichten={[n(1, ['eins'])]} />);
+      fireEvent.click(screen.getByRole('button', { name: 'Verlauf' }));
+      expect(screen.getByText('Noch keine früheren Nachrichten.')).toBeTruthy();
+    });
+
+    it('schließt per Klick außerhalb, nicht innerhalb', () => {
+      const verlauf = offen();
+      fireEvent.pointerDown(verlauf);
+      expect(verlauf.hidden).toBe(false);
+      fireEvent.pointerDown(document.body);
+      expect(verlauf.hidden).toBe(true);
+    });
+
+    it('R3: Escape mit Fokus im Terminal lässt den Verlauf offen, sonst schließt er', () => {
+      const verlauf = offen();
+      const terminal = document.createElement('div');
+      terminal.className = 'xterm';
+      const eingabe = document.createElement('textarea');
+      terminal.append(eingabe);
+      document.body.append(terminal);
+      eingabe.focus();
+      fireEvent.keyDown(eingabe, { key: 'Escape' });
+      expect(verlauf.hidden).toBe(false);
+      (document.activeElement as HTMLElement).blur();
+      const ausserhalb = document.createElement('button');
+      document.body.append(ausserhalb);
+      ausserhalb.focus();
+      fireEvent.keyDown(ausserhalb, { key: 'Escape' });
+      expect(verlauf.hidden).toBe(true);
+      terminal.remove();
+      ausserhalb.remove();
+    });
+  });
 });

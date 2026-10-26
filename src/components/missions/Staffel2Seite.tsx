@@ -1,7 +1,8 @@
 // Seite von Staffel 2: wählt die Episode (Wahl per ?episode= oder die erste ungelöste), zeigt die
-// Übersicht und speichert den Abschluss im geteilten Staffel-Store (ADR 0005, 0007). Läuft nur im
-// Browser (client:only); der Server weiß nichts vom Stand. Laufende Episoden werden nicht gespeichert.
-import { useCallback, useEffect, useMemo, useState } from 'react';
+// Kopfzeile mit Episodenwahl und speichert den Abschluss im geteilten Staffel-Store (ADR 0005,
+// 0007). Läuft nur im Browser (client:only); der Server weiß nichts vom Stand. Laufende Episoden
+// werden nicht gespeichert.
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import type { EpisodeKarte } from '../../data/staffeln/staffel-2';
 import type { Ermittlung } from '../../lib/missions/ermittlungTypes';
 import type { MissionTool } from '../../lib/missions/missionTypes';
@@ -13,7 +14,28 @@ import {
 } from '../../lib/missions/staffelStore';
 import ErmittlungApp from './ErmittlungApp';
 import type { WeiterLink } from './ErmittlungsAbschluss';
-import Episodenuebersicht from './Episodenuebersicht';
+import Kopfzeile from './Kopfzeile';
+
+const VERLASSEN_HREF = '/projekte/terminal-missionen/';
+
+// Tokens der Spieloberfläche (#170): nur am Wurzelcontainer, nicht global.
+const LK_TOKEN = {
+  '--lk-ink': '#ede6da',
+  '--lk-muted': '#b3aa9c',
+  '--lk-dim': '#8e8679',
+  '--lk-line': 'rgba(237, 230, 218, 0.1)',
+  '--lk-line-strong': 'rgba(237, 230, 218, 0.2)',
+  '--lk-panel': 'rgba(15, 21, 30, 0.84)',
+  '--lk-panel-solid': '#121922',
+  '--lk-accent': '#e8552f',
+  '--lk-accent-soft': 'rgba(232, 85, 47, 0.15)',
+  '--lk-accent-text': '#f4a58e',
+  '--lk-ok': '#5cc98a',
+  '--lk-warn': '#e9a443',
+  '--lk-r': '10px',
+  '--lk-r-sm': '7px',
+  '--lk-shadow': '0 18px 40px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.35)',
+} as CSSProperties;
 
 export interface SeitenEpisode {
   ermittlung: Ermittlung;
@@ -75,20 +97,24 @@ export default function Staffel2Seite(props: Staffel2SeiteProps) {
 
   // Spielmodus (#170): Die Seite füllt das Fenster, die Ermittlung nimmt den Rest der Höhe.
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <Episodenuebersicht
+    <div className="flex min-h-0 flex-1 flex-col" style={LK_TOKEN}>
+      <Kopfzeile
         episoden={uebersicht}
         geloest={geloest}
         aktuell={aktiv.ermittlung.nr}
+        verlassenHref={VERLASSEN_HREF}
+        onWaehle={navigiere ?? ((href) => window.location.assign(href))}
         onLoeschen={loesche}
       />
-      <ErmittlungApp
-        key={aktiv.ermittlung.nr}
-        ermittlung={aktiv.ermittlung}
-        werkzeuge={aktiv.werkzeuge}
-        weiter={aktiv.weiter}
-        onGeloest={speichere}
-      />
+      <main className="flex min-h-0 flex-1 flex-col px-3 pt-3 pb-3 sm:px-6">
+        <ErmittlungApp
+          key={aktiv.ermittlung.nr}
+          ermittlung={aktiv.ermittlung}
+          werkzeuge={aktiv.werkzeuge}
+          weiter={aktiv.weiter}
+          onGeloest={speichere}
+        />
+      </main>
     </div>
   );
 }
