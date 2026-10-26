@@ -18,6 +18,7 @@ import {
   startEpisode,
   vorwurfKnopf,
   waehleBelege,
+  oeffneAkte,
 } from './helpers/staffel2';
 
 // Ticket 10: Tastatur, Fokus, Dialog, mobile Darstellung, reduzierte Bewegung und axe gegen die
@@ -76,6 +77,7 @@ test('T10-10a Desktop 1440x1000: Tastatur, Dialog, Fokus, Abschluss und axe', as
   funde.start = await axeLauf(page);
 
   // Raum-Ansicht per Tastatur: Einsatzrahmen, Spuren, Hilfe, Ansichten, Aktualisieren, Hotspots.
+  await oeffneAkte(page);
   await oeffneAnsicht(page, 'Serverschrank');
   await page.getByRole('button', { name: 'Schild am Rack', exact: true }).waitFor();
   await page.getByRole('link', { name: /Spiel verlassen/ }).focus();

@@ -33,6 +33,7 @@ import {
   type VorwurfKandidat,
 } from '../../lib/missions/vorwurfAblauf';
 import Ansichten from './Ansichten';
+import Fallakte, { istSpaltenModus } from './Fallakte';
 import AntwortFeld from './AntwortFeld';
 import EinsatzrahmenHinweis from './EinsatzrahmenHinweis';
 import ErmittlungsAbschluss, { type WeiterLink } from './ErmittlungsAbschluss';
@@ -78,10 +79,6 @@ const TAB_NAME: Record<Tab, string> = {
   serverraum: 'Serverraum',
 };
 
-/** Ab lg steht die Fallakte neben der Arbeitsfläche; darunter ersetzt sie sie. */
-const istBreit = () =>
-  typeof window.matchMedia !== 'function' || window.matchMedia('(min-width: 1024px)').matches;
-
 /** Erste Spur mit offenem Schritt in Datenreihenfolge; sonst die erste Spur; sonst null. */
 function ersteSpur(spuren: readonly Spur[], zustand: ErmittlungsZustand): Spur | null {
   return spuren.find((spur) => aktuellerSchritt(spur, zustand) !== null) ?? spuren[0] ?? null;
@@ -95,7 +92,8 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
   const [tab, setTab] = useState<Tab>('terminal');
   // Terminal und Bildschirm sind zwei Reiter desselben laufenden V86Bildschirm.
   const [vmReiter, setVmReiter] = useState<'terminal' | 'bildschirm'>('terminal');
-  const [akteOffen, setAkteOffen] = useState(istBreit);
+  const [akteOffen, setAkteOffen] = useState(false);
+  const akteSchalterRef = useRef<HTMLButtonElement | null>(null);
   const tabRefs = useRef<Partial<Record<Tab, HTMLButtonElement | null>>>({});
   const idBasis = useId();
   const [anzeigeZustand, setAnzeigeZustand] = useState<ErmittlungsZustand>(startZustand);
@@ -289,8 +287,12 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
   const waehleTab = useCallback((neu: Tab) => {
     setTab(neu);
     if (neu !== 'serverraum') setVmReiter(neu);
-    // Schmal ersetzt die Akte die Arbeitsfläche; ein Tab zeigt wieder die Fläche.
-    if (!istBreit()) setAkteOffen(false);
+    // Als Overlay verdeckt die Akte die Fläche; ein Tab zeigt sie wieder.
+    if (!istSpaltenModus()) setAkteOffen(false);
+  }, []);
+  const schliesseAkte = useCallback(() => {
+    setAkteOffen(false);
+    akteSchalterRef.current?.focus();
   }, []);
   const bildschirmErstmals = useCallback(() => melde('auftrag', BILDSCHIRM_HINWEIS), [melde]);
 
@@ -532,10 +534,17 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
   const akteId = `${idBasis}-akte`;
   const leistenKnopf =
     'inline-flex h-9 items-center rounded-[var(--lk-r-sm)] border px-3 text-[13px] whitespace-nowrap text-[color:var(--lk-ink)] hover:bg-[rgba(255,255,255,0.05)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--lk-accent)] max-[759px]:px-2.5';
+  const belegAnsichten = ermittlung.vorwurf.belege
+    .filter((beleg) => anzeigeZustand.belegeErkannt.includes(beleg.id))
+    .map((beleg) => ({
+      id: beleg.id,
+      titel: beleg.beschreibung,
+      spurTitel: ermittlung.spuren.find((spur) => spur.id === beleg.spurId)?.titel ?? '',
+    }));
   const erledigteSpuren = spurStatus.filter((spur) => spur.status === 'erledigt').length;
 
   // Spielmodus (#170): Kopf und Pager stehen, die Arbeitsfläche füllt den Rest der Fensterhöhe.
-  // Gescrollt wird nur in der linken Spalte und im Terminal; das Terminal bleibt fest.
+  // Gescrollt wird nur in der Akte und im Terminal; das Terminal bleibt fest.
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 pt-2 [@media(max-height:820px)]:gap-y-1 [@media(max-height:820px)]:pt-0">
@@ -681,6 +690,7 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
             )}
             <button
               type="button"
+              ref={akteSchalterRef}
               aria-expanded={akteOffen}
               aria-controls={akteId}
               onClick={() => setAkteOffen((offen) => !offen)}
@@ -695,37 +705,12 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
           </div>
         </div>
         <div
-          className={`grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)] ${
-            akteOffen ? 'lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]' : ''
+          className={`relative grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)] ${
+            akteOffen ? 'min-[1180px]:grid-cols-[minmax(0,1fr)_372px]' : ''
           }`}
         >
-          <div
-            id={akteId}
-            hidden={!akteOffen}
-            className="min-h-0 min-w-0 overflow-y-auto border-[color:var(--lk-line)] p-3 lg:border-r"
-          >
-            <EinsatzrahmenHinweis
-              text={ermittlung.einsatzrahmen.text}
-              verletzt={anzeigeZustand.einsatzrahmenVerletzt}
-              gesperrt={istGesperrt(anzeigeZustand)}
-            />
-            <Spurenliste
-              spuren={ermittlung.spuren}
-              zustand={anzeigeZustand}
-              aktiveSpurId={aktiveSpurId}
-              onSpurWaehlen={waehleSpur}
-            />
-            {/* Neuer key nach erfolgreichem Setup: gezeigte Tipps beginnen wieder bei null. */}
-            <ErmittlungsHilfe
-              key={hilfeStand}
-              spurId={aktiveSpur?.id ?? null}
-              schritt={aktiverSchritt}
-              werkzeuge={werkzeuge}
-              onTippGezeigt={merkeTipp}
-            />
-          </div>
           {/* Panels bleiben gemountet (nur `hidden`): Die VM darf nie neu starten. */}
-          <div className={`min-h-0 min-w-0 ${akteOffen ? 'max-lg:hidden' : ''}`}>
+          <div className="min-h-0 min-w-0">
             <div
               role="tabpanel"
               id={panelId('terminal')}
@@ -797,6 +782,37 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
               />
             </div>
           </div>
+          <Fallakte
+            id={akteId}
+            offen={akteOffen}
+            onSchliessen={schliesseAkte}
+            belege={belegAnsichten}
+            vorBelegen={
+              <>
+                <EinsatzrahmenHinweis
+                  text={ermittlung.einsatzrahmen.text}
+                  verletzt={anzeigeZustand.einsatzrahmenVerletzt}
+                  gesperrt={istGesperrt(anzeigeZustand)}
+                />
+                <Spurenliste
+                  spuren={ermittlung.spuren}
+                  zustand={anzeigeZustand}
+                  aktiveSpurId={aktiveSpurId}
+                  onSpurWaehlen={waehleSpur}
+                />
+              </>
+            }
+            nachBelegen={
+              /* Neuer key nach erfolgreichem Setup: gezeigte Tipps beginnen wieder bei null. */
+              <ErmittlungsHilfe
+                key={hilfeStand}
+                spurId={aktiveSpur?.id ?? null}
+                schritt={aktiverSchritt}
+                werkzeuge={werkzeuge}
+                onTippGezeigt={merkeTipp}
+              />
+            }
+          />
         </div>
       </div>
       <VorwurfDialog

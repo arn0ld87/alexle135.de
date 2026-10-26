@@ -39,7 +39,10 @@ export default function ErmittlungsHilfe({
 
   return (
     <section aria-labelledby="staffel2-hilfe" className="mt-4 min-w-0 space-y-2">
-      <h2 id="staffel2-hilfe" className="ds-display-s text-[color:var(--ink)]">
+      <h2
+        id="staffel2-hilfe"
+        className="font-mono text-[11.5px] tracking-[0.14em] text-[color:var(--lk-dim)] uppercase"
+      >
         Hilfe von Alex
       </h2>
       {werkzeuge && werkzeuge.length > 0 && (

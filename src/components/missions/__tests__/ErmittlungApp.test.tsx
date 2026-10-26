@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render as rtlRender, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { platzhalter } from '../../../data/staffeln/staffel-2/platzhalter';
@@ -42,6 +42,13 @@ vi.mock('../V86Bildschirm', () => ({
     return <div data-testid="stub-bildschirm" />;
   },
 }));
+
+// Die Fallakte ist nach dem Einstieg zu (R2); die meisten Tests brauchen sie offen.
+const render: typeof rtlRender = (ui, options) => {
+  const view = rtlRender(ui, options);
+  fireEvent.click(screen.getByRole('button', { name: 'Fallakte' }));
+  return view;
+};
 
 const pagerText = () => screen.getByTestId('pager').textContent ?? '';
 const istBuendel = (skript: string) => skript.startsWith('(');
@@ -330,16 +337,21 @@ describe('ErmittlungApp', () => {
   });
 
   it('schaltet die Fallakte ein und aus', async () => {
-    render(<ErmittlungApp ermittlung={platzhalter} />);
+    rtlRender(<ErmittlungApp ermittlung={platzhalter} />);
     await screen.findByTestId('stub-terminal');
     const user = userEvent.setup();
     const schalter = screen.getByRole('button', { name: 'Fallakte' });
+    const akte = document.getElementById(schalter.getAttribute('aria-controls')!)!;
+    expect(schalter).toHaveAttribute('aria-expanded', 'false');
+    expect(akte).not.toBeVisible();
+    expect(screen.getByTestId('stub-terminal')).toBeInTheDocument();
+    await user.click(schalter);
     expect(schalter).toHaveAttribute('aria-expanded', 'true');
+    expect(akte).toBeVisible();
     await user.click(schalter);
     expect(schalter).toHaveAttribute('aria-expanded', 'false');
-    expect(document.getElementById(schalter.getAttribute('aria-controls')!)).toHaveAttribute(
-      'hidden'
-    );
+    expect(akte).toHaveAttribute('hidden');
+    expect(screen.getByTestId('stub-terminal')).toBeInTheDocument();
   });
 
   it('weist andere mission-Befehle mit Exit 1 ab', async () => {
@@ -1344,12 +1356,12 @@ describe('ErmittlungApp: Schrittart ablesen', () => {
 
   it('startet bei ungültigen Zeichen keinen RUN und sagt warum', async () => {
     await starteAblesen();
-    const vorher = run.mock.calls.length;
     await antworte('02:30; rm -rf /');
     await waitFor(() =>
       expect(pagerText()).toContain('Bitte nur Buchstaben, Ziffern und . : _ / -')
     );
-    expect(run.mock.calls.length).toBe(vorher);
+    // Nicht die Anzahl zählen: Abfragen der Ansichten laufen nebenher und machen das zeitabhängig.
+    expect(run.mock.calls.some(([skript]) => String(skript).includes('02:30; rm'))).toBe(false);
   });
 
   it('erledigt den Schritt bei richtiger Antwort', async () => {
