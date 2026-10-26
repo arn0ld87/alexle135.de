@@ -67,7 +67,11 @@ export async function flaeche(page: Page, name: 'Ansicht' | 'Terminal'): Promise
     name: name === 'Ansicht' ? 'Serverraum' : name,
     exact: true,
   });
-  if ((await tab.getAttribute('aria-selected')) !== 'true') await tab.click();
+  const panel = page.locator(`#${await tab.getAttribute('aria-controls')}`);
+  // Schmal verdeckt die offene Fallakte auch das gewählte Panel; ein Klick auf den Tab schließt sie.
+  if ((await tab.getAttribute('aria-selected')) !== 'true' || !(await panel.isVisible())) {
+    await tab.click();
+  }
 }
 
 /** Öffnet die Fallakte (Einsatzrahmen, Spuren, Hilfe), falls sie zu ist. */
