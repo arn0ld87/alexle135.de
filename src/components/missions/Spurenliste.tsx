@@ -25,7 +25,10 @@ export default function Spurenliste({
 
   return (
     <section aria-labelledby="staffel2-spuren" className="min-w-0">
-      <h2 id="staffel2-spuren" className="font-mono text-[11.5px] tracking-[0.14em] text-[color:var(--lk-dim)] uppercase">
+      <h2
+        id="staffel2-spuren"
+        className="font-mono text-[11.5px] tracking-[0.14em] text-[color:var(--lk-dim)] uppercase"
+      >
         Spuren
       </h2>
       {spuren.length > 0 && (

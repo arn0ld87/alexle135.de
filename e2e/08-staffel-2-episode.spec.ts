@@ -26,6 +26,7 @@ import {
   startEpisode,
   vorwurfKnopf,
   waehleBelege,
+  oeffneAkte,
 } from './helpers/staffel2';
 
 // Ticket 10: Episode 1 von der Raumansicht bis zum Abschluss, falsche und unvollständige Vorwürfe,
@@ -265,6 +266,7 @@ test('ADR 0009: Episode 1 mit allen Schrittarten durchspielen, bis zum Vorwurf u
   // Die vor dem Eingriff gesicherten Belege zählen weiter; der Einsatzrahmen ist unversehrt.
   await waehleBelege(page, ['log-zeile', 'rechte-zeile', 'rechte-metadaten']);
   await flaeche(page, 'Ansicht');
+  await oeffneAkte(page);
   await expect(page.getByRole('region', { name: 'Einsatzrahmen' })).not.toContainText(
     'Einsatzrahmen verletzt.'
   );

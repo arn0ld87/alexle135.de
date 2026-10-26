@@ -7,18 +7,17 @@ export function fokusImTerminal(): boolean {
   return el instanceof Element && el.closest('.xterm, [data-testid="v86-terminal"]') !== null;
 }
 
-const FOKUSSIERBAR = 'a[href], button:not([disabled]), input:not([disabled]), summary, [tabindex="0"]';
+const FOKUSSIERBAR =
+  'a[href], button:not([disabled]), input:not([disabled]), summary, [tabindex="0"]';
 
 /** Fokusfalle: Tab und Umschalt+Tab bleiben im Container; liegt der Fokus draußen, zieht Tab ihn hinein. */
 export function haltFokusIn(e: KeyboardEvent, container: HTMLElement | null): void {
   if (e.key !== 'Tab' || !container) return;
-  const ziele = [...container.querySelectorAll<HTMLElement>(FOKUSSIERBAR)].filter(
-    (el) => {
-      if (el.closest('[hidden]') !== null) return false;
-      const zu = el.closest('details:not([open])');
-      return zu === null || el.parentElement === zu;
-    }
-  );
+  const ziele = [...container.querySelectorAll<HTMLElement>(FOKUSSIERBAR)].filter((el) => {
+    if (el.closest('[hidden]') !== null) return false;
+    const zu = el.closest('details:not([open])');
+    return zu === null || el.parentElement === zu;
+  });
   const erstes = ziele[0];
   const letztes = ziele[ziele.length - 1];
   if (!erstes || !letztes) return;

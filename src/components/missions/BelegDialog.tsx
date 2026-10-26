@@ -35,7 +35,11 @@ export default function BelegDialog({ beleg, onSchliessen }: BelegDialogProps) {
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center p-4">
-      <div aria-hidden="true" className="absolute inset-0 bg-[rgba(4,6,9,0.7)]" onClick={onSchliessen} />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-[rgba(4,6,9,0.7)]"
+        onClick={onSchliessen}
+      />
       <div
         ref={dialogRef}
         role="dialog"

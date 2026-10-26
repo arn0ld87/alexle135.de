@@ -12,6 +12,7 @@ import {
   shot,
   startEpisode,
   vorwurfKnopf,
+  oeffneAkte,
 } from './helpers/staffel2';
 
 // Ticket 10: echter Einsatzrahmen-Verstoß (sudo-Aufruf im ausgeschlossenen Ordner) und beide
@@ -28,6 +29,7 @@ async function verstossAusfuehren(page: Page): Promise<void> {
   await expect(rows(page)).toContainText('Fiktive Uebungsdatei der Rechenwerk Ostwind GmbH');
   await befehl(page, 'true');
   await flaeche(page, 'Ansicht');
+  await oeffneAkte(page);
   await expect(page.getByRole('region', { name: 'Einsatzrahmen' })).toContainText(
     'Einsatzrahmen verletzt.',
     { timeout: 45_000 }
@@ -45,6 +47,7 @@ test('T10-7: ausgeschlossener sudo-Aufruf wird erkannt, Folge einmal, Sperre sic
 }) => {
   await startEpisode(page);
   await verstossAusfuehren(page);
+  await oeffneAkte(page);
   await expect(page.getByRole('region', { name: 'Einsatzrahmen' })).toContainText(PAGER.gesperrt);
   await expect.poll(() => anzahlImPager(page, PAGER.folge), { timeout: 30_000 }).toBe(1);
 
@@ -71,9 +74,11 @@ test('T10-8a: Erholung durch einen weiteren gesicherten Beleg', async ({ page })
   await befehl(page, LOG, { pager: PAGER.logErledigt });
   await expect(vorwurfKnopf(page)).toBeEnabled({ timeout: 30_000 });
   await expect(page.getByRole('region', { name: 'Ansichten' })).not.toContainText(PAGER.gesperrt);
+  await oeffneAkte(page);
   await expect(page.getByRole('region', { name: 'Einsatzrahmen' })).not.toContainText(
     PAGER.gesperrt
   );
+  await oeffneAkte(page);
   await expect(page.getByRole('region', { name: 'Einsatzrahmen' })).toContainText(
     'Einsatzrahmen verletzt.'
   );
@@ -100,6 +105,7 @@ test('T10-8b: Erholung durch drei vollständige Prüfungen', async ({ page }) =>
   await expect(vorwurfKnopf(page)).toBeEnabled({ timeout: 45_000 });
   await expect(page.getByRole('checkbox')).toHaveCount(0);
   await expect(page.getByRole('region', { name: 'Ansichten' })).not.toContainText(PAGER.gesperrt);
+  await oeffneAkte(page);
   await expect(page.getByRole('region', { name: 'Einsatzrahmen' })).not.toContainText(
     PAGER.gesperrt
   );

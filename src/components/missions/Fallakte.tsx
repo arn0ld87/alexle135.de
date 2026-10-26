@@ -109,7 +109,9 @@ export default function Fallakte(props: FallakteProps) {
               Belege
             </h2>
             {belege.length === 0 ? (
-              <p className="mt-2 text-sm text-[color:var(--lk-muted)]">Noch keine Belege gefunden.</p>
+              <p className="mt-2 text-sm text-[color:var(--lk-muted)]">
+                Noch keine Belege gefunden.
+              </p>
             ) : (
               <ul className="mt-2 space-y-2">
                 {belege.map((eintrag) => (
@@ -123,7 +125,9 @@ export default function Fallakte(props: FallakteProps) {
                       aria-label={`Beleg vergrößern: ${eintrag.titel}`}
                       className="flex w-full flex-col gap-1 rounded-lg border border-[color:var(--lk-line-strong)] bg-[color:var(--lk-panel-solid)] px-3 py-2 text-left hover:bg-[rgba(255,255,255,0.05)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--lk-accent)]"
                     >
-                      <span className="text-[13.5px] text-[color:var(--lk-ink)]">{eintrag.titel}</span>
+                      <span className="text-[13.5px] text-[color:var(--lk-ink)]">
+                        {eintrag.titel}
+                      </span>
                       <span className={kickerKlasse}>{eintrag.spurTitel}</span>
                     </button>
                   </li>
