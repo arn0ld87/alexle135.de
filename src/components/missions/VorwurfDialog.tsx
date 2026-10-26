@@ -6,7 +6,12 @@ import type {
   ErmittlungsZustand,
   Verdaechtige,
 } from '../../lib/missions/ermittlungTypes';
+import { fokusImTerminal } from '../../lib/missions/terminalFokus';
 import type { VorwurfKandidat } from '../../lib/missions/vorwurfAblauf';
+
+const knopf =
+  'inline-flex h-[38px] items-center rounded-lg border px-4 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--lk-accent)]';
+const legende = 'text-[11.5px] tracking-[0.14em] text-[color:var(--lk-dim)] uppercase';
 
 interface VorwurfDialogProps {
   open: boolean;
@@ -115,110 +120,117 @@ export default function VorwurfDialog(props: VorwurfDialogProps) {
       ref={dialogRef}
       aria-labelledby={titelId}
       aria-busy={prueft}
-      className="max-w-xl border border-[var(--terminal-border)] bg-[var(--bg)] p-4 text-[color:var(--ink)]"
+      className="m-auto max-h-[calc(100dvh-20px)] w-[min(740px,calc(100%-20px))] flex-col overflow-hidden rounded-xl border border-[color:var(--lk-line-strong)] bg-[color:var(--lk-panel-solid)] p-0 text-[color:var(--lk-ink)] shadow-[var(--lk-shadow)] backdrop:bg-[rgba(4,6,9,0.74)] backdrop:backdrop-blur-[3px] open:flex"
       onCancel={(e) => {
         e.preventDefault();
-        schliessen();
+        if (!fokusImTerminal()) schliessen();
       }}
     >
-      <form ref={formRef} onSubmit={absenden}>
-        <header className="flex items-start justify-between gap-2">
-          <h2 id={titelId} className="ds-display-s">
+      <form ref={formRef} onSubmit={absenden} className="flex min-h-0 flex-1 flex-col">
+        <header className="flex shrink-0 items-center justify-between gap-3 border-b border-[color:var(--lk-line)] py-3 pr-3.5 pl-5.5">
+          <h2 id={titelId} className="text-xl font-bold">
             Vorwurf erheben
           </h2>
           <button
             type="button"
             onClick={schliessen}
-            className="rounded-none border border-[var(--terminal-border)] px-2 py-1 font-mono text-xs uppercase"
+            className={`${knopf} border-[color:var(--lk-line-strong)]`}
           >
             Abbrechen
           </button>
         </header>
-        <p className="mt-2 font-mono text-xs text-[color:var(--muted)]">
-          Mindestens {ermittlung.vorwurf.mindestBelege} Beleg(e)
-          {ermittlung.vorwurf.jedeSpur ? ', mindestens ein Beleg aus jeder Spur' : ''}. Die Prüfung
-          erfolgt frisch vor der Bewertung.
-        </p>
-        {gesperrt && gesperrtHinweis && (
-          <p role="status" className="mt-2 font-mono text-xs text-[color:var(--ink)]">
-            {gesperrtHinweis}
+        <div className="min-h-0 flex-1 overflow-auto px-5.5 py-4.5">
+          <p className="text-sm text-[color:var(--lk-muted)]">
+            Mindestens {ermittlung.vorwurf.mindestBelege} Beleg(e)
+            {ermittlung.vorwurf.jedeSpur ? ', mindestens ein Beleg aus jeder Spur' : ''}. Die
+            Prüfung erfolgt frisch vor der Bewertung.
           </p>
-        )}
-        <fieldset ref={personRef} className="mt-4">
-          <legend className="font-mono text-xs uppercase tracking-wide">Verdächtige</legend>
-          <div className="mt-2 grid gap-2">
-            {ermittlung.vorwurf.verdaechtige.map((v: Verdaechtige) => (
-              <label key={v.id} className="flex items-center gap-2 font-mono text-xs">
-                <input
-                  type="radio"
-                  name="verdacht"
-                  value={v.id}
-                  checked={personId === v.id}
-                  onChange={() => setPersonId(v.id)}
-                  disabled={prueft || gesperrt}
-                />
-                {v.portraet && (
-                  <img
-                    src={v.portraet}
-                    width={40}
-                    height={40}
-                    alt=""
-                    className="h-10 w-10 object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
-                )}
-                <span>
-                  {v.name} – {v.rolle}
-                </span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-        <fieldset className="mt-4">
-          <legend className="font-mono text-xs uppercase tracking-wide">Belege</legend>
-          <div className="mt-2 grid gap-2">
-            {erkennteBelege.map((b: BelegRegel) => (
-              <label key={b.id} className="flex items-start gap-2 font-mono text-xs">
-                <input
-                  type="checkbox"
-                  checked={ausgewaehlteBelegIds.includes(b.id)}
-                  onChange={(e) => toggleBeleg(b.id, e.target.checked)}
-                  disabled={prueft || gesperrt}
-                />
-                <span className="break-words">
-                  {b.beschreibung} (
-                  {ermittlung.spuren.find((s) => s.id === b.spurId)?.titel ?? b.spurId})
-                </span>
-              </label>
-            ))}
-          </div>
-          {erkennteBelege.length === 0 && (
-            <p className="mt-2 font-mono text-xs text-[color:var(--muted)]">
-              Noch keine erkannten Belege.
+          {gesperrt && gesperrtHinweis && (
+            <p role="status" className="mt-2 text-sm text-[color:var(--lk-ink)]">
+              {gesperrtHinweis}
             </p>
           )}
-        </fieldset>
-        {fehler && (
-          <p role="alert" className="mt-2 font-mono text-xs text-[color:var(--ink)]">
-            {fehler}
-          </p>
-        )}
-        {prueft && (
-          <p
-            role="status"
-            aria-busy="true"
-            className="mt-2 font-mono text-xs text-[color:var(--muted)]"
-          >
-            Belege werden geprüft …
-          </p>
-        )}
-        <div className="mt-4 flex justify-end gap-2">
+          <fieldset ref={personRef} className="mt-5 min-w-0">
+            <legend className={legende}>Verdächtige</legend>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              {ermittlung.vorwurf.verdaechtige.map((v: Verdaechtige) => (
+                <label
+                  key={v.id}
+                  className="flex items-center gap-3 rounded-lg border border-[color:var(--lk-line)] p-2.5 text-sm has-[:checked]:border-[color:var(--lk-accent)] has-[:checked]:bg-[color:var(--lk-accent-soft)]"
+                >
+                  <input
+                    type="radio"
+                    name="verdacht"
+                    value={v.id}
+                    checked={personId === v.id}
+                    onChange={() => setPersonId(v.id)}
+                    disabled={prueft || gesperrt}
+                    className="accent-[color:var(--lk-accent)]"
+                  />
+                  {v.portraet && (
+                    <img
+                      src={v.portraet}
+                      width={40}
+                      height={40}
+                      alt=""
+                      className="h-10 w-10 rounded-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  )}
+                  <span>
+                    {v.name} – {v.rolle}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <fieldset className="mt-5 min-w-0">
+            <legend className={legende}>Belege</legend>
+            <div className="mt-2 grid gap-2">
+              {erkennteBelege.map((b: BelegRegel) => (
+                <label key={b.id} className="flex items-start gap-2.5 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={ausgewaehlteBelegIds.includes(b.id)}
+                    onChange={(e) => toggleBeleg(b.id, e.target.checked)}
+                    disabled={prueft || gesperrt}
+                    className="mt-0.5 accent-[color:var(--lk-accent)]"
+                  />
+                  <span className="break-words">
+                    {b.beschreibung} (
+                    {ermittlung.spuren.find((s) => s.id === b.spurId)?.titel ?? b.spurId})
+                  </span>
+                </label>
+              ))}
+            </div>
+            {erkennteBelege.length === 0 && (
+              <p className="mt-2 text-sm text-[color:var(--lk-muted)]">
+                Noch keine erkannten Belege.
+              </p>
+            )}
+          </fieldset>
+        </div>
+        <div className="flex shrink-0 items-center justify-end gap-2.5 border-t border-[color:var(--lk-line)] px-5.5 py-3.5">
+          {fehler && (
+            <p role="alert" className="mr-auto text-sm text-[color:var(--lk-accent-text)]">
+              {fehler}
+            </p>
+          )}
+          {prueft && (
+            <p
+              role="status"
+              aria-busy="true"
+              className="mr-auto text-sm text-[color:var(--lk-muted)]"
+            >
+              Belege werden geprüft …
+            </p>
+          )}
           <button
             type="submit"
             disabled={prueft || gesperrt}
-            className="rounded-none border border-[var(--terminal-border)] px-3 py-2 font-mono text-xs uppercase"
+            className={`${knopf} border-[color:var(--lk-accent-fill)] bg-[color:var(--lk-accent-fill)] font-semibold text-[#fff] hover:bg-[color:var(--lk-accent-fill-hover)] disabled:cursor-not-allowed disabled:opacity-45`}
           >
             Absenden
           </button>

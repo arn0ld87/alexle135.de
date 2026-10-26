@@ -280,9 +280,14 @@ test('T10-10d Tab bleibt im Terminal, Esc dann Tab verlässt es (Tastaturfalle, 
   // Nacktes Tab gehört der Shell (Vervollständigung): Der Fokus bleibt im Terminal.
   await page.keyboard.press('Tab');
   expect(await imTerminal()).toBe(true);
-  // Esc, dann Tab: Der Fokus verlässt das Terminal. Im Spielmodus (#170) folgt bis zur
-  // Aktionsleiste (UI-05) kein Element mehr, der Browser übernimmt den Fokus.
+  // Esc, dann Tab: Der Fokus verlässt das Terminal und landet auf einem Element der Seite
+  // (die Aktionsleiste folgt dem Terminal), nicht auf body.
   await page.keyboard.press('Escape');
   await page.keyboard.press('Tab');
   await expect.poll(imTerminal).toBe(false);
+  expect(
+    await page.evaluate(
+      () => document.activeElement !== document.body && document.activeElement !== null
+    )
+  ).toBe(true);
 });

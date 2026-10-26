@@ -12,6 +12,7 @@ import {
   shot,
   startEpisode,
   vorwurfKnopf,
+  vorwurfHinweis,
   oeffneAkte,
 } from './helpers/staffel2';
 
@@ -22,12 +23,16 @@ test.skip(!process.env.MISSION_VM, 'MISSION_VM ist nicht gesetzt.');
 test.describe.configure({ mode: 'parallel' });
 test.setTimeout(420_000);
 
+/** Ein Prompt während einer laufenden Prüfung wird mit ihr zusammengelegt: Jede Prüfung abwarten. */
+const pruefungAbwarten = (page: Page): Promise<void> => page.waitForTimeout(6_000);
+
 /** Führt den ausgeschlossenen Aufruf aus und wartet, bis die Oberfläche den Verstoß zeigt. */
 async function verstossAusfuehren(page: Page): Promise<void> {
   await befehl(page, VERSTOSS);
   // Die echte Datei wurde gelesen; der nächste reguläre Prompt löst die Prüfung des sudo-Protokolls aus.
   await expect(rows(page)).toContainText('Fiktive Uebungsdatei der Rechenwerk Ostwind GmbH');
   await befehl(page, 'true');
+  await pruefungAbwarten(page);
   await flaeche(page, 'Ansicht');
   await oeffneAkte(page);
   await expect(page.getByRole('region', { name: 'Einsatzrahmen' })).toContainText(
@@ -39,7 +44,7 @@ async function verstossAusfuehren(page: Page): Promise<void> {
 const gesperrt = async (page: Page): Promise<void> => {
   await oeffneAnsicht(page, 'Aktenwand');
   await expect(vorwurfKnopf(page)).toBeDisabled({ timeout: 30_000 });
-  await expect(page.getByRole('region', { name: 'Ansichten' })).toContainText(PAGER.gesperrt);
+  await expect(vorwurfHinweis(page)).toContainText(PAGER.gesperrt);
 };
 
 test('T10-7: ausgeschlossener sudo-Aufruf wird erkannt, Folge einmal, Sperre sichtbar', async ({
@@ -74,7 +79,7 @@ test('T10-8a: Erholung durch einen weiteren gesicherten Beleg', async ({ page })
   await befehl(page, LOG, { pager: PAGER.logErledigt });
   await flaeche(page, 'Ansicht');
   await expect(vorwurfKnopf(page)).toBeEnabled({ timeout: 30_000 });
-  await expect(page.getByRole('region', { name: 'Ansichten' })).not.toContainText(PAGER.gesperrt);
+  await expect(vorwurfHinweis(page).filter({ hasText: PAGER.gesperrt })).toHaveCount(0);
   await oeffneAkte(page);
   await expect(page.getByRole('region', { name: 'Einsatzrahmen' })).not.toContainText(
     PAGER.gesperrt
@@ -96,18 +101,19 @@ test('T10-8b: Erholung durch drei vollständige Prüfungen', async ({ page }) =>
     await expect(vorwurfKnopf(page)).toBeDisabled({ timeout: 30_000 });
   }
 
-  // Nach der 1. und 2. vollständigen Prüfung bleibt die Sperre, erst die 3. gibt frei.
-  for (let i = 1; i <= 2; i++) {
-    await befehl(page, 'true');
-    await flaeche(page, 'Ansicht');
-    await expect(vorwurfKnopf(page)).toBeDisabled();
-    await expect(page.getByRole('region', { name: 'Ansichten' })).toContainText(PAGER.gesperrt);
-  }
+  // Der Prompt nach VERSTOSS erkennt den Verstoß, die Prüfung nach `true` in verstossAusfuehren ist die 1.
+  // vollständige danach. Nach der 2. bleibt die Sperre, erst die 3. gibt frei.
   await befehl(page, 'true');
+  await pruefungAbwarten(page);
+  await flaeche(page, 'Ansicht');
+  await expect(vorwurfKnopf(page)).toBeDisabled();
+  await expect(vorwurfHinweis(page)).toContainText(PAGER.gesperrt);
+  await befehl(page, 'true');
+  await pruefungAbwarten(page);
   await flaeche(page, 'Ansicht');
   await expect(vorwurfKnopf(page)).toBeEnabled({ timeout: 45_000 });
   await expect(page.getByRole('checkbox')).toHaveCount(0);
-  await expect(page.getByRole('region', { name: 'Ansichten' })).not.toContainText(PAGER.gesperrt);
+  await expect(vorwurfHinweis(page).filter({ hasText: PAGER.gesperrt })).toHaveCount(0);
   await oeffneAkte(page);
   await expect(page.getByRole('region', { name: 'Einsatzrahmen' })).not.toContainText(
     PAGER.gesperrt

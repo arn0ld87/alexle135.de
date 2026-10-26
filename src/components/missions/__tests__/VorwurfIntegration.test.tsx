@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { platzhalter } from '../../../data/staffeln/staffel-2/platzhalter';
@@ -254,8 +254,8 @@ describe('Vorwurf am tatsächlichen Prüflauf', () => {
     };
     const t = await starten(true, einSchritt);
     await t.user.click(screen.getByRole('button', { name: 'Absenden' }));
-    const ansichten = screen.getByRole('region', { name: 'Ansichten' });
-    await waitFor(() => expect(within(ansichten).getByText(/Der Vorwurf sitzt\./)).toBeVisible());
+    const hinweis = () => document.getElementById('aktionsleiste-hinweis');
+    await waitFor(() => expect(hinweis()).toHaveTextContent(/Der Vorwurf sitzt\./));
     t.pruefung(async () => ({
       exitCode: 0,
       output:
@@ -265,8 +265,7 @@ describe('Vorwurf am tatsächlichen Prüflauf', () => {
       await h.prompt('__prompt');
     });
     await screen.findByRole('heading', { name: 'Fall gelöst' });
-    expect(within(ansichten).queryByText(/Der Vorwurf sitzt\./)).not.toBeInTheDocument();
-    expect(within(ansichten).queryByText(/fehlt noch/)).not.toBeInTheDocument();
+    expect(hinweis()).toBeNull();
   });
 
   it('übernimmt nach einem neuen Setup keinen alten Vorwurf', async () => {

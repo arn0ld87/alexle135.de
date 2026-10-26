@@ -16,7 +16,7 @@ interface ErmittlungsAbschlussProps {
 
 function TerminalZeilen({ zeilen }: { zeilen: readonly string[] }) {
   return (
-    <div className="border border-[var(--terminal-border)] p-3 font-mono text-xs text-[color:var(--ink)]">
+    <div className="rounded-lg border border-[color:var(--lk-line)] bg-[color:var(--lk-term,#0a0d12)] p-3 font-mono text-[13px] text-[color:var(--lk-ink)]">
       {zeilen.map((z, i) => (
         <div key={i} className="break-words whitespace-pre-wrap">
           {z}
@@ -34,29 +34,32 @@ export default function ErmittlungsAbschluss({ ermittlung, weiter }: Ermittlungs
     titelRef.current?.focus();
   }, []);
   return (
-    <section aria-labelledby="ermittlung-abschluss" className="mt-4">
+    <section
+      aria-labelledby="ermittlung-abschluss"
+      className="rounded-xl border border-[color:var(--lk-line-strong)] bg-[color:var(--lk-panel-solid)] p-5 shadow-[var(--lk-shadow)]"
+    >
       <h2
         ref={titelRef}
         tabIndex={-1}
         id="ermittlung-abschluss"
-        className="ds-display-m text-[color:var(--ink)]"
+        className="text-[26px] leading-tight font-bold text-[color:var(--lk-ink)] outline-none"
       >
         Fall gelöst
       </h2>
       <div className="mt-3 grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,18rem)]">
         <div>
           <TerminalZeilen zeilen={ermittlung.szene} />
-          <div className="mt-4 border border-[var(--terminal-border)] p-3">
-            <p className="font-mono text-xs uppercase tracking-wide text-[color:var(--muted)]">
+          <div className="mt-4 rounded-lg border border-[color:var(--lk-line)] p-3">
+            <p className="text-[11.5px] tracking-[0.14em] text-[color:var(--lk-dim)] uppercase">
               Beweisstück
             </p>
-            <p className="mt-2 font-mono text-sm text-[color:var(--ink)]">
+            <p className="mt-2 text-[15px] font-semibold text-[color:var(--lk-ink)]">
               {ermittlung.beweisstueck.titel}
             </p>
-            <p className="mt-1 break-words font-mono text-xs text-[color:var(--muted)]">
+            <p className="mt-1 text-sm break-words text-[color:var(--lk-muted)]">
               {ermittlung.beweisstueck.beschreibung}
             </p>
-            <p className="mt-1 font-mono text-xs text-[color:var(--muted)]">
+            <p className="mt-1 font-mono text-sm text-[color:var(--lk-muted)]">
               Code: {ermittlung.beweisstueck.code}
             </p>
           </div>
@@ -64,7 +67,7 @@ export default function ErmittlungsAbschluss({ ermittlung, weiter }: Ermittlungs
             <p className="mt-4">
               <a
                 href={weiter.href}
-                className="font-mono text-sm text-[color:var(--accent-strong)] underline underline-offset-4"
+                className="inline-flex h-[42px] items-center rounded-lg border border-[color:var(--lk-accent-fill)] bg-[color:var(--lk-accent-fill)] px-4 text-[15.5px] font-semibold text-[#fff] hover:bg-[color:var(--lk-accent-fill-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--lk-accent)]"
               >
                 {weiter.text}
               </a>
@@ -72,7 +75,7 @@ export default function ErmittlungsAbschluss({ ermittlung, weiter }: Ermittlungs
           )}
         </div>
         <div className="hidden md:flex justify-center items-start">
-          <img src={bild} alt="" className="max-h-[28rem] w-auto" loading="lazy" />
+          <img src={bild} alt="" className="max-h-[20rem] w-auto" loading="lazy" />
         </div>
       </div>
     </section>

@@ -8,6 +8,7 @@ import {
   rows,
   shot,
   waehleBelege,
+  oeffneAkte,
 } from './helpers/staffel2';
 
 // Episode 2 „Der Prozess, der nicht stirbt“ komplett gegen die echte VM mit Bildschirm: Der Zettel
@@ -93,6 +94,7 @@ test('Episode 2: Wiedergänger beenden, Zettel auf dem Bildschirm lesen, Nadia �
   await shot(page, 'ep2-bildschirm-zettel');
 
   // Antwortfeld: erst eine Kennung aus dem Journal, die nicht auf dem Zettel steht, dann die richtige.
+  await oeffneAkte(page);
   await page.getByRole('button', { name: /Zettel.*Schritten/ }).click();
   const feld = page.getByLabel('Welche Änderungskennung steht auf dem Zettel? (RW-…)');
   await feld.fill('RW-2117');

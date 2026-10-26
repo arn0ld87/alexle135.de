@@ -25,6 +25,7 @@ import {
   shot,
   startEpisode,
   vorwurfKnopf,
+  vorwurfHinweis,
   waehleBelege,
   oeffneAkte,
 } from './helpers/staffel2';
@@ -39,7 +40,7 @@ test.setTimeout(420_000);
 const gesperrtSichtbar = async (page: import('@playwright/test').Page) => {
   await flaeche(page, 'Ansicht');
   await expect(vorwurfKnopf(page)).toBeDisabled({ timeout: 30_000 });
-  await expect(page.getByRole('region', { name: 'Ansichten' })).toContainText(PAGER.gesperrt);
+  await expect(vorwurfHinweis(page)).toContainText(PAGER.gesperrt);
 };
 
 test('T10-1: Raum lesen, Log vor Rechte-Zeile sichern, richtiger Vorwurf', async ({ page }) => {
@@ -155,7 +156,7 @@ test('T10-3: falsche Person bei erkannten Belegen', async ({ page }) => {
   await befehl(page, RECHTE_METADATEN, { pager: PAGER.wieder, timeout: 60_000 });
   await flaeche(page, 'Ansicht');
   await expect(vorwurfKnopf(page)).toBeEnabled({ timeout: 30_000 });
-  await expect(page.getByRole('region', { name: 'Ansichten' })).not.toContainText(PAGER.gesperrt);
+  await expect(vorwurfHinweis(page).filter({ hasText: PAGER.gesperrt })).toHaveCount(0);
 });
 
 test('T10-4: richtige Person, aber nur Belege aus der Rechte-Spur', async ({ page }) => {
@@ -198,7 +199,7 @@ test('T10-5: Beleg nach der letzten Prüfung gelöscht, Frischprüfung erkennt d
   expect(await anzahlImPager(page, PAGER.falschePerson)).toBe(0);
   await flaeche(page, 'Ansicht');
   await expect(vorwurfKnopf(page)).toBeEnabled({ timeout: 30_000 });
-  await expect(page.getByRole('region', { name: 'Ansichten' })).not.toContainText(PAGER.gesperrt);
+  await expect(vorwurfHinweis(page).filter({ hasText: PAGER.gesperrt })).toHaveCount(0);
 
   // Erholung ohne verbrauchten Versuch: Beleg neu sichern, erneut absenden.
   await flaeche(page, 'Terminal');
@@ -295,6 +296,7 @@ test('ADR 0009: Neu laden startet Episode 1 frisch, Regel und Programm liegen wi
   expect(await anzahlImPager(page, PAGER.regelErledigt)).toBe(0);
   await expect(page.getByRole('heading', { level: 2, name: /^Episode 1/ })).toBeVisible();
   await flaeche(page, 'Ansicht');
+  await oeffneAkte(page);
   await expect(
     page.getByRole('button', { name: 'Rechte, 0 von 5 Schritten erledigt' })
   ).toBeVisible();
