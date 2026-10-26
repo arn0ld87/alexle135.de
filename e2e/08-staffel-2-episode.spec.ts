@@ -156,7 +156,7 @@ test('T10-3: falsche Person bei erkannten Belegen', async ({ page }) => {
   await befehl(page, RECHTE_METADATEN, { pager: PAGER.wieder, timeout: 60_000 });
   await flaeche(page, 'Ansicht');
   await expect(vorwurfKnopf(page)).toBeEnabled({ timeout: 30_000 });
-  await expect(vorwurfHinweis(page)).not.toContainText(PAGER.gesperrt);
+  await expect(vorwurfHinweis(page).filter({ hasText: PAGER.gesperrt })).toHaveCount(0);
 });
 
 test('T10-4: richtige Person, aber nur Belege aus der Rechte-Spur', async ({ page }) => {
@@ -199,7 +199,7 @@ test('T10-5: Beleg nach der letzten Prüfung gelöscht, Frischprüfung erkennt d
   expect(await anzahlImPager(page, PAGER.falschePerson)).toBe(0);
   await flaeche(page, 'Ansicht');
   await expect(vorwurfKnopf(page)).toBeEnabled({ timeout: 30_000 });
-  await expect(vorwurfHinweis(page)).not.toContainText(PAGER.gesperrt);
+  await expect(vorwurfHinweis(page).filter({ hasText: PAGER.gesperrt })).toHaveCount(0);
 
   // Erholung ohne verbrauchten Versuch: Beleg neu sichern, erneut absenden.
   await flaeche(page, 'Terminal');
