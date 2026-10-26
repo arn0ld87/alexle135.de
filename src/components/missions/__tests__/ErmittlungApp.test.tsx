@@ -826,6 +826,7 @@ describe('ErmittlungApp: Raumansicht (T5)', () => {
     expect(offen).toHaveLength(1);
 
     const user = userEvent.setup();
+    await user.click(screen.getByRole('tab', { name: 'Serverraum' }));
     await user.click(screen.getByRole('button', { name: 'Lager' }));
     expect(run).toHaveBeenCalledTimes(4);
 
@@ -858,6 +859,7 @@ describe('ErmittlungApp: Raumansicht (T5)', () => {
 
     const terminal = screen.getByTestId('stub-terminal');
     const user = userEvent.setup();
+    await user.click(screen.getByRole('tab', { name: 'Serverraum' }));
     const hotspot = screen.getByRole('button', { name: 'Hostname' });
     await user.click(hotspot);
 
@@ -909,6 +911,7 @@ describe('ErmittlungApp: Aktenwand (T6)', () => {
     );
 
     const user = userEvent.setup();
+    await user.click(screen.getByRole('tab', { name: 'Serverraum' }));
     await user.click(screen.getByRole('button', { name: 'Aktenwand' }));
     await waitFor(() => expect(screen.getByText('notiz.txt')).toBeInTheDocument());
     expect(screen.getAllByRole('checkbox')).toHaveLength(1);
@@ -926,6 +929,7 @@ describe('ErmittlungApp: Aktenwand (T6)', () => {
     await waitFor(() =>
       expect(screen.getByRole('button', { name: 'Hostname' })).toBeInTheDocument()
     );
+    await user.click(screen.getByRole('tab', { name: 'Serverraum' }));
     await user.click(screen.getByRole('button', { name: 'Aktenwand' }));
     await waitFor(() => expect(screen.getByText('notiz.txt')).toBeInTheDocument());
     expect(screen.getByRole('checkbox', { name: /Eine Notiz.*notiz\.txt/ })).toBeChecked();
@@ -941,6 +945,7 @@ describe('ErmittlungApp: Aktenwand (T6)', () => {
     await waitFor(() => expect(screen.getByText('protokoll.txt')).toBeInTheDocument());
 
     await user.click(screen.getByRole('button', { name: 'Büro' }));
+    await user.click(screen.getByRole('tab', { name: 'Serverraum' }));
     await user.click(screen.getByRole('button', { name: 'Aktenwand' }));
     await waitFor(() => expect(screen.getByText('protokoll.txt')).toBeInTheDocument());
     expect(screen.queryByRole('checkbox')).toBeNull();
@@ -1053,6 +1058,7 @@ describe('ErmittlungApp: Einsatzrahmen (T8)', () => {
     expect(zusammenfassung.closest('details')).not.toHaveAttribute('open');
 
     const user = userEvent.setup();
+    await user.click(screen.getByRole('tab', { name: 'Serverraum' }));
     await user.click(screen.getByRole('button', { name: 'Lager' }));
     run.mockClear();
     zusammenfassung.focus();
@@ -1098,7 +1104,9 @@ describe('ErmittlungApp: Einsatzrahmen (T8)', () => {
     await waitFor(() => expect(screen.getByText(/vorübergehend gesperrt/)).toBeInTheDocument());
 
     const user = userEvent.setup();
+    await user.click(screen.getByRole('tab', { name: 'Serverraum' }));
     await user.click(screen.getByRole('button', { name: 'Lager' }));
+    await user.click(screen.getByRole('tab', { name: 'Serverraum' }));
     await user.click(screen.getByRole('button', { name: 'Aktenwand' }));
     await waitFor(() => expect(screen.getAllByRole('checkbox')).toHaveLength(1));
     expect(screen.getByText(/vorübergehend gesperrt/)).toBeInTheDocument();
@@ -1150,6 +1158,7 @@ describe('ErmittlungApp: Einsatzrahmen (T8)', () => {
     const user = userEvent.setup();
     bestanden.add('b.notiz');
     await prompt();
+    await user.click(screen.getByRole('tab', { name: 'Serverraum' }));
     await user.click(screen.getByRole('button', { name: 'Aktenwand' }));
     await waitFor(() => expect(screen.getAllByRole('checkbox')).toHaveLength(1));
     await user.click(screen.getByRole('checkbox'));
