@@ -265,13 +265,9 @@ export default function Pager({
         data-testid="pager"
         className="relative z-30 shrink-0"
       >
-        <div
-          className="flex min-h-[66px] items-stretch overflow-hidden rounded-[var(--lk-r)] border border-[color:var(--lk-line)] bg-[color:var(--lk-panel)] shadow-[var(--lk-shadow)] backdrop-blur-sm [@media(max-height:820px)]:min-h-[54px]"
-        >
+        <div className="flex min-h-[66px] items-stretch overflow-hidden rounded-[var(--lk-r)] border border-[color:var(--lk-line)] bg-[color:var(--lk-panel)] shadow-[var(--lk-shadow)] backdrop-blur-sm [@media(max-height:820px)]:min-h-[54px]">
           {/* Solange getippt wird, „spricht“ Alex: Die Figur wippt leicht (CSS, #422). */}
-          <div
-            className="w-[86px] shrink-0 bg-[#1d2733] max-[759px]:w-14 [@media(max-height:820px)]:w-[66px]"
-          >
+          <div className="w-[86px] shrink-0 bg-[#1d2733] max-[759px]:w-14 [@media(max-height:820px)]:w-[66px]">
             <img
               src={figurUrl(pose)}
               alt=""
@@ -282,9 +278,7 @@ export default function Pager({
               className="pager-figur block h-full w-full object-cover object-[50%_18%]"
             />
           </div>
-          <div
-            className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 px-[18px] py-2.5 max-[759px]:px-3 [@media(max-height:820px)]:px-4 [@media(max-height:820px)]:py-[7px]"
-          >
+          <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 px-[18px] py-2.5 max-[759px]:px-3 [@media(max-height:820px)]:px-4 [@media(max-height:820px)]:py-[7px]">
             <p className="font-mono text-[11.5px] tracking-[0.16em] text-[color:var(--lk-muted)] uppercase">
               Pager · Alex
             </p>
