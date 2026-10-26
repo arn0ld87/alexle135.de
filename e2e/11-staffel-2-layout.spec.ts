@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { STAFFEL2 } from './helpers/staffel2';
+import { flaeche, STAFFEL2 } from './helpers/staffel2';
 
 // #152: Auf dem Desktop scrollt nur die linke Spalte; Terminal und Pager bleiben stehen.
 test('T11-1 Desktop 1440x900: linke Spalte scrollt, Terminal bleibt fest', async ({ page }) => {
