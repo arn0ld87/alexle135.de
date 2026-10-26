@@ -613,7 +613,14 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
             onAntworten={antworten}
           />
         )}
-      {rahmenFehler && <p role="alert">{rahmenFehler}</p>}
+      {rahmenFehler && (
+        <p
+          role="alert"
+          className="shrink-0 rounded-[var(--lk-r)] border border-[rgba(240,142,114,0.45)] bg-[rgba(240,142,114,0.07)] px-4 py-3 text-sm text-[color:var(--lk-ink)]"
+        >
+          {rahmenFehler}
+        </p>
+      )}
       {/* Die Seite scrollt nicht (#170): Der Abschluss nimmt sich den Platz und scrollt selbst. */}
       {anzeigeZustand.geloest && (
         <div className="min-h-0 shrink overflow-y-auto">
@@ -721,7 +728,10 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
             >
               <Suspense
                 fallback={
-                  <p className="p-3 font-mono text-xs text-[color:var(--lk-muted)]">
+                  <p
+                    role="status"
+                    className="p-4 text-sm text-[color:var(--lk-muted)] motion-safe:animate-pulse"
+                  >
                     Terminal lädt …
                   </p>
                 }
@@ -739,6 +749,7 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
                     className="h-full min-h-0 [@media(max-height:639px)]:h-[20rem]"
                     onReady={onReady}
                     onMissionCommand={onMissionCommand}
+                    spiel
                   />
                 )}
               </Suspense>

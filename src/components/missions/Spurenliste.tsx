@@ -96,7 +96,15 @@ export default function Spurenliste({
           )}
         </div>
       ) : (
-        <p className="mt-2 font-mono text-xs text-[color:var(--muted)]">Keine Spuren vorhanden.</p>
+        <p
+          data-testid="spuren-leer"
+          className="mt-2 rounded-lg border border-dashed border-[color:var(--lk-line-strong)] px-4 py-5 text-center text-sm text-[color:var(--lk-muted)]"
+        >
+          <strong className="mb-1 block text-[15px] font-semibold text-[color:var(--lk-ink)]">
+            Noch keine Spuren
+          </strong>
+          Sobald es etwas zu untersuchen gibt, erscheint es hier.
+        </p>
       )}
     </section>
   );

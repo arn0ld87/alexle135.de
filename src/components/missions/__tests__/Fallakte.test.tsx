@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import Fallakte from '../Fallakte';
+import Spurenliste from '../Spurenliste';
+import type { ErmittlungsZustand } from '../../../lib/missions/ermittlungTypes';
 
 const belege = [{ id: 'b1', titel: 'Logeintrag um 03:12', spurTitel: 'Die Anmeldung' }];
 
@@ -54,5 +56,28 @@ describe('Fallakte', () => {
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(screen.getByRole('complementary', { name: 'Fallakte' })).toBeVisible();
+  });
+
+  it('zeigt in leerer Akte je Abschnitt einen Hinweis statt Belegen und Spuren', () => {
+    render(
+      <Fallakte
+        id="akte"
+        offen
+        onSchliessen={() => {}}
+        belege={[]}
+        vorBelegen={
+          <Spurenliste
+            spuren={[]}
+            zustand={{} as ErmittlungsZustand}
+            aktiveSpurId={null}
+            onSpurWaehlen={() => {}}
+          />
+        }
+        nachBelegen={null}
+      />
+    );
+    expect(screen.getByTestId('spuren-leer')).toHaveTextContent('Noch keine Spuren');
+    expect(screen.getByTestId('belege-leer')).toHaveTextContent('Noch keine Belege');
+    expect(screen.queryByRole('button', { name: /Beleg vergrößern/ })).toBeNull();
   });
 });
