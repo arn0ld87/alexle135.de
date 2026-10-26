@@ -40,35 +40,13 @@ const episoden = staffel2Episoden
     />
     <div aria-hidden="true" class="pointer-events-none absolute inset-0 -z-10 bg-[rgba(8,11,16,0.8)]">
     </div>
-    <header
-      class="krimi-kopf flex shrink-0 items-center justify-between gap-4 border-b border-[color:var(--line)] bg-[rgba(15,21,30,0.84)] px-3 sm:px-6"
-    >
-      <a
-        href="/"
-        class="hidden font-mono text-xs tracking-[0.16em] text-[color:var(--muted)] uppercase hover:text-[color:var(--ink)] sm:inline"
-      >
-        alex-schneider.dev
-      </a>
-      <h1 class="text-sm font-semibold text-[color:var(--ink)]">
-        Ein Linux-Krimi <span aria-hidden="true" class="text-[color:var(--muted)]">|</span>
-        <span class="text-[color:var(--muted)]">Staffel 2</span>
-      </h1>
-      <a
-        href="/projekte/terminal-missionen/"
-        class="font-mono text-xs tracking-[0.16em] text-[color:var(--muted)] uppercase hover:text-[color:var(--ink)]"
-      >
-        Spiel verlassen
-      </a>
-    </header>
-    <main class="flex min-h-0 flex-1 flex-col px-3 pt-3 pb-3 sm:px-6">
-      <Staffel2Seite
-        client:only="react"
-        episoden={episoden}
-        uebersicht={staffel2Uebersicht}
-        gewaehlt={gewaehlt}
-        startHref={STAFFEL2_PFAD}
-      />
-    </main>
+    <Staffel2Seite
+      client:only="react"
+      episoden={episoden}
+      uebersicht={staffel2Uebersicht}
+      gewaehlt={gewaehlt}
+      startHref={STAFFEL2_PFAD}
+    />
   </div>
 </V2Layout>
 
@@ -86,13 +64,5 @@ const episoden = staffel2Episoden
   .krimi-spiel :focus-visible {
     outline: 2px solid #e8552f;
     outline-offset: 2px;
-  }
-  .krimi-kopf {
-    height: 46px;
-  }
-  @media (max-height: 820px) {
-    .krimi-kopf {
-      height: 40px;
-    }
   }
 </style>

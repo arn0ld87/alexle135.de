@@ -1636,6 +1636,17 @@ textarea.axinput {
   }
 }
 
+/* Punkt am Knopf „Verlauf“ der Spieloberfläche (#170): pulst dreimal für eine neue Nachricht. */
+@keyframes lk-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(232, 85, 47, 0.55);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(232, 85, 47, 0);
+  }
+}
+
 @keyframes term-blink {
   50% {
     opacity: 0;

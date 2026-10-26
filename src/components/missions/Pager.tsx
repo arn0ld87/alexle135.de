@@ -5,7 +5,10 @@
 // Links sitzt Alex' Figur (#402): je Nachricht eine Pose als eigenes SVG, geladen wird nur die
 // gezeigte. Dekorativ (alt=""), den Text trägt die Sprechblase. Blinzeln und Atmen stecken im
 // SVG selbst und laufen nur ohne reduzierte Bewegung.
+// Im Spielmodus von Staffel 2 (`spiel`, #170) ist der Pager eine flache Leiste mit Porträt, gekürzter
+// Nachricht und Knopf „Verlauf“; der Verlauf liegt als Overlay darunter und schiebt nichts.
 import { useEffect, useRef, useState } from 'react';
+import { fokusImTerminal } from '../../lib/missions/terminalFokus';
 import {
   MS_PAUSE,
   MS_PAUSE_REDUZIERT,
@@ -122,7 +125,14 @@ function ding() {
   }
 }
 
-export default function Pager({ nachrichten }: { nachrichten: PagerNachricht[] }) {
+export default function Pager({
+  nachrichten,
+  spiel = false,
+}: {
+  nachrichten: PagerNachricht[];
+  /** Darstellung der Spieloberfläche von Staffel 2; ohne sie bleibt die Leiste von Staffel 1. */
+  spiel?: boolean;
+}) {
   // Warteschlange (#410): Beim ersten Rendern steht die neueste Nachricht, danach kommt eine nach
   // der anderen, jeweils nach dem Eintippen und einer kurzen Pause. Sonst verdrängt die Szene die
   // Erledigt-Meldung, weil StaffelApp beides im selben Callback anhängt.
@@ -134,6 +144,10 @@ export default function Pager({ nachrichten }: { nachrichten: PagerNachricht[] }
   const wartend = naechsteWartende(nachrichten, aktuell);
   const [ton, setTon] = useState(readTon);
   const [verlaufOffen, setVerlaufOffen] = useState(false);
+  // Neue Nachricht seit dem letzten Öffnen des Verlaufs: nur dann pulst der Punkt am Knopf.
+  const [ungelesen, setUngelesen] = useState(false);
+  const wurzelRef = useRef<HTMLElement>(null);
+  const verlaufKnopfRef = useRef<HTMLButtonElement>(null);
   // Fortschritt gehört zu einer Nachrichten-ID: Eine neue Nachricht beginnt schon beim ersten
   // Rendern bei 0, nicht erst nach dem Effekt (Codex-Finding zu #397).
   const [fortschritt, setFortschritt] = useState(() => ({
@@ -157,6 +171,7 @@ export default function Pager({ nachrichten }: { nachrichten: PagerNachricht[] }
     if (!nachricht) return;
     const neu = nachricht.id > gesehen.current;
     gesehen.current = Math.max(gesehen.current, nachricht.id);
+    if (neu) setUngelesen(true);
     const ende = tippDauer(nachricht.zeilen);
     const { id, zeilen } = nachricht;
     if (!neu) {
@@ -198,6 +213,31 @@ export default function Pager({ nachrichten }: { nachrichten: PagerNachricht[] }
     };
   }, [aktuellId]);
 
+  // Der Verlauf schließt per Knopf, Klick daneben und Escape; Escape im Terminal gehört xterm.
+  useEffect(() => {
+    if (!spiel || !verlaufOffen) return;
+    const aufTaste = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape' || fokusImTerminal()) return;
+      const innen = wurzelRef.current?.contains(document.activeElement) ?? false;
+      setVerlaufOffen(false);
+      if (innen) verlaufKnopfRef.current?.focus();
+    };
+    const aufZeiger = (e: PointerEvent) => {
+      if (!wurzelRef.current?.contains(e.target as Node)) setVerlaufOffen(false);
+    };
+    document.addEventListener('keydown', aufTaste);
+    document.addEventListener('pointerdown', aufZeiger);
+    return () => {
+      document.removeEventListener('keydown', aufTaste);
+      document.removeEventListener('pointerdown', aufZeiger);
+    };
+  }, [spiel, verlaufOffen]);
+
+  function toggleVerlauf() {
+    if (!verlaufOffen) setUngelesen(false);
+    setVerlaufOffen((o) => !o);
+  }
+
   function toggleTon() {
     const an = !ton;
     setTon(an);
@@ -214,6 +254,127 @@ export default function Pager({ nachrichten }: { nachrichten: PagerNachricht[] }
   }, [ms]);
   const fertig = aktuell ? ms >= tippDauer(aktuell.zeilen) : true;
   const pose = aktuell?.pose ?? (aktuell ? STANDARD_POSE[aktuell.art] : 'neutral');
+
+  if (spiel) {
+    const knopf =
+      'inline-flex h-9 items-center gap-2 rounded-[var(--lk-r-sm)] border border-[color:var(--lk-line-strong)] px-3 text-sm text-[color:var(--lk-ink)] hover:bg-[rgba(237,230,218,0.06)]';
+    return (
+      <section
+        ref={wurzelRef}
+        aria-label="Pager"
+        data-testid="pager"
+        className="relative z-30 shrink-0"
+      >
+        <div className="flex min-h-[66px] items-stretch overflow-hidden rounded-[var(--lk-r)] border border-[color:var(--lk-line)] bg-[color:var(--lk-panel)] shadow-[var(--lk-shadow)] backdrop-blur-sm [@media(max-height:820px)]:min-h-[54px]">
+          {/* Solange getippt wird, „spricht“ Alex: Die Figur wippt leicht (CSS, #422). */}
+          <div className="w-[86px] shrink-0 bg-[#1d2733] max-[759px]:w-14 [@media(max-height:820px)]:w-[66px]">
+            <img
+              src={figurUrl(pose)}
+              alt=""
+              width={72}
+              height={72}
+              data-figur={pose}
+              data-spricht={fertig ? undefined : ''}
+              className="pager-figur block h-full w-full object-cover object-[50%_18%]"
+            />
+          </div>
+          <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 px-[18px] py-2.5 max-[759px]:px-3 [@media(max-height:820px)]:px-4 [@media(max-height:820px)]:py-[7px]">
+            <p className="font-mono text-[11.5px] tracking-[0.16em] text-[color:var(--lk-muted)] uppercase">
+              Pager · Alex
+            </p>
+            {aktuell ? (
+              <>
+                <p className="sr-only" aria-live="polite">
+                  {aktuell.zeilen.join(' ')}
+                </p>
+                <p
+                  aria-hidden="true"
+                  data-testid="pager-text"
+                  className="line-clamp-2 text-base leading-snug break-words text-[color:var(--lk-ink)] max-[759px]:text-sm [@media(max-height:820px)]:line-clamp-1"
+                >
+                  {zeilen.map((z, i) => (
+                    <span key={i}>{z} </span>
+                  ))}
+                  {!fertig && <span className="pager-cursor">▌</span>}
+                </p>
+              </>
+            ) : (
+              <p className="text-base text-[color:var(--lk-muted)]">Noch keine Nachricht.</p>
+            )}
+          </div>
+          <div className="flex shrink-0 items-center gap-2 px-3.5 max-[759px]:px-2">
+            <button
+              type="button"
+              onClick={toggleTon}
+              aria-pressed={ton}
+              className={`${knopf} border-transparent text-[color:var(--lk-muted)] max-[759px]:px-2`}
+            >
+              Ton {ton ? 'an' : 'aus'}
+            </button>
+            <button
+              ref={verlaufKnopfRef}
+              type="button"
+              onClick={toggleVerlauf}
+              aria-expanded={verlaufOffen}
+              aria-controls="pager-verlauf"
+              className={knopf}
+            >
+              Verlauf
+              {ungelesen && !verlaufOffen && (
+                <span
+                  aria-hidden="true"
+                  className="size-2 rounded-full bg-[color:var(--lk-accent)] motion-safe:animate-[lk-pulse_2.4s_ease-in-out_3]"
+                />
+              )}
+            </button>
+          </div>
+        </div>
+        {/* Overlay unter dem Pager über der Arbeitsfläche: eigener Scroll, kein Einfluss aufs Layout. */}
+        <div
+          id="pager-verlauf"
+          hidden={!verlaufOffen}
+          className="absolute top-[calc(100%+8px)] right-0 max-h-[52vh] w-[min(560px,100%)] overflow-auto rounded-[var(--lk-r)] border border-[color:var(--lk-line-strong)] bg-[color:var(--lk-panel-solid)] p-1.5 shadow-[var(--lk-shadow)]"
+        >
+          <div className="flex items-center justify-between py-1.5 pr-1.5 pl-3">
+            <h2 className="text-[15px] font-semibold text-[color:var(--lk-ink)]">Verlauf</h2>
+            <button
+              type="button"
+              onClick={() => {
+                setVerlaufOffen(false);
+                verlaufKnopfRef.current?.focus();
+              }}
+              className={`${knopf} h-8 border-transparent text-[color:var(--lk-muted)]`}
+            >
+              Schließen
+            </button>
+          </div>
+          {verlaufOffen && aktuell && (
+            <p className="border-t border-[color:var(--lk-line)] bg-[color:var(--lk-accent-soft)] px-3 py-2.5 text-sm whitespace-pre-wrap text-[color:var(--lk-ink)]">
+              {aktuell.zeilen.join('\n')}
+            </p>
+          )}
+          {verlauf.length === 0 && (
+            <p className="border-t border-[color:var(--lk-line)] px-3 py-2.5 text-sm text-[color:var(--lk-muted)]">
+              Noch keine früheren Nachrichten.
+            </p>
+          )}
+          <ol data-testid="pager-verlauf">
+            {verlauf
+              .slice()
+              .reverse()
+              .map((n) => (
+                <li
+                  key={n.id}
+                  className="border-t border-[color:var(--lk-line)] px-3 py-2.5 text-sm whitespace-pre-wrap text-[color:var(--lk-muted)]"
+                >
+                  {n.zeilen.join('\n')}
+                </li>
+              ))}
+          </ol>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section

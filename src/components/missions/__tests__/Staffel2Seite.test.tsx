@@ -56,7 +56,9 @@ describe('Staffel2Seite', () => {
     createStaffelStore().loeseEpisode(STAFFEL2_ID, 'probelauf', abschluss);
     rendere(null);
     expect(screen.getByTestId('app')).toHaveTextContent('Episode 1');
-    expect(screen.getByTestId('episoden-zaehler')).toHaveTextContent('1 von 2 gelöst');
+    expect(screen.getByRole('combobox', { name: 'Episode wählen' })).toHaveValue('1');
+    expect(screen.getByRole('option', { name: 'Episode 0 · T0 ✓' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Episode 1 · T1' })).toBeInTheDocument();
   });
 
   it('startet bei leerem Stand Episode 0 und bei allem gelöst die letzte', () => {
@@ -80,8 +82,24 @@ describe('Staffel2Seite', () => {
     rendere(null);
     act(() => h.geloest?.(abschluss));
     expect(createStaffelStore().read(STAFFEL2_ID).akte.probelauf).toEqual(abschluss);
-    expect(screen.getByTestId('episoden-zaehler')).toHaveTextContent('1 von 2 gelöst');
+    expect(screen.getByRole('option', { name: 'Episode 0 · T0 ✓' })).toBeInTheDocument();
     expect(screen.getByTestId('app')).toHaveTextContent('Episode 0');
+  });
+
+  it('wechselt die Episode über die Auswahl mit dem Link der gewählten', async () => {
+    const navigiere = vi.fn();
+    const user = userEvent.setup();
+    rendere(0, navigiere);
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Episode wählen' }), '1');
+    expect(navigiere).toHaveBeenCalledWith('/s?episode=1');
+  });
+
+  it('führt „Spiel verlassen“ zur Projektseite', () => {
+    rendere(0);
+    expect(screen.getByRole('link', { name: 'Spiel verlassen' })).toHaveAttribute(
+      'href',
+      '/projekte/terminal-missionen/'
+    );
   });
 
   it('löscht nur Staffel 2 und navigiert zum Start', async () => {
@@ -99,7 +117,12 @@ describe('Staffel2Seite', () => {
         startHref="/start"
       />
     );
-    await user.click(screen.getByRole('button', { name: 'Fortschritt von Staffel 2 löschen' }));
+    const oeffner = screen.getByRole('button', { name: 'Fortschritt löschen' });
+    await user.click(oeffner);
+    await user.click(screen.getByRole('button', { name: 'Abbrechen' }));
+    expect(navigiere).not.toHaveBeenCalled();
+    expect(oeffner).toHaveFocus();
+    await user.click(oeffner);
     await user.click(screen.getByRole('button', { name: 'Endgültig löschen' }));
     expect(navigiere).toHaveBeenCalledWith('/start');
     const neu = createStaffelStore();
