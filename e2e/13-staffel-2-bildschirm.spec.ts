@@ -59,7 +59,7 @@ test('Bildschirm: Gastprogramm schreibt als azubi, „Stand prüfen“ prüft', 
     `feh ~/fotos/zettel.png & until xwininfo -root -tree | grep -q '"feh'; do sleep 1; done; echo ZETTEL-$((40+2))`
   );
   await expect(rows).toContainText('ZETTEL-42', { timeout: 120_000 });
-  await page.getByRole('button', { name: 'Bildschirm', exact: true }).click();
+  await page.getByRole('tab', { name: 'Bildschirm', exact: true }).click();
   await expect(page.getByTestId('pager')).toContainText('Das ist der Bildschirm des Rechners.');
   const bildschirm = page.getByTestId('v86-bildschirm');
   await expect(bildschirm).toBeVisible();
@@ -67,7 +67,7 @@ test('Bildschirm: Gastprogramm schreibt als azubi, „Stand prüfen“ prüft', 
   await bildschirm.screenshot({ path: info.outputPath('bildschirm-zettel.png') });
 
   // Editor als Gastprogramm öffnen; er läuft als azubi.
-  await page.getByRole('button', { name: 'Terminal', exact: true }).click();
+  await page.getByRole('tab', { name: 'Terminal', exact: true }).click();
   await tippeImTerminal(
     page,
     `pkill -x feh; mousepad ~/belege/gesehen.txt >/dev/null 2>&1 & until xwininfo -root -tree | grep -q gesehen.txt; do sleep 1; done; ps -o user,comm | grep '[m]ousepad'`
@@ -75,7 +75,7 @@ test('Bildschirm: Gastprogramm schreibt als azubi, „Stand prüfen“ prüft', 
   await expect(rows).toContainText(/azubi\s+mousepad/, { timeout: 180_000 });
 
   // Auf dem Bildschirm tippen und speichern: kein Prompt, also kein automatischer Prüflauf.
-  await page.getByRole('button', { name: 'Bildschirm', exact: true }).click();
+  await page.getByRole('tab', { name: 'Bildschirm', exact: true }).click();
   await bildschirm.focus();
   await page.waitForTimeout(2_000);
   await page.keyboard.type(GESEHEN);
@@ -106,7 +106,7 @@ test('Ohne Bildschirmbedarf: Episode 1 und Staffel 1 laden kein Bildschirm-Image
   await expect(page.locator('.xterm-rows').first()).toContainText(/azubi@rw-srv01/, {
     timeout: 90_000,
   });
-  await expect(page.getByRole('button', { name: 'Bildschirm', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('tab', { name: 'Bildschirm', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Stand prüfen' })).toHaveCount(0);
 
   await page.goto('/projekte/terminal-missionen/app');
@@ -115,7 +115,7 @@ test('Ohne Bildschirmbedarf: Episode 1 und Staffel 1 laden kein Bildschirm-Image
   await expect(page.getByTestId('vorfall-schritt')).toContainText(/^Schritt 1\/\d+/, {
     timeout: 30_000,
   });
-  await expect(page.getByRole('button', { name: 'Bildschirm', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('tab', { name: 'Bildschirm', exact: true })).toHaveCount(0);
 
   expect(abrufe).toContain('/missions/linux/alpine-state.bin.zst');
   expect(abrufe.filter((pfad) => pfad.startsWith(BILDSCHIRM_ASSETS))).toEqual([]);

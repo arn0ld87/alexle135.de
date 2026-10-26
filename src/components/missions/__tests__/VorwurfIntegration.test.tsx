@@ -64,6 +64,7 @@ async function starten(protokoll = true, ermittlung: Ermittlung = platzhalter) {
     await h.prompt('__prompt');
   });
   const user = userEvent.setup();
+  await user.click(screen.getByRole('tab', { name: 'Serverraum' }));
   await user.click(screen.getByRole('button', { name: 'Aktenwand' }));
   await waitFor(() => expect(screen.getAllByRole('checkbox')).toHaveLength(protokoll ? 2 : 1));
   for (const box of screen.getAllByRole('checkbox')) await user.click(box);

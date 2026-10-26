@@ -11,7 +11,7 @@ test('T11-1 Desktop 1440x900: linke Spalte scrollt, Terminal bleibt fest', async
   // Nächster Vorfahr der Spurenliste mit eigenem Scrollbereich: die linke Spalte.
   const spalte = page
     .getByRole('heading', { name: 'Spuren' })
-    .locator('xpath=ancestor::div[contains(@class,"lg:overflow-y-auto")][1]');
+    .locator('xpath=ancestor::div[contains(@class,"overflow-y-auto")][1]');
   const scrollt = await spalte.evaluate((el) => el.scrollHeight > el.clientHeight);
   expect(scrollt).toBe(true);
 

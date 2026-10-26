@@ -44,7 +44,7 @@ export default function Kopfzeile(props: KopfzeileProps) {
   }, [dialogOffen]);
 
   const knopf =
-    'inline-flex h-8 items-center rounded-[7px] border border-transparent px-2 text-xs whitespace-nowrap text-[color:var(--lk-muted)] hover:bg-[rgba(237,230,218,0.06)] hover:text-[color:var(--lk-ink)] sm:px-3 sm:text-[13px]';
+    'inline-flex h-8 items-center rounded-[7px] border border-transparent px-2 text-xs whitespace-nowrap text-[color:var(--lk-muted)] hover:bg-[rgba(255,255,255,0.05)] hover:text-[color:var(--lk-ink)] sm:px-3 sm:text-[13px]';
   const dialogKnopf =
     'rounded-none border px-3 py-1.5 font-mono text-xs tracking-wide uppercase focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--lk-accent)]';
 

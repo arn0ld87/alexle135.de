@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { flaeche, oeffneAkte } from './helpers/staffel2';
 
 // Ticket 4/9: freie Spurenreihenfolge und Fortschritt ausschließlich aus der echten VM,
 // jetzt an den Belegen von Episode 1.
@@ -120,7 +121,7 @@ test('Staffel 2: mobile Flächen behalten Terminalausgabe und Spurenauswahl', as
   await page.keyboard.press('Enter');
   await expect(rows).toContainText('T04-MOBIL', { timeout: 15_000 });
 
-  await page.getByRole('button', { name: 'Ansicht', exact: true }).click();
+  await oeffneAkte(page);
   const liste = page.getByRole('region', { name: 'Spuren' });
   await expect(liste).toBeVisible();
   await expect(spur(page, RECHTE_0)).toBeVisible();
@@ -132,13 +133,13 @@ test('Staffel 2: mobile Flächen behalten Terminalausgabe und Spurenauswahl', as
   expect(keinQuerscrollen).toBe(true);
 
   await spur(page, LOG_0).click();
-  await page.getByRole('button', { name: 'Terminal', exact: true }).click();
+  await flaeche(page, 'Terminal');
   await expect(page.getByTestId('v86-terminal')).toBeVisible();
   await expect(rows).toContainText('T04-MOBIL');
   await expect(rows).toContainText(/azubi@rw-srv01/);
   await expect(page.getByTestId('v86-status')).toContainText('echtes Linux');
 
-  await page.getByRole('button', { name: 'Ansicht', exact: true }).click();
+  await oeffneAkte(page);
   await expect(spur(page, LOG_0)).toHaveAttribute('aria-pressed', 'true');
   await expect(spur(page, RECHTE_0)).toBeVisible();
 });

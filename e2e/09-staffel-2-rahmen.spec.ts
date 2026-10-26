@@ -69,6 +69,7 @@ test('T10-8a: Erholung durch einen weiteren gesicherten Beleg', async ({ page })
   }
 
   await befehl(page, LOG, { pager: PAGER.logErledigt });
+  await flaeche(page, 'Ansicht');
   await expect(vorwurfKnopf(page)).toBeEnabled({ timeout: 30_000 });
   await expect(page.getByRole('region', { name: 'Ansichten' })).not.toContainText(PAGER.gesperrt);
   await expect(page.getByRole('region', { name: 'Einsatzrahmen' })).not.toContainText(
@@ -93,10 +94,12 @@ test('T10-8b: Erholung durch drei vollständige Prüfungen', async ({ page }) =>
   // Nach der 1. und 2. vollständigen Prüfung bleibt die Sperre, erst die 3. gibt frei.
   for (let i = 1; i <= 2; i++) {
     await befehl(page, 'true');
+    await flaeche(page, 'Ansicht');
     await expect(vorwurfKnopf(page)).toBeDisabled();
     await expect(page.getByRole('region', { name: 'Ansichten' })).toContainText(PAGER.gesperrt);
   }
   await befehl(page, 'true');
+  await flaeche(page, 'Ansicht');
   await expect(vorwurfKnopf(page)).toBeEnabled({ timeout: 45_000 });
   await expect(page.getByRole('checkbox')).toHaveCount(0);
   await expect(page.getByRole('region', { name: 'Ansichten' })).not.toContainText(PAGER.gesperrt);
