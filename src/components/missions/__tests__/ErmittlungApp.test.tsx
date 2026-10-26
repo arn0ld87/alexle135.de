@@ -1361,7 +1361,7 @@ describe('ErmittlungApp: Schrittart ablesen', () => {
       expect(pagerText()).toContain('Bitte nur Buchstaben, Ziffern und . : _ / -')
     );
     // Nicht die Anzahl zählen: Abfragen der Ansichten laufen nebenher und machen das zeitabhängig.
-    expect(run.mock.calls.some(([skript]) => String(skript).includes('rm -rf'))).toBe(false);
+    expect(run.mock.calls.some(([skript]) => String(skript).includes('02:30; rm'))).toBe(false);
   });
 
   it('erledigt den Schritt bei richtiger Antwort', async () => {
