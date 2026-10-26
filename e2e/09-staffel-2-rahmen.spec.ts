@@ -98,13 +98,17 @@ test('T10-8b: Erholung durch drei vollständige Prüfungen', async ({ page }) =>
   }
 
   // Nach der 1. und 2. vollständigen Prüfung bleibt die Sperre, erst die 3. gibt frei.
+  // Ein Prompt während einer laufenden Prüfung wird mit ihr zusammengelegt: Jede Prüfung abwarten.
+  const pruefungAbwarten = () => page.waitForTimeout(6_000);
   for (let i = 1; i <= 2; i++) {
     await befehl(page, 'true');
+    await pruefungAbwarten();
     await flaeche(page, 'Ansicht');
     await expect(vorwurfKnopf(page)).toBeDisabled();
     await expect(vorwurfHinweis(page)).toContainText(PAGER.gesperrt);
   }
   await befehl(page, 'true');
+  await pruefungAbwarten();
   await flaeche(page, 'Ansicht');
   await expect(vorwurfKnopf(page)).toBeEnabled({ timeout: 45_000 });
   await expect(page.getByRole('checkbox')).toHaveCount(0);
