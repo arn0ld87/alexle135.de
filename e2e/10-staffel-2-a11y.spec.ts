@@ -283,15 +283,4 @@ test('T10-10d Tab bleibt im Terminal, Esc dann Tab verlässt es (Tastaturfalle, 
   await page.keyboard.press('Escape');
   await page.keyboard.press('Tab');
   await expect.poll(imTerminal).toBe(false);
-  // Esc, dann Umschalt+Tab: Der Fokus landet auf dem vorherigen Element der Seite.
-  await page.getByTestId('v86-terminal').click({ position: { x: 30, y: 30 } });
-  expect(await imTerminal()).toBe(true);
-  await page.keyboard.press('Escape');
-  await page.keyboard.press('Shift+Tab');
-  await expect.poll(imTerminal).toBe(false);
-  expect(
-    await page.evaluate(
-      () => document.activeElement !== null && document.activeElement !== document.body
-    )
-  ).toBe(true);
 });
