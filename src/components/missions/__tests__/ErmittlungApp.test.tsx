@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render as rtlRender, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { platzhalter } from '../../../data/staffeln/staffel-2/platzhalter';
@@ -42,6 +42,13 @@ vi.mock('../V86Bildschirm', () => ({
     return <div data-testid="stub-bildschirm" />;
   },
 }));
+
+// Die Fallakte ist nach dem Einstieg zu (R2); die meisten Tests brauchen sie offen.
+const render: typeof rtlRender = (ui, options) => {
+  const view = rtlRender(ui, options);
+  fireEvent.click(screen.getByRole('button', { name: 'Fallakte' }));
+  return view;
+};
 
 const pagerText = () => screen.getByTestId('pager').textContent ?? '';
 const istBuendel = (skript: string) => skript.startsWith('(');
@@ -330,7 +337,7 @@ describe('ErmittlungApp', () => {
   });
 
   it('schaltet die Fallakte ein und aus', async () => {
-    render(<ErmittlungApp ermittlung={platzhalter} />);
+    rtlRender(<ErmittlungApp ermittlung={platzhalter} />);
     await screen.findByTestId('stub-terminal');
     const user = userEvent.setup();
     const schalter = screen.getByRole('button', { name: 'Fallakte' });

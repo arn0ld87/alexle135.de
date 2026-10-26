@@ -533,7 +533,7 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
   const panelId = (t: Tab) => `${idBasis}-panel-${t === 'serverraum' ? t : 'terminal'}`;
   const akteId = `${idBasis}-akte`;
   const leistenKnopf =
-    'inline-flex h-9 items-center rounded-[var(--lk-r-sm)] border px-3 text-[13px] whitespace-nowrap text-[color:var(--lk-ink)] hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--lk-accent)] max-[759px]:px-2.5';
+    'inline-flex h-9 items-center rounded-[var(--lk-r-sm)] border px-3 text-[13px] whitespace-nowrap text-[color:var(--lk-ink)] hover:bg-[rgba(255,255,255,0.05)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--lk-accent)] max-[759px]:px-2.5';
   const belegAnsichten = ermittlung.vorwurf.belege
     .filter((beleg) => anzeigeZustand.belegeErkannt.includes(beleg.id))
     .map((beleg) => ({
@@ -659,7 +659,7 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
                 className={`inline-flex h-[42px] items-center rounded-[var(--lk-r-sm)] border px-4 text-[14.5px] font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--lk-accent)] max-[759px]:h-9 max-[759px]:px-2.5 max-[759px]:text-[13.5px] ${
                   tab === eintrag
                     ? 'border-[color:var(--lk-accent)] bg-[color:var(--lk-accent-soft)] text-[color:var(--lk-ink)]'
-                    : 'border-transparent text-[color:var(--lk-muted)] hover:bg-white/5 hover:text-[color:var(--lk-ink)]'
+                    : 'border-transparent text-[color:var(--lk-muted)] hover:bg-[rgba(255,255,255,0.05)] hover:text-[color:var(--lk-ink)]'
                 }`}
               >
                 {TAB_NAME[eintrag]}

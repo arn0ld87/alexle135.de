@@ -50,7 +50,7 @@ describe('Fallakte', () => {
     screen.getByLabelText('Terminal-Eingabe').focus();
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    screen.getByRole('button', { name: 'Schließen', hidden: false }).focus();
+    screen.getByRole('dialog').querySelector('button')!.focus();
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(screen.getByRole('complementary', { name: 'Fallakte' })).toBeVisible();
