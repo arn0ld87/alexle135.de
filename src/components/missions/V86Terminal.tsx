@@ -16,6 +16,7 @@ import {
   type TerminalPhase,
   type TerminalPhaseKind,
 } from '../../lib/missions/terminalStatus';
+import VmZustand from './VmZustand';
 
 // Build-Version der Assets (VERSION aus build.sh, im Docker-Build gesetzt); fehlt sie, ohne Query.
 const ASSET_VERSION = import.meta.env.PUBLIC_MISSION_ASSETS_VERSION;
@@ -40,6 +41,8 @@ interface V86TerminalProps {
   onPrompt?: (rot: boolean) => void;
   /** Bei jedem Wechsel der Phase (laden, start, bereit, fehler); „Neu starten“ meldet wieder `laden`. */
   onPhase?: (kind: TerminalPhaseKind) => void;
+  /** Spielmodus (#170): Lade- und Fehlerzustand im Stil der Spieloberfläche. */
+  spiel?: boolean;
   className?: string;
 }
 
@@ -48,6 +51,7 @@ export default function V86Terminal({
   onMissionCommand,
   onPrompt,
   onPhase,
+  spiel = false,
   className = '',
 }: V86TerminalProps) {
   const termRef = useRef<HTMLDivElement>(null);
@@ -278,11 +282,15 @@ export default function V86Terminal({
       </div>
       <div className="relative min-h-0 flex-1">
         <div ref={termRef} data-testid="v86-terminal" className="absolute inset-0 p-2" />
-        {busy && (
-          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 font-mono text-sm text-[var(--terminal-fg-muted)]">
-            <span>{phase.kind === 'start' ? 'Linux startet …' : 'Linux wird geladen …'}</span>
-            <span className="text-xs">Auf dem Handy dauert der erste Start etwas länger.</span>
-          </div>
+        {spiel ? (
+          <VmZustand phase={phase} />
+        ) : (
+          busy && (
+            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 font-mono text-sm text-[var(--terminal-fg-muted)]">
+              <span>{phase.kind === 'start' ? 'Linux startet …' : 'Linux wird geladen …'}</span>
+              <span className="text-xs">Auf dem Handy dauert der erste Start etwas länger.</span>
+            </div>
+          )
         )}
       </div>
     </div>

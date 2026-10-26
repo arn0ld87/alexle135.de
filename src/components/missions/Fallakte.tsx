@@ -109,8 +109,14 @@ export default function Fallakte(props: FallakteProps) {
               Belege
             </h2>
             {belege.length === 0 ? (
-              <p className="mt-2 text-sm text-[color:var(--lk-muted)]">
-                Noch keine Belege gefunden.
+              <p
+                data-testid="belege-leer"
+                className="mt-2 rounded-lg border border-dashed border-[color:var(--lk-line-strong)] px-4 py-5 text-center text-sm text-[color:var(--lk-muted)]"
+              >
+                <strong className="mb-1 block text-[15px] font-semibold text-[color:var(--lk-ink)]">
+                  Noch keine Belege
+                </strong>
+                Gefundene Belege erscheinen hier.
               </p>
             ) : (
               <ul className="mt-2 space-y-2">

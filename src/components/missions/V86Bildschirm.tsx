@@ -22,9 +22,11 @@ import {
   type TerminalPhaseKind,
 } from '../../lib/missions/terminalStatus';
 import type { ShellControl } from './V86Terminal';
+import VmZustand from './VmZustand';
 
 // Build-Versionen der Assets (je VERSION aus build.sh, im Docker-Build gesetzt); fehlt eine, ohne
 // Query. BIOS-Dateien gehören zum Missions-Image, Index und Savestate zum Bildschirm-Image.
+
 const ASSET_VERSION = import.meta.env.PUBLIC_MISSION_ASSETS_VERSION;
 const BILDSCHIRM_VERSION = import.meta.env.PUBLIC_MISSION_BILDSCHIRM_VERSION;
 const CMDLINE =
@@ -431,12 +433,7 @@ export default function V86Bildschirm({
             </div>
           </div>
         </div>
-        {busy && (
-          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 font-mono text-sm text-[var(--terminal-fg-muted)]">
-            <span>{phase.kind === 'start' ? 'Linux startet …' : 'Linux wird geladen …'}</span>
-            <span className="text-xs">Auf dem Handy dauert der erste Start etwas länger.</span>
-          </div>
-        )}
+        <VmZustand phase={phase} />
       </div>
     </div>
   );

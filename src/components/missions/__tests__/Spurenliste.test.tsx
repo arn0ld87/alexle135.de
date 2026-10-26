@@ -200,7 +200,7 @@ describe('Spurenliste', () => {
         onSpurWaehlen={() => {}}
       />
     );
-    expect(screen.getByText('Keine Spuren vorhanden.')).toBeInTheDocument();
+    expect(screen.getByTestId('spuren-leer')).toBeInTheDocument();
     expect(screen.queryByRole('list')).not.toBeInTheDocument();
 
     rerender(
@@ -211,7 +211,7 @@ describe('Spurenliste', () => {
         onSpurWaehlen={() => {}}
       />
     );
-    expect(screen.getByText('Keine Spuren vorhanden.')).toBeInTheDocument();
+    expect(screen.getByTestId('spuren-leer')).toBeInTheDocument();
 
     const boese = '<img src=x onerror=alert(1)>';
     rerender(
