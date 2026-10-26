@@ -257,7 +257,7 @@ export default function Pager({
 
   if (spiel) {
     const knopf =
-      'inline-flex h-9 items-center gap-2 rounded-[var(--lk-r-sm)] border border-[color:var(--lk-line-strong)] px-3 text-sm text-[color:var(--lk-ink)] hover:bg-white/5';
+      'inline-flex h-9 items-center gap-2 rounded-[var(--lk-r-sm)] border border-[color:var(--lk-line-strong)] px-3 text-sm text-[color:var(--lk-ink)] hover:bg-[rgba(237,230,218,0.06)]';
     return (
       <section
         ref={wurzelRef}
