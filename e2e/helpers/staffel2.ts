@@ -200,6 +200,9 @@ export async function loeseRechteRest(page: Page, ab: 'kennung' | 'meta' | 'rege
 export const dialog = (page: Page): Locator =>
   page.getByRole('dialog', { name: 'Vorwurf erheben', exact: true });
 
+/** Hinweis der Aktionsleiste zum Vorwurf (Sperre, offene Schritte). */
+export const vorwurfHinweis = (page: Page): Locator => page.locator('#aktionsleiste-hinweis');
+
 export const vorwurfKnopf = (page: Page): Locator =>
   page.getByRole('button', { name: 'Vorwurf erheben', exact: true });
 

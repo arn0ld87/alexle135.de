@@ -35,6 +35,7 @@ test('Staffel 2: Spur Log vor Spur Rechte lösen, je ein Schritt pro Bündel', a
   // Erst nach dem Setup steht die Startauswahl fest; vorher würde sie überschrieben.
   await expect(page.getByTestId('pager')).toContainText(ANFANG, { timeout: 15_000 });
 
+  await oeffneAkte(page);
   await expect(spur(page, RECHTE_0)).toBeVisible();
   await expect(spur(page, LOG_0)).toBeVisible();
 

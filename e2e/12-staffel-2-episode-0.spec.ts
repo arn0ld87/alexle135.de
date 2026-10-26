@@ -10,6 +10,7 @@ import {
   rows,
   startEpisode,
   waehleBelege,
+  oeffneAkte,
 } from './helpers/staffel2';
 
 // Ticket 12 und ADR 0009: Episode 0 „Probelauf“ komplett gegen die echte VM (sichern, ablesen,
@@ -104,6 +105,7 @@ test('ADR 0009: Neu laden startet Episode 0 frisch und stellt die veränderte Li
   expect(await anzahlImPager(page, META_ERLEDIGT)).toBe(0);
   await expect(page.getByRole('heading', { level: 2, name: /^Episode 0/ })).toBeVisible();
   await flaeche(page, 'Ansicht');
+  await oeffneAkte(page);
   await expect(
     page.getByRole('button', { name: 'Akte, 0 von 2 Schritten erledigt' })
   ).toBeVisible();
