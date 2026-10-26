@@ -82,6 +82,14 @@ test('T10-1: Raum lesen, Log vor Rechte-Zeile sichern, richtiger Vorwurf', async
   expect(await anzahlImPager(page, PAGER.richtig)).toBe(1);
   await expect(page.getByText('Der Rechtefund')).toHaveCount(1);
   await expect(page.getByRole('heading', { name: 'Fall gelöst' })).toHaveCount(1);
+
+  // Spielmodus (#170): Auch auf dem Handy ist der ganze Abschluss bis zum letzten Element
+  // erreichbar, obwohl die Seite selbst nicht scrollt.
+  await page.setViewportSize({ width: 390, height: 844 });
+  const abschluss = page.locator('section[aria-labelledby="ermittlung-abschluss"]');
+  const letztes = abschluss.locator('a, p').last();
+  await letztes.scrollIntoViewIfNeeded();
+  await expect(letztes).toBeInViewport();
 });
 
 test('T10-2: umgekehrte Spurenreihenfolge, Rechte-Spur bleibt linear', async ({ page }) => {
