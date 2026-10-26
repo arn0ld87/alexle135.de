@@ -25,3 +25,38 @@ test('T11-1 Desktop 1440x900: linke Spalte scrollt, Terminal bleibt fest', async
   // Das Terminal reicht nicht über das Fenster hinaus.
   expect((vorher?.y ?? 0) + (vorher?.height ?? 0)).toBeLessThanOrEqual(900);
 });
+
+// #170 UI-01: Im Spielmodus fehlen Website-Navigation und Footer, die Spielfläche füllt genau das
+// Fenster (100dvh), und die ganze Seite scrollt bei keiner Größe.
+for (const groesse of [
+  { width: 1440, height: 900 },
+  { width: 1366, height: 768 },
+  { width: 390, height: 844 },
+]) {
+  test(`T11-2 Spielmodus ${groesse.width}x${groesse.height}: kein Seitenscroll, Pager und Terminal im Fenster`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(groesse);
+    await page.goto(STAFFEL2);
+    await expect(page.getByTestId('pager')).toBeVisible({ timeout: 30_000 });
+    await flaeche(page, 'Terminal');
+    const terminal = page.getByTestId('v86-terminal');
+    await expect(terminal).toBeVisible({ timeout: 30_000 });
+
+    await expect(page.getByRole('navigation', { name: 'Hauptnavigation' })).toHaveCount(0);
+    await expect(page.getByRole('contentinfo')).toHaveCount(0);
+
+    const seite = await page.evaluate(() => ({
+      scroll: document.scrollingElement?.scrollHeight ?? 0,
+      hoehe: window.innerHeight,
+    }));
+    expect(seite.scroll).toBeLessThanOrEqual(seite.hoehe);
+
+    for (const ziel of [page.getByTestId('pager'), terminal]) {
+      const box = await ziel.boundingBox();
+      expect(box).not.toBeNull();
+      expect(box!.y).toBeGreaterThanOrEqual(0);
+      expect(box!.y + box!.height).toBeLessThanOrEqual(groesse.height);
+    }
+  });
+}
