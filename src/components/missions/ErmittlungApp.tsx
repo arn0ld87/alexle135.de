@@ -659,10 +659,7 @@ export default function ErmittlungApp(props: ErmittlungAppProps) {
           </div>
           <div className="ml-auto flex min-w-0 items-center gap-1.5">
             {pruefHinweis && (
-              <p
-                role="status"
-                className="min-w-0 text-[13px] text-[color:var(--lk-warn)]"
-              >
+              <p role="status" className="min-w-0 text-[13px] text-[color:var(--lk-warn)]">
                 {pruefHinweis}
               </p>
             )}

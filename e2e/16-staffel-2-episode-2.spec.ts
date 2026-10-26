@@ -85,7 +85,7 @@ test('Episode 2: Wiederg√§nger beenden, Zettel auf dem Bildschirm lesen, Nadia √
     `feh ~/fotos/IMG_0417.png & until xwininfo -root -tree | grep -q '"feh'; do sleep 1; done; echo ZETTEL-$((40+2))`
   );
   await expect(rows(page)).toContainText('ZETTEL-42', { timeout: 240_000 });
-  await page.getByRole('button', { name: 'Bildschirm', exact: true }).click();
+  await page.getByRole('tab', { name: 'Bildschirm', exact: true }).click();
   const bildschirm = page.getByTestId('v86-bildschirm');
   await expect(bildschirm).toBeVisible();
   await page.waitForTimeout(4_000);

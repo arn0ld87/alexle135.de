@@ -333,24 +333,24 @@ export default function V86Bildschirm({
     >
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--terminal-border)] px-3 py-2 font-mono text-xs text-[var(--terminal-fg-muted)]">
         {!gesteuert && (
-        <div className="flex gap-1" role="group" aria-label="Terminal oder Bildschirm">
-          <button
-            type="button"
-            aria-pressed={reiter === 'terminal'}
-            onClick={() => zeige('terminal')}
-            className={reiterKlasse(reiter === 'terminal')}
-          >
-            Terminal
-          </button>
-          <button
-            type="button"
-            aria-pressed={reiter === 'bildschirm'}
-            onClick={() => zeige('bildschirm')}
-            className={reiterKlasse(reiter === 'bildschirm')}
-          >
-            Bildschirm
-          </button>
-        </div>
+          <div className="flex gap-1" role="group" aria-label="Terminal oder Bildschirm">
+            <button
+              type="button"
+              aria-pressed={reiter === 'terminal'}
+              onClick={() => zeige('terminal')}
+              className={reiterKlasse(reiter === 'terminal')}
+            >
+              Terminal
+            </button>
+            <button
+              type="button"
+              aria-pressed={reiter === 'bildschirm'}
+              onClick={() => zeige('bildschirm')}
+              className={reiterKlasse(reiter === 'bildschirm')}
+            >
+              Bildschirm
+            </button>
+          </div>
         )}
         <span
           data-testid="v86-status"

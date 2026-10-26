@@ -63,7 +63,10 @@ export const pager = (page: Page): Locator => page.getByTestId('pager');
 
 /** Wählt den Tab der Arbeitsfläche: „Ansicht“ ist der Serverraum; ein Tab schließt auf schmalen Fenstern die Fallakte. */
 export async function flaeche(page: Page, name: 'Ansicht' | 'Terminal'): Promise<void> {
-  const tab = page.getByRole('tab', { name: name === 'Ansicht' ? 'Serverraum' : name, exact: true });
+  const tab = page.getByRole('tab', {
+    name: name === 'Ansicht' ? 'Serverraum' : name,
+    exact: true,
+  });
   if ((await tab.getAttribute('aria-selected')) !== 'true') await tab.click();
 }
 
