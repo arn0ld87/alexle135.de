@@ -85,11 +85,13 @@ test('T10-1: Raum lesen, Log vor Rechte-Zeile sichern, richtiger Vorwurf', async
 
   // Spielmodus (#170): Auch auf dem Handy ist der ganze Abschluss bis zum letzten Element
   // erreichbar, obwohl die Seite selbst nicht scrollt.
-  await page.setViewportSize({ width: 390, height: 844 });
   const abschluss = page.locator('section[aria-labelledby="ermittlung-abschluss"]');
   const letztes = abschluss.locator('a, p').last();
-  await letztes.scrollIntoViewIfNeeded();
-  await expect(letztes).toBeInViewport();
+  for (const height of [844, 667]) {
+    await page.setViewportSize({ width: 390, height });
+    await letztes.scrollIntoViewIfNeeded();
+    await expect(letztes).toBeInViewport();
+  }
 });
 
 test('T10-2: umgekehrte Spurenreihenfolge, Rechte-Spur bleibt linear', async ({ page }) => {
