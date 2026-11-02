@@ -63,7 +63,6 @@ const MISSION_HINWEIS = 'In Staffel 2 gibt es mission noch nicht. Schau in den P
 
 interface ErmittlungAppProps {
   ermittlung: Ermittlung;
-  hostname?: string;
   /** Karten des Werkzeugkastens in der Hilfe; ohne sie gibt es nur die Tipps. */
   werkzeuge?: readonly MissionTool[];
   /** Link im Abschluss zur nächsten Episode; fehlt bei der letzten. */
@@ -86,9 +85,9 @@ function ersteSpur(spuren: readonly Spur[], zustand: ErmittlungsZustand): Spur |
 }
 
 export default function ErmittlungApp(props: ErmittlungAppProps) {
-  // Der Hostname gehört zur Episode: `ermittlung.hostname` ist die Quelle. Die Prop nur als
-  // Override für Tests, sonst der Episodenwert (#137).
-  const { ermittlung, hostname = ermittlung.hostname, werkzeuge, weiter, onGeloest } = props;
+  // Der Hostname gehört zur Episode: `ermittlung.hostname` ist die einzige Quelle (#137).
+  const { ermittlung, werkzeuge, weiter, onGeloest } = props;
+  const hostname = ermittlung.hostname;
   const [pager, setPager] = useState<PagerNachricht[]>([]);
   const [pruefHinweis, setPruefHinweis] = useState<string | null>(null);
   const [rahmenFehler, setRahmenFehler] = useState<string | null>(null);
