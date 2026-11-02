@@ -2,6 +2,7 @@ import margitBild from '../../../assets/missions/staffel-2/margit.webp';
 import nadiaBild from '../../../assets/missions/staffel-2/nadia.webp';
 import timoBild from '../../../assets/missions/staffel-2/timo.webp';
 import { AKTENWAND_ABFRAGE } from '../../../lib/missions/aktenwand';
+import { STAFFEL2_HOSTNAME } from '../../../lib/missions/staffel2Rahmen';
 import { EINSATZRAHMEN_VERSTOSS } from '../../../lib/missions/einsatzrahmenSetup';
 import type { Ermittlung, ErmittlungsSchritt } from '../../../lib/missions/ermittlungTypes';
 import { diagnoseBelegDa, diagnoseZweiDateien } from '../../../lib/missions/ermittlungsDiagnose';
@@ -362,7 +363,7 @@ export const episode1: Ermittlung = {
   nr: 1,
   id: 'zu-viele-rechte',
   titel: 'Zu viele Rechte',
-  hostname: 'rw-srv01',
+  hostname: STAFFEL2_HOSTNAME,
   setup: SETUP,
   ansichten: [
     {

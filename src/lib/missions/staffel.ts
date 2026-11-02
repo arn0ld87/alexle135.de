@@ -96,7 +96,8 @@ export function neueAbzeichen(staffel: Staffel, stand: StaffelStand, lauf?: Akte
         case 'ohne-tipp':
           return eintraege.some((e) => e.hintsUsed === 0 && !e.withSolution);
         case 'schnell':
-          return eintraege.some((e) => e.durationMs < regel.ms);
+          // Eine aufgedeckte Lösung zählt nicht als schnell gelöst (#137).
+          return eintraege.some((e) => e.durationMs < regel.ms && !e.withSolution);
         case 'nie-loesung':
           return (
             staffel.vorfaelle.every((v) => v.id in stand.akte) &&

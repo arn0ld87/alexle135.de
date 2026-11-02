@@ -2,9 +2,9 @@
 // mit Schreibmaschinen-Klackern und Glöckchen am Ende (#412, abschaltbar), ältere stehen im
 // aufklappbaren Verlauf. Bei
 // `prefers-reduced-motion` steht der Text sofort. Screenreader bekommen den ganzen Text auf einmal.
-// Links sitzt Alex' Figur (#402): je Nachricht eine Pose als eigenes SVG, geladen wird nur die
+// Links sitzt Alex' Figur (#402): je Nachricht eine Pose als eigenes WebP, geladen wird nur die
 // gezeigte. Dekorativ (alt=""), den Text trägt die Sprechblase. Blinzeln und Atmen stecken im
-// SVG selbst und laufen nur ohne reduzierte Bewegung.
+// Bild selbst und laufen nur ohne reduzierte Bewegung.
 // Im Spielmodus von Staffel 2 (`spiel`, #170) ist der Pager eine flache Leiste mit Porträt, gekürzter
 // Nachricht und Knopf „Verlauf“; der Verlauf liegt als Overlay darunter und schiebt nichts.
 import { useEffect, useRef, useState } from 'react';

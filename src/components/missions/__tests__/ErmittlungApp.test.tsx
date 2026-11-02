@@ -89,6 +89,15 @@ describe('ErmittlungApp', () => {
     await waitFor(() => expect(pagerText()).toContain('Leg in ~/belege'));
   });
 
+  it('nutzt den Hostnamen der Episode für Rahmen und Anzeige', async () => {
+    const eigene: Ermittlung = { ...platzhalter, hostname: 'rw-test01' };
+    render(<ErmittlungApp ermittlung={eigene} />);
+
+    await waitFor(() => expect(run).toHaveBeenCalled());
+    expect(run.mock.calls[0]?.[0]).toBe(rahmenSetupSkript('rw-test01'));
+    expect(screen.getByTestId('server-chip')).toHaveTextContent('rw-test01');
+  });
+
   it.each(['rahmen', 'einsatzrahmen', 'episode'])(
     'meldet einen fehlgeschlagenen %s-Exitcode',
     async (teil) => {

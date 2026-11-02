@@ -1,4 +1,5 @@
 import { AKTENWAND_ABFRAGE } from '../../../lib/missions/aktenwand';
+import { STAFFEL2_HOSTNAME } from '../../../lib/missions/staffel2Rahmen';
 import { EINSATZRAHMEN_VERSTOSS } from '../../../lib/missions/einsatzrahmenSetup';
 import type { Ermittlung } from '../../../lib/missions/ermittlungTypes';
 
@@ -10,7 +11,7 @@ export const platzhalter: Ermittlung = {
   nr: 1,
   id: 'platzhalter',
   titel: 'Platzhalter',
-  hostname: 'rw-srv01',
+  hostname: STAFFEL2_HOSTNAME,
   setup: 'true',
   ansichten: [
     {

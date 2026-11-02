@@ -130,6 +130,14 @@ describe('neueAbzeichen', () => {
     expect(neueAbzeichen(staffel, { ...leererStand(), akte: mitLoesung })).toEqual([]);
   });
 
+  it('vergibt „schnell“ nicht, wenn die Lösung aufgedeckt wurde', () => {
+    const schnellMitLoesung = {
+      ...leererStand(),
+      akte: { v0: eintrag({ durationMs: 1000, withSolution: true }) },
+    };
+    expect(neueAbzeichen(staffel, schnellMitLoesung)).toEqual([]);
+  });
+
   it('vergibt kein Abzeichen zweimal', () => {
     const stand = { ...leererStand(), rotePrompts: 5, abzeichen: ['rot'] };
     expect(neueAbzeichen(staffel, stand)).toEqual([]);

@@ -25,7 +25,7 @@ import type { PagerArt, PagerNachricht, Pose } from '../../lib/missions/pager';
 import { erzeugeErmittlungsRun } from '../../lib/missions/ermittlungsRun';
 import { erzeugePruefLauf } from '../../lib/missions/pruefLauf';
 import type { PruefLauf } from '../../lib/missions/pruefLauf';
-import { STAFFEL2_HOSTNAME, rahmenSetupSkript } from '../../lib/missions/staffel2Rahmen';
+import { rahmenSetupSkript } from '../../lib/missions/staffel2Rahmen';
 import {
   erstelleFrischPruef,
   erstelleVorwurfAblauf,
@@ -86,7 +86,9 @@ function ersteSpur(spuren: readonly Spur[], zustand: ErmittlungsZustand): Spur |
 }
 
 export default function ErmittlungApp(props: ErmittlungAppProps) {
-  const { ermittlung, hostname = STAFFEL2_HOSTNAME, werkzeuge, weiter, onGeloest } = props;
+  // Der Hostname gehört zur Episode: `ermittlung.hostname` ist die Quelle. Die Prop nur als
+  // Override für Tests, sonst der Episodenwert (#137).
+  const { ermittlung, hostname = ermittlung.hostname, werkzeuge, weiter, onGeloest } = props;
   const [pager, setPager] = useState<PagerNachricht[]>([]);
   const [pruefHinweis, setPruefHinweis] = useState<string | null>(null);
   const [rahmenFehler, setRahmenFehler] = useState<string | null>(null);
