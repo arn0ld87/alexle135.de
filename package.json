@@ -72,7 +72,6 @@
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
     "sanitize-html": "^2.18.0",
-    "simple-oauth2": "^5.0.0",
     "tailwind-merge": "^3.4.0",
     "terser": "^5.44.1",
     "v86": "0.5.471"
