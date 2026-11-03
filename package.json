@@ -74,7 +74,7 @@
     "sanitize-html": "^2.18.0",
     "tailwind-merge": "^3.4.0",
     "terser": "^5.44.1",
-    "v86": "0.5.471"
+    "v86": "0.5.473"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
