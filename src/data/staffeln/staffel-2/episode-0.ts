@@ -2,6 +2,7 @@ import kaffeeBild from '../../../assets/missions/staffel-2/kaffee.webp';
 import nadiaBild from '../../../assets/missions/staffel-2/nadia.webp';
 import timoBild from '../../../assets/missions/staffel-2/timo.webp';
 import { AKTENWAND_ABFRAGE } from '../../../lib/missions/aktenwand';
+import { STAFFEL2_HOSTNAME } from '../../../lib/missions/staffel2Rahmen';
 import type { Ermittlung, ErmittlungsSchritt } from '../../../lib/missions/ermittlungTypes';
 import {
   diagnoseBelegAnfang,
@@ -254,7 +255,7 @@ export const episode0: Ermittlung = {
   nr: 0,
   id: 'probelauf',
   titel: 'Probelauf',
-  hostname: 'rw-srv01',
+  hostname: STAFFEL2_HOSTNAME,
   setup: SETUP,
   ansichten: [
     {
